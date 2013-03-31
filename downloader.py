@@ -50,21 +50,22 @@ class Vacancy (object):
 def GetVacanciesFromPage (page):
   #TODO: logging
   soup = bs4.BeautifulSoup (page)
-  name = ""
-  min_sal = 0
-  for child in soup.find ('a', class_='b-vacancy-list-link b-marker-link'):
-    name = child.strip()
-    #print (name)
-    break
-  for child in soup.find ('div', class_='b-vacancy-list-salary'):
-    min_sal = child.strip()
-    allDigits = re.findall (r'(\d*)', min_sal, re.M)
-    min_sal = "".join(allDigits)
-    min_sal = int (min_sal)
+  res = []
+  for child in soup.find_all ('div', class_='searchresult__name'):
+    name = child.string
+    min_sal = 0
+    for elem in child.next_elements:
+      if isinstance (elem, bs4.element.Tag) and elem.name == 'div':
+        if elem.has_key('class') and elem['class'] == ['b-vacancy-list-salary']:
+          min_sal = elem.string
+          allDigits = re.findall (r'(\d*)', min_sal, re.M)
+          min_sal = "".join(allDigits)
+          min_sal = int (min_sal)
+          break
     #print (min_sal)
-    break
-  res = Vacancy(name, min_sal)
-  return [res]
+    #print (name)
+    res.append(Vacancy(name, min_sal))
+  return res
 
 
 def DownloadCategorized ():
@@ -100,7 +101,20 @@ class TestDownloader (unittest.TestCase):
     <div class=""><div class="searchresult__name"><span class="b-marker"><a class="b-vacancy-list-link b-marker-link" href="http://hh.ru/vacancy/6141931" target="_blank">Архитектор (Delphi, interbase)</a></span></div>
     <div class="b-vacancy-list-salary">от 90&nbsp;000 руб. </div><div class="searchresult__placetime"><a href="/employer/28439">ФГУП НИИ Почтовой связи</a> <span class="searchresult__address">(Москва), </span><span class="b-vacancy-list-date">30&nbsp;марта</span>&nbsp; </div></div> """
     vac = GetVacanciesFromPage (page)
-    self.assertEqual (len(vac) > 1, True)
+    self.assertEqual (len(vac) == 2, True)
+    page = """<div class=""><div class="searchresult__name"><span class="b-marker"><a class="b-vacancy-list-link b-marker-link" href="http://hh.ru/vacancy/7648301" target="_blank">Руководитель отдела веб-разработок</a></span></div><div class="b-vacancy-list-salary">
+             от 90&nbsp;000
+             до 120&nbsp;000
+             руб.
+        </div><div class="searchresult__placetime"><a href="/employer/235922">Крик Дизайн</a> <span class="searchresult__address">
+     (Москва),
+    </span><span class="b-vacancy-list-date">29&nbsp;марта</span>&nbsp;
+      </div></div>"
+    """
+    vac = GetVacanciesFromPage (page)
+    for v in vac:
+      print (v)
+
 
 if __name__ == '__main__':
   #DownloadCategorized ()
