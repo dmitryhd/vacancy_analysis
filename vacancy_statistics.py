@@ -1,17 +1,18 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 import bs4
 from urllib.request import *
+import re
 
 # @arg url - unicode string - Html page url
 # @return unicode string - Html page content
 def GetURL (url):
   """ Get HTML page by its URL """
-  headers = { 'User-Agent' : "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.56 Safari/537.17" }
-  req = Request (url, None, headers)
+  headers = {'User-Agent' : "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.56 Safari/537.17" }
+  req = Request(url, None, headers)
   response = urlopen (req)
-  return response.read ().decode('utf-8')
+  return response.read().decode('utf-8')
 
 
 class Vacancy (object):
@@ -105,6 +106,9 @@ def main ():
     'Tehnicheskij-pisatel'
     }
   DownloadCategorized (vacancy_types)
+
+
+
 
 
 if __name__ == '__main__':
