@@ -1,21 +1,43 @@
 #!/usr/bin/env python3
 
+""" Main module to download html pages fro hh.ru, parse them and
+    save to database.
+    run: ./market_analysis.py
+    Also can process database data to csv file for futher analysis.
+    run: ./market_analysis.py -p
+
+    Author: Dmitriy Khodakov <dmitryhd@gmail.com>
+    Date: 29.09.2014
+"""
+
 import bs4
 import requests
 import sqlalchemy
-from sqlalchemy.types import *
-from sqlalchemy.schema import *
+from sqlalchemy.schema import Column
 from sqlalchemy.ext.declarative import declarative_base
 import sys
 import re
+
+
 Base = declarative_base()
+BASE_URL = 'http://hh.ru/search/vacancy?source=&text=%D0%9F%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82&specialization=1&specialization=8&specialization=12&specialization=14&area=1&salary=&currency_code=RUR&only_with_salary=true&experience=&employment=full&order_by=relevance&search_period=&items_on_page=100&no_magic=true&page=1'
+MAXIM_NUMBER_OF_PAGES = 1000
 
 
 def get_url(url):
-    """ Get HTML page by its URL """
-    s = requests.Session()
-    page = s.get(url).text
+    """ Get HTML page by its URL. """
+    session = requests.Session()
+    page = session.get(url).text
     return page
+
+
+def prepare_db(db_name='data/vac.db'):
+    """ Return sqlalchemy session. """
+    engine = sqlalchemy.create_engine('sqlite:///' + db_name, echo=False)
+    Base.metadata.create_all(engine)
+    session = sqlalchemy.orm.sessionmaker(bind=engine)()
+    return session
+
 
 def get_vacancies_on_page(url, vacancies, session):
     """ Download all vacancies from page and return link to next page. """
@@ -31,32 +53,37 @@ def get_vacancies_on_page(url, vacancies, session):
             session.add(new_vacancy)
             session.commit()
             print(new_vacancy)
-    next_link = 'http://hh.ru' + soup.find_all('a', class_='b-pager__next-text')[1].attrs["href"]
-    #print('next = ', next_link)
+    link = soup.find_all('a', class_='b-pager__next-text')[1].attrs["href"]
+    next_link = 'http://hh.ru' + link
     return next_link
 
 
 class Vacancy(Base):
+    """ Simple unprocessed vacancy. Contains name and html page. """
     __tablename__ = 'vacancy'
-    id = Column(Integer, primary_key=True)
-    name =  Column(String(100))
-    html =  Column(Text)
+    id = Column(sqlalchemy.types.Integer, primary_key=True)
+    name = Column(sqlalchemy.types.String(100))
+    html = Column(sqlalchemy.types.Text)
 
     def __init__(self, name, html):
         self.name = name
         self.html = html
 
     def __repr__(self):
-        return 'Vacancy: id={}, name={}, html={}'.format(self.id, self.name, len(self.html))
+        return 'Vacancy: id={}, name={}, html={}'.format(self.id,
+                                                         self.name,
+                                                         len(self.html))
 
 class ProcessedVacancy(Base):
+    """ Processed vacancy. Contains name, 2 parts of page, and skills."""
     __tablename__ = 'proc_vacancy'
-    id = Column(Integer, primary_key=True)
-    name =  Column(String(100))
-    imp_html = Column(Text)
-    short_html = Column(Text)
-    max_salary = Column(Integer)
-    min_salary = Column(Integer)
+    id = Column(sqlalchemy.types.Integer, primary_key=True)
+    name = Column(sqlalchemy.types.String(100))
+    imp_html = Column(sqlalchemy.types.Text)
+    short_html = Column(sqlalchemy.types.Text)
+    max_salary = Column(sqlalchemy.types.Integer)
+    min_salary = Column(sqlalchemy.types.Integer)
+    # Keywords in text of vacancy.
     skills = ['c++',
               'python',
               'perl',
@@ -67,8 +94,10 @@ class ProcessedVacancy(Base):
               '1c',
               'sap',
               'php',
-              ]
+             ]
+
     def __init__(self):
+        """ Fill skills. """
         self.has_skills = {skill:False for skill in self.skills}
 
     def __repr__(self):
@@ -81,8 +110,9 @@ class ProcessedVacancy(Base):
 
 
 def process_vacancies(session, file_name='data/pvac.csv'):
-
-    print('Processing vacancies')
+    """ Generate csv file with vacancy name, minimum and maximum salary
+        anb information about programming language.
+    """
     proc_vacs = []
     # 1. load vacancies from db
     vacancies = session.query(Vacancy)
@@ -123,7 +153,8 @@ def process_vacancies(session, file_name='data/pvac.csv'):
             else:
                 pvac.max_salary = None
     # 4. get Skills:
-    # 4.1 clear all tags, normalize and leave only english letters and digits >=3
+    # 4.1 clear all tags, normalize and leave only english
+    # letters and digits >=3
     # 4.2 frequency dict for all vacancies skills.
     # 4.3 make database of skills
     # 4.4 mark every vacancy for skill
@@ -135,15 +166,17 @@ def process_vacancies(session, file_name='data/pvac.csv'):
         for skill in pvac.skills:
             if skill in text:
                 pvac.has_skills[skill] = True
-        print('short vac: {} min={} max={} skills={}'.format(pvac.name, pvac.min_salary, 
-                                                             pvac.max_salary, pvac.has_skills))
+        print('short vac: {} min={} max={} skills={}'.format(pvac.name,
+                                                             pvac.min_salary,
+                                                             pvac.max_salary,
+                                                             pvac.has_skills))
 
     #4~~ export to csv
-    fd = open(file_name, 'w')
+    csv_fd = open(file_name, 'w')
     headers = 'min_salary; max_salary'
     for skill in ProcessedVacancy.skills:
         headers += '; {}'.format(skill)
-    print(headers, file=fd)
+    print(headers, file=csv_fd)
     for pvac in proc_vacs:
         vac_str = ''
         if pvac.min_salary is None:
@@ -156,30 +189,29 @@ def process_vacancies(session, file_name='data/pvac.csv'):
             vac_str += str(pvac.max_salary)
         for skill in pvac.skills:
             vac_str += '; {}'.format(int(pvac.has_skills[skill]))
-        print(vac_str, file=fd)
+        print(vac_str, file=csv_fd)
     # 5. get location of vacancy
     # 6. categorizing by company
-    print('\n end. errors = {}, total = {}'.format(error_cnt, total_cnt))
+    print('\nFinised processing. Parsing errors = {}, total = {}.'.format(
+        error_cnt,
+        total_cnt))
 
 
-
-def prepare_db(db_name='data/vac.db'):
-    engine = sqlalchemy.create_engine('sqlite:///' + db_name, echo=False)
-    Base.metadata.create_all(engine)
-    session = sqlalchemy.orm.sessionmaker(bind=engine)()
-    return session
-
-if __name__ == '__main__':
+def main():
+    """ Just choose what to do: download or process. """
     if len(sys.argv) == 1:
         # Download all vacancies to database
         # all for programmer
         session = prepare_db()
         vacancies = []
-        base_url = 'http://hh.ru/search/vacancy?source=&text=%D0%9F%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82&specialization=1&specialization=8&specialization=12&specialization=14&area=1&salary=&currency_code=RUR&only_with_salary=true&experience=&employment=full&order_by=relevance&search_period=&items_on_page=100&no_magic=true&page=1'
-        next_link = base_url
-        for i in range(200):
+        next_link = BASE_URL
+        for i in range(MAXIM_NUMBER_OF_PAGES):
             next_link = get_vacancies_on_page(next_link, vacancies, session)
     elif sys.argv[1] == '-p':
         # Processing vacancies
         session = prepare_db()
         process_vacancies(session)
+
+
+if __name__ == '__main__':
+    main()

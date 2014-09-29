@@ -1,5 +1,12 @@
+# Plot all boxplots for vacancies.
+#
+# Author: Dmitriy Khodakov <dmitryhd@gmail.com>
+# Date: 29.09.2014
+
+# 1. load dataset.
 pvac <- read.csv("data/pvac.csv", sep=";", stringsAsFactors=FALSE)
 
+# 2. Make subsets for every programming language. TODO: automate this.
 datasets <- list(pvac[which(pvac$python==1),],
               pvac[which(pvac$c..==1),],
               pvac[which(pvac$java==1),],
@@ -12,34 +19,34 @@ datasets <- list(pvac[which(pvac$python==1),],
               pvac[which(pvac$sap==1),]
               )
 
-descriptions1 <- c('python','cpp','java','php','perl','ruby','bash','javascript','x1c','sap')
+descriptions <- c('python','cpp','java','php','perl','ruby','bash','javascript','x1c','sap')
 
+# 3. Function for plotting boxplots.
 getdf <- function(datasets, descriptions, file_name) {
+  # 3.1 get maxim size of data.
   max_size <- 0
   for (data in datasets) {
     max_size <- max(max_size, length(data$max_salary), length(data$min_salary))
   }
-  names <- c()
-  names_min <- c()
-  names_max <- c()
-  mns <- c()
+  # 3.2 prepare data
+  names <- c() # laguage description
+  names_min <- c() # column name for min salary
+  names_max <- c() # column name for max salary
+  mns <- c() # means
   s_max <- list()
   s_min <- list()
   for (i in 1:length(datasets)) {
     data <- datasets[[i]]
     print(descriptions[i])
     pm1 <- as.numeric(data$max_salary)
-    need_size <- maxsize - length(data$max_salary)
+    need_size <- max_size - length(data$max_salary)
     new_max <- c(pm1, rep(NA, need_size))
     pm2 <- as.numeric(data$min_salary)
-    need_size <- maxsize - length(data$min_salary)
+    need_size <- max_size - length(data$min_salary)
     new_min <- c(pm2, rep(NA, need_size))
-    mn_max <-mean(pm1, na.rm=T)
-    mn_min <-mean(pm2, na.rm=T)
     mn <- mean(c(pm1, pm2), na.rm=T)
     max_name <- paste(descriptions[i],'_max',sep = "")
     min_name <- paste(descriptions[i],'_min',sep = "")
-    print(list(mn, max_name, min_name, pm1, pm2))
     mns <- c(mns, mn)
     names_min <- c(names_min, min_name)
     names_max <- c(names_max, max_name)
@@ -47,6 +54,7 @@ getdf <- function(datasets, descriptions, file_name) {
     s_max[[i]] <- new_max
     s_min[[i]] <- new_min
   }  
+  # 3.3. store data in dataframe df, in sorted order by mean 
   df <- data.frame(rep(NA, max_size))
   prepared_data <- data.frame(mns, names_min, names_max, names, stringsAsFactors=FALSE)
   plot_labels <- c()
@@ -59,6 +67,7 @@ getdf <- function(datasets, descriptions, file_name) {
   }
   df$rep.NA..max_size. <- NULL
 
+  # 3.4 plot
   png(file_name, width = 1200, height = 800)
   par(mar=c(4, 20, 2, 0.5))
   boxplot(df, xaxt='n', las = 2, ylim=c(20000, 200000), names=plot_labels, horizontal=T, col=rainbow(length(df)), main='Зарплата программистов (hh.ru 29.09.2014, Khodakov)', xlab='Руб.')
@@ -67,5 +76,6 @@ getdf <- function(datasets, descriptions, file_name) {
   dev.off()
   return(df)
 }
-getdf(datasets, descriptions1, 'plots/vacancy_summary.png')
-#df <- getdf(datasets, descriptions1)
+
+# main()
+getdf(datasets, descriptions, 'plots/vacancy_summary.png')
