@@ -66,9 +66,7 @@ class ProcessedVacancy(Base):
               'javascript',
               '1c',
               'sap',
-              'matlab',
               'php',
-              'net'
               ]
     def __init__(self):
         self.has_skills = {skill:False for skill in self.skills}

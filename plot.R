@@ -1,16 +1,4 @@
-
-# Any programmer 
-png(filename="plots/min_max_salary.png")
-par(mfrow=c(2,1))
-hist(as.numeric(pvac$min_salary), breaks=50, col="lightblue", xlim=c(40000, 300000), xlab='Minimum salary (RUB)', main='Minimum salary of programmer (any language) (28.09.2014 hh.ru)')
-hist(as.numeric(pvac$max_salary), breaks=80, col="chocolate1", xlim=c(40000, 300000), xlab='Maximum salary (RUB)', main='Maximum salary of programmer (any language) (28.09.2014 hh.ru)')
-dev.off()
-
-png(filename="plots/min_max_salary_boxplot.png")
-par(mfrow=c(2,1))
-boxplot(as.numeric(pvac$min_salary), ylim=c(0,200000),col="lightblue", horizontal=TRUE, main='Minimum salary of programmer (any language) (28.09.2014 hh.ru)')
-boxplot(as.numeric(pvac$max_salary), ylim=c(0,200000),col="chocolate1", horizontal=TRUE, main='Maximum salary of programmer (any language) (28.09.2014 hh.ru)')
-dev.off()
+pvac <- read.csv("data/pvac.csv", sep=";", stringsAsFactors=FALSE)
 
 datasets <- list(pvac[which(pvac$python==1),],
               pvac[which(pvac$c..==1),],
@@ -21,36 +9,63 @@ datasets <- list(pvac[which(pvac$python==1),],
               pvac[which(pvac$bash==1),],
               pvac[which(pvac$javascript==1),],
               pvac[which(pvac$X1c==1),],
-              pvac[which(pvac$sap==1),],
-              pvac[which(pvac$matlab==1),],
-              pvac[which(pvac$net==1),]
+              pvac[which(pvac$sap==1),]
               )
 
-descriptions <- c(paste('python (', length(datasets[[1]]$max_salary), ' vacancies)'),
-                  paste('c++ (', length(datasets[[2]]$max_salary), ' vacancies)'),
-                  paste('java (', length(datasets[[3]]$max_salary), ' vacancies)'),
-                  paste('php (', length(datasets[[4]]$max_salary), ' vacancies)'),
-                  paste('perl (', length(datasets[[5]]$max_salary), ' vacancies)'),
-                  paste('ruby (', length(datasets[[6]]$max_salary), ' vacancies)'),
-                  paste('bash (', length(datasets[[7]]$max_salary), ' vacancies)'),
-                  paste('javascript (', length(datasets[[8]]$max_salary), ' vacancies)'),
-                  paste('1c (', length(datasets[[9]]$max_salary), ' vacancies)'),
-                  paste('sap (', length(datasets[[10]]$max_salary), ' vacancies)'),
-                  paste('matlab (', length(datasets[[11]]$max_salary), ' vacancies)'),
-                  paste('net (', length(datasets[[12]]$max_salary), ' vacancies)')
-                  )
-filenames <- c('plots/python.png','plots/cpp.png','plots/java.png','plots/php.png','plots/perl.png','plots/ruby.png','plots/bash.png','plots/js.png','plots/1c.png','plots/sap.png','plots/matlab.png', 'plots/net.png')
+descriptions1 <- c('python','cpp','java','php','perl','ruby','bash','javascript','x1c','sap')
 
-salary_boxplots <- function(data, desc, file_name) {
-  png(filename=file_name)
-  title_min <- paste('Minimum salary of programmer ', desc, ' (28.09.2014 hh.ru)')
-  title_max <- paste('Maximum salary of programmer ', desc, ' (28.09.2014 hh.ru)')
-  par(mfrow=c(2,1))
-  boxplot(as.numeric(data$min_salary), ylim=c(0,200000),col="lightblue", horizontal=TRUE, main=title_min, xlab='Salary (Ru)')
-  boxplot(as.numeric(data$max_salary), ylim=c(0,200000),col="chocolate1", horizontal=TRUE, main=title_max, xlab='Salary (Ru)')
+getdf <- function(datasets, descriptions, file_name) {
+  max_size <- 0
+  for (data in datasets) {
+    max_size <- max(max_size, length(data$max_salary), length(data$min_salary))
+  }
+  names <- c()
+  names_min <- c()
+  names_max <- c()
+  mns <- c()
+  s_max <- list()
+  s_min <- list()
+  for (i in 1:length(datasets)) {
+    data <- datasets[[i]]
+    print(descriptions[i])
+    pm1 <- as.numeric(data$max_salary)
+    need_size <- maxsize - length(data$max_salary)
+    new_max <- c(pm1, rep(NA, need_size))
+    pm2 <- as.numeric(data$min_salary)
+    need_size <- maxsize - length(data$min_salary)
+    new_min <- c(pm2, rep(NA, need_size))
+    mn_max <-mean(pm1, na.rm=T)
+    mn_min <-mean(pm2, na.rm=T)
+    mn <- mean(c(pm1, pm2), na.rm=T)
+    max_name <- paste(descriptions[i],'_max',sep = "")
+    min_name <- paste(descriptions[i],'_min',sep = "")
+    print(list(mn, max_name, min_name, pm1, pm2))
+    mns <- c(mns, mn)
+    names_min <- c(names_min, min_name)
+    names_max <- c(names_max, max_name)
+    names <- c(names, descriptions[i])
+    s_max[[i]] <- new_max
+    s_min[[i]] <- new_min
+  }  
+  df <- data.frame(rep(NA, max_size))
+  prepared_data <- data.frame(mns, names_min, names_max, names, stringsAsFactors=FALSE)
+  plot_labels <- c()
+  for (i in with(prepared_data, order(mns))) {
+    print(prepared_data[i,2])
+    df[prepared_data[i,3]] <- s_max[[i]]
+    df[prepared_data[i,2]] <- s_min[[i]]
+    plot_labels <- c(plot_labels, paste(prepared_data[i,4], ' мин. [Сердн.=', format(round(prepared_data[i,1], -3), scientific=F), '] ', 'Вакансий:', length(datasets[[i]]$max_salary), sep=''))
+    plot_labels <- c(plot_labels, paste(prepared_data[i,4], ' мaкс. [Сердн.=', format(round(prepared_data[i,1], -3), scientific=F), '] ', 'Вакансий:', length(datasets[[i]]$max_salary), sep=''))
+  }
+  df$rep.NA..max_size. <- NULL
+
+  png(file_name, width = 1200, height = 800)
+  par(mar=c(4, 20, 2, 0.5))
+  boxplot(df, xaxt='n', las = 2, ylim=c(20000, 200000), names=plot_labels, horizontal=T, col=rainbow(length(df)), main='Зарплата программистов (hh.ru 29.09.2014, Khodakov)', xlab='Руб.')
+  abline(v = seq(10000, 300000, 10000), lty=1.5, lwd=0.5, col=336)
+  axis(side = 1, at = seq(10000, 300000, 10000))
   dev.off()
+  return(df)
 }
-
-for (i in 1:11) {
-  salary_boxplots(datasets[[i]], descriptions[i], filenames[i])
-}
+getdf(datasets, descriptions1, 'plots/vacancy_summary.png')
+#df <- getdf(datasets, descriptions1)
