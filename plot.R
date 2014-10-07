@@ -3,7 +3,7 @@
 # Author: Dmitriy Khodakov <dmitryhd@gmail.com>
 # Date: 29.09.2014
 
-header <- 'Зарплата программистов (hh.ru 29.09.2014, Khodakov)'
+header <- 'Зарплата программистов по Москве (hh.ru 29.09.2014, Khodakov)'
 
 # 1. load dataset.
 pvac <- read.csv("data/pvac.csv", sep=";", stringsAsFactors=FALSE)
