@@ -63,8 +63,8 @@ getdf <- function(datasets, descriptions, file_name) {
   for (i in with(prepared_data, order(mns))) {
     df[prepared_data[i,3]] <- s_max[[i]]
     df[prepared_data[i,2]] <- s_min[[i]]
-    plot_labels <- c(plot_labels, paste(prepared_data[i,4], ' "До". [Сердн.=', format(round(prepared_data[i,6], -2), scientific=F), '] ', 'Вакансий:', length(datasets[[i]]$max_salary), sep=''))
-    plot_labels <- c(plot_labels, paste(prepared_data[i,4], ' "От". [Сердн.=', format(round(prepared_data[i,5], -2), scientific=F), '] ', 'Вакансий:', length(datasets[[i]]$max_salary), sep=''))
+    plot_labels <- c(plot_labels, paste(prepared_data[i,4], ' "До" [Сердн.=', format(round(prepared_data[i,6], -2), scientific=F), '] ', 'Вакансий:', length(datasets[[i]]$max_salary), sep=''))
+    plot_labels <- c(plot_labels, paste(prepared_data[i,4], ' "От" [Сердн.=', format(round(prepared_data[i,5], -2), scientific=F), '] ', 'Вакансий:', length(datasets[[i]]$max_salary), sep=''))
   }
   df$rep.NA..max_size. <- NULL
 
