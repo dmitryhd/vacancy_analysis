@@ -60,7 +60,7 @@ getdf <- function(datasets, descriptions, file_name) {
   df <- data.frame(rep(NA, max_size))
   prepared_data <- data.frame(mns, names_min, names_max, names, min_means, max_means, stringsAsFactors=FALSE)
   plot_labels <- c()
-  for (i in with(prepared_data, order(mns))) {
+  for (i in with(prepared_data, order(mns))) <F12>{
     df[prepared_data[i,3]] <- s_max[[i]]
     df[prepared_data[i,2]] <- s_min[[i]]
     plot_labels <- c(plot_labels, paste(prepared_data[i,4], ' "До" [Сердн.=', format(round(prepared_data[i,6], -2), scientific=F), '] ', 'Вакансий:', length(datasets[[i]]$max_salary), sep=''))
