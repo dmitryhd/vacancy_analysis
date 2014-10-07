@@ -7,3 +7,6 @@ Use data from hh.ru to get vacancy information.
 2. Process vacancies from database to csv file (data/pvac.csv): ./market_analysis.py -p
 3. Analyse and visualize data from csv file by: Rscript plot.R. 
 4. Plot saved in plots/vacancy_summary.png
+
+Result plot example:
+![Alt text](plots/vacancy_summary.png?raw=true "Result plot example")
