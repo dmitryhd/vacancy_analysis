@@ -78,6 +78,14 @@ class Vacancy(Base):
                                                          self.name,
                                                          len(self.html))
 
+class Tag():
+    """ Contain category for vacancy. """
+    def __init__(self, name, text=None, title=None):
+        self.name = name  # General name
+        self.text = text if text else self.name  # Text to search for
+        self.title = title if title else self.text  # Title for R
+
+
 class ProcessedVacancy(Base):
     """ Processed vacancy. Contains name, 2 parts of page, and skills."""
     __tablename__ = 'proc_vacancy'
@@ -88,6 +96,7 @@ class ProcessedVacancy(Base):
     max_salary = Column(sqlalchemy.types.Integer)
     min_salary = Column(sqlalchemy.types.Integer)
     # Keywords in text of vacancy.
+    # languages
     skills = ['c++',
               'python',
               'perl',
@@ -98,8 +107,41 @@ class ProcessedVacancy(Base):
               '1c',
               'sap',
               'php',
-              'c#',
              ]
+    
+    tags = [('c++', 'cpp'),
+            ('python', 'python'),
+            ('perl', 'perl'),
+            ('ruby', 'ruby'),
+            ('bash', 'bash'),
+            ('java', 'java'),
+            ('javascript', 'javascript'),
+            ('1c', 'onec'),
+            ('sap', 'sap'),
+            ('php', 'php'),
+            ('c#', 'csharp')
+             ]
+    # databases
+    tags.extend([('oracle','oracle'),
+                 ('mysql','mysql'),
+                 ('sql','sql'),
+                 ('mssql','mssql'),
+                 ('db2','db2'),
+                 ('postgresql','postgresql'),
+                ])
+    # operation systems
+    tags.extend([('linux', 'linux'),
+                 ('windows', 'windows'),
+                 ('ios', 'ios'),
+                 ('android', 'android'),
+                ])
+    # web
+    tags.extend([('web', 'web'),
+                 ('веб', 'web_r'),
+                 ('html', 'html'),
+                 ('css', 'css'),
+                ])
+    # position
     # Possible tags: 
     # Db: oragle, sql, mssql, postrgesql, db2 
     # languages: c, ansi, ada
@@ -117,6 +159,20 @@ class ProcessedVacancy(Base):
         res += self.short_html
         return res
 
+def set_tags_to_vacancy(vac, tags):
+    """ Generate processed vacancy from vacancy. """
+    pvac = ProcessedVacancy()
+    pvac.name = vac.name
+    soup = bs4.BeautifulSoup(vac.html)
+    text = soup.getText("\n")
+    text = text.lower()
+    pvac.tags = {}
+    for tag in tags:
+        if tag.text in text:
+            pvac.tags[tag.name] = True
+        else:
+            pvac.tags[tag.name] = False
+    return pvac
 
 def process_vacancies(session, file_name='data/pvac.csv'):
     """ Generate csv file with vacancy name, minimum and maximum salary
