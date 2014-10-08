@@ -17,6 +17,7 @@ from sqlalchemy.schema import Column
 from sqlalchemy.ext.declarative import declarative_base
 import sys
 import re
+import time
 
 
 Base = declarative_base()
@@ -53,7 +54,10 @@ def get_vacancies_on_page(url, vacancies, session):
             session.add(new_vacancy)
             session.commit()
             print(new_vacancy)
-    link = soup.find_all('a', class_='b-pager__next-text')[1].attrs["href"]
+    try:
+        link = soup.find_all('a', class_='b-pager__next-text')[1].attrs["href"]
+    except IndexError:
+        return None
     next_link = 'http://hh.ru' + link
     return next_link
 
@@ -94,8 +98,13 @@ class ProcessedVacancy(Base):
               '1c',
               'sap',
               'php',
+              'c#',
              ]
-
+    # Possible tags: 
+    # Db: oragle, sql, mssql, postrgesql, db2 
+    # languages: c, ansi, ada
+    # os: ios, linux, windows, unix, 
+    # manager, руководитель, аналитик, стажер, senior, администратор
     def __init__(self):
         """ Fill skills. """
         self.has_skills = {skill:False for skill in self.skills}
@@ -199,18 +208,41 @@ def process_vacancies(session, file_name='data/pvac.csv'):
 
 def main():
     """ Just choose what to do: download or process. """
-    if len(sys.argv) == 1:
-        # Download all vacancies to database
-        # all for programmer
-        session = prepare_db()
+
+    def __download_to_db(db_name):
+        """ Download all vacancies to database
+            all for programmer.
+        """
+        session = prepare_db(db_name)
         vacancies = []
         next_link = BASE_URL
         for i in range(MAXIM_NUMBER_OF_PAGES):
             next_link = get_vacancies_on_page(next_link, vacancies, session)
-    elif sys.argv[1] == '-p':
-        # Processing vacancies
-        session = prepare_db()
+            if next_link == None:
+                break
+
+    def __process_vacancies(db_name):
+        """ Processing vacancies. """
+        session = prepare_db(db_name)
         process_vacancies(session)
+
+    if len(sys.argv) == 3 and sys.argv[2] == '-t':
+        default_db_name = 'data/hh_{}.db'.format(int(time.time()))
+    elif len(sys.argv) == 3 and sys.argv[2] != '-t':
+        default_db_name = sys.argv[2]
+    else:
+        default_db_name = 'data/vac.db'
+
+    print(default_db_name)
+
+    if len(sys.argv) == 1:
+        __download_to_db(default_db_name)
+    elif sys.argv[1] == '-p':
+        __process_vacancies(default_db_name)
+    elif sys.argv[1] == '-a':
+        __download_to_db(default_db_name)
+        __process_vacancies(default_db_name)
+
 
 
 if __name__ == '__main__':
