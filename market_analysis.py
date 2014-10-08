@@ -32,7 +32,7 @@ def get_url(url):
     return page
 
 
-def prepare_db(db_name='data/vac.db'):
+def prepare_db(db_name):
     """ Return sqlalchemy session. """
     engine = sqlalchemy.create_engine('sqlite:///' + db_name, echo=False)
     Base.metadata.create_all(engine)
@@ -108,40 +108,6 @@ class ProcessedVacancy(Base):
               'sap',
               'php',
              ]
-    
-    tags = [('c++', 'cpp'),
-            ('python', 'python'),
-            ('perl', 'perl'),
-            ('ruby', 'ruby'),
-            ('bash', 'bash'),
-            ('java', 'java'),
-            ('javascript', 'javascript'),
-            ('1c', 'onec'),
-            ('sap', 'sap'),
-            ('php', 'php'),
-            ('c#', 'csharp')
-             ]
-    # databases
-    tags.extend([('oracle','oracle'),
-                 ('mysql','mysql'),
-                 ('sql','sql'),
-                 ('mssql','mssql'),
-                 ('db2','db2'),
-                 ('postgresql','postgresql'),
-                ])
-    # operation systems
-    tags.extend([('linux', 'linux'),
-                 ('windows', 'windows'),
-                 ('ios', 'ios'),
-                 ('android', 'android'),
-                ])
-    # web
-    tags.extend([('web', 'web'),
-                 ('веб', 'web_r'),
-                 ('html', 'html'),
-                 ('css', 'css'),
-                ])
-    # position
     # Possible tags: 
     # Db: oragle, sql, mssql, postrgesql, db2 
     # languages: c, ansi, ada
@@ -174,6 +140,29 @@ def set_tags_to_vacancy(vac, tags):
             pvac.tags[tag.name] = False
     return pvac
 
+def get_vacancy(name, html):
+    """ Get base vacancy by name and html code of page. """
+    return Vacancy(name, html)
+
+
+def get_salary(vac):
+    """ Get min and max salary from vacancy. """
+    soup = bs4.BeautifulSoup(vac.html)
+    res = soup.find('td', class_='l-content-colum-1 b-v-info-content')
+    if not res is None:
+        digits = re.search(r'от\s+(\d+)\s+(\d*)', res.text)
+        if digits:
+            min_salary = int(''.join(digits.groups()))
+        else:
+            min_salary = None
+        digits = re.search(r'до\s+(\d+)\s+(\d*)', res.text)
+        if digits:
+            max_salary = int(''.join(digits.groups()))
+        else:
+            max_salary = None
+        return min_salary, max_salary
+    return None, None
+
 def process_vacancies(session, file_name='data/pvac.csv'):
     """ Generate csv file with vacancy name, minimum and maximum salary
         anb information about programming language.
@@ -181,60 +170,15 @@ def process_vacancies(session, file_name='data/pvac.csv'):
     proc_vacs = []
     # 1. load vacancies from db
     vacancies = session.query(Vacancy)
-    # 2. get content of all vacancy divs
     error_cnt = 0
     total_cnt = 0
     for vac in vacancies:
-        total_cnt += 1
-        pvac = ProcessedVacancy()
-        pvac.name = vac.name
-        soup = bs4.BeautifulSoup(vac.html)
-        res = soup.find('div', class_='b-important b-vacancy-info')
-        if res is None:
-            error_cnt += 1
-            continue
-        pvac.imp_html = res.decode()
-        res = soup.find('table', class_='l-content-2colums b-vacancy-container')
-        if res is None:
-            error_cnt += 1
-            continue
-        pvac.short_html = res.text
-        proc_vacs.append(pvac)
-        #print('')
-        #print(pvac)
-    # 3. get maximum and minimum salary
-    for pvac in proc_vacs:
-        soup = bs4.BeautifulSoup(pvac.imp_html)
-        res = soup.find('td', class_='l-content-colum-1 b-v-info-content')
-        if not res is None:
-            digits = re.search(r'от\s+(\d+)\s+(\d*)', res.text)
-            if digits:
-                pvac.min_salary = int(''.join(digits.groups()))
-            else:
-                pvac.min_salary = None
-            digits = re.search(r'до\s+(\d+)\s+(\d*)', res.text)
-            if digits:
-                pvac.max_salary = int(''.join(digits.groups()))
-            else:
-                pvac.max_salary = None
-    # 4. get Skills:
-    # 4.1 clear all tags, normalize and leave only english
-    # letters and digits >=3
-    # 4.2 frequency dict for all vacancies skills.
-    # 4.3 make database of skills
-    # 4.4 mark every vacancy for skill
-    # 4~ temporary - use preset skills
-    for pvac in proc_vacs:
-        soup = bs4.BeautifulSoup(pvac.short_html)
-        text = soup.getText("\n")
-        text = text.lower()
-        for skill in pvac.skills:
-            if skill in text:
-                pvac.has_skills[skill] = True
-        print('short vac: {} min={} max={} skills={}'.format(pvac.name,
-                                                             pvac.min_salary,
-                                                             pvac.max_salary,
-                                                             pvac.has_skills))
+        # 2. get maximum and minimum salary
+        min_salary, max_salary = get_salary(vac)
+        pvac.min_salary = min_salary
+        pvac.max_salary = max_salary
+        # 3. get Skills:
+        pvac = set_tags_to_vacancy(vac)
 
     #4~~ export to csv
     csv_fd = open(file_name, 'w')
@@ -282,7 +226,9 @@ def main():
         session = prepare_db(db_name)
         process_vacancies(session)
 
-    if len(sys.argv) == 3 and sys.argv[2] == '-t':
+    if len(sys.argv) == 2 and sys.argv[1] == '-t':
+        default_db_name = 'data/hh_{}.db'.format(int(time.time()))
+    elif len(sys.argv) == 3 and sys.argv[2] == '-t':
         default_db_name = 'data/hh_{}.db'.format(int(time.time()))
     elif len(sys.argv) == 3 and sys.argv[2] != '-t':
         default_db_name = sys.argv[2]
@@ -293,9 +239,10 @@ def main():
 
     if len(sys.argv) == 1:
         __download_to_db(default_db_name)
+        __process_vacancies(default_db_name)
     elif sys.argv[1] == '-p':
         __process_vacancies(default_db_name)
-    elif sys.argv[1] == '-a':
+    elif sys.argv[1] == '-t':
         __download_to_db(default_db_name)
         __process_vacancies(default_db_name)
 
