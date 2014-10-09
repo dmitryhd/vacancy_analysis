@@ -56,13 +56,12 @@ class Vacancy(Base):
 
 class ProcessedVacancy():
     """ Processed vacancy. Contains name and tags."""
-    # Possible tags: 
-    # Db: oragle, sql, mssql, postrgesql, db2 
+    # Possible tags:
+    # Db: oragle, sql, mssql, postrgesql, db2
     # languages: c, ansi, ada
-    # os: ios, linux, windows, unix, 
+    # os: ios, linux, windows, unix,
     # manager, руководитель, аналитик, стажер, senior, администратор
     def __init__(self, vacancy, tags):
-        """ Fill tags. """
         """ Generate processed vacancy from vacancy. """
         self.name = vacancy.name
         soup = bs4.BeautifulSoup(vacancy.html)

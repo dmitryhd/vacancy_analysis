@@ -17,6 +17,7 @@ import argparse
 import sqlalchemy
 from sys import stdout
 import os
+import tarfile
 
 from config import *
 from vacancy import *
@@ -147,6 +148,22 @@ def output_csv(session, file_name='data/pvac.csv', tags=Tags, db_name=''):
         print(LABEL.format(CURRENT_SITE, stime), file=label_fd)
 
 
+def compress_database(db_name):
+    """ Create bz archive and delete sqlite database file. """
+    with open(db_name, 'rb') as db_fd:
+        compressed_fd = tarfile.open(db_name+'.tgz', 'w:gz')
+        compressed_fd.write(db_fd.read())
+        compressed_fd.close()
+    os.remove(db_name)
+
+def uncompress_database(db_name):
+    """ Create bz archive and delete sqlite database file. """
+    with open(db_name, 'wb') as db_fd:
+        compressed_fd = tarfile.open(db_name+'.tgz', 'r:gz')
+        db_fd.write(compressed_fd.read())
+        compressed_fd.close()
+    os.remove(db_name + '.tgz')
+
 def main():
     """ Just choose what to do: download or process. """
 
@@ -174,6 +191,9 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--db_name", type=str,
                         help="database name")
+    parser.add_argument("-c", "--compress",
+                        help="do compression",
+                        action="store_true")
     parser.add_argument("-t", "--timestamp", help="add timestamp to database",
                     action="store_true")
     parser.add_argument("-p", "--process", help="run process on given db",
@@ -189,7 +209,11 @@ def main():
 
     if not args.process:
         _download_to_db(db_name)
+    elif args.compress:
+        uncompress_database(db_name)
     _process_vacancies(db_name)
+    if args.compress:
+        compress_database(db_name)
     _plot()
 
 
