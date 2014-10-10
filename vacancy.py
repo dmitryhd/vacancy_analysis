@@ -19,16 +19,7 @@ from sqlalchemy.schema import Column
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
-
-class Tag():
-    """ Contain category for vacancy. """
-    def __init__(self, name, text=None, title=None):
-        self.name = name  # General name
-        self.text = text if text else self.name  # Text to search for
-        self.title = title if title else self.text  # Title for R
-
-    def __repr__(self):
-        return self.name
+from config import *
 
 
 class Vacancy(Base):
@@ -69,10 +60,10 @@ class ProcessedVacancy():
         text = text.lower()
         self.tags = {}
         for tag in tags:
-            if tag.text in text:
-                self.tags[tag.name] = True
+            if tag[tag_text] in text:
+                self.tags[tag[tag_name]] = True
             else:
-                self.tags[tag.name] = False
+                self.tags[tag[tag_name]] = False
         self.min_salary, self.max_salary = self.get_salary(soup)
 
     def get_salary(self, soup):

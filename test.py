@@ -1,25 +1,33 @@
 #!/usr/bin/env python3
 
+""" Unittest file for vacancy. """
+
 import unittest
-from market_analysis import *
 import os
-from config import *
+
+import config as cfg
+import site_parser as sp
+import vacancy as va
+import vacancy_processor as vp
 
 class TestFunc(unittest.TestCase):
+    """ Test case for everything. """
     test_db = 'data/test.db'
     test_vac_files = ['data/test_vac01.html',
                       'data/test_vac02.html',
                       'data/test_vac03.html',
                       'data/test_vac04.html',
-                      ]
+                     ]
     test_csv_fn = 'data/test.csv'
 
     @classmethod
     def setUpClass(cls):
-        cls.session = prepare_db(cls.test_db)
+        """ Prepare db. """
+        cls.session = vp.prepare_db(cls.test_db)
 
     @classmethod
     def tearDownClass(cls):
+        """ Delete db and tmp files. """
         try:
             os.remove(cls.test_db)
             os.remove(cls.test_csv_fn)
@@ -27,56 +35,81 @@ class TestFunc(unittest.TestCase):
             pass
 
     def test_vacancy(self):
-        vac = Vacancy('aaa', 'sdfvsdf')
+        """ Case for vacancy class. """
+        vac = va.Vacancy('aaa', 'sdfvsdf')
         self.session.add(vac)
         self.session.commit()
-        query = self.session.query(Vacancy)
+        query = self.session.query(va.Vacancy)
         assert query
 
-    def test_tag(self):
-        """ Test tag mechanism and proc_vacancy. """
-        test_tags = [Tag('c++', 'c++', 'cpp'),
-                     Tag('java'),
-                     Tag('python'),
+    @staticmethod
+    def test_tag():
+        """ Case for processed vacancy class. """
+        test_tags = [('c++', 'c++', 'cpp'),
+                     ('java', 'java', 'java'),
+                     ('python', 'python', 'python'),
                     ]
         vacancy_text = 'needed c++ developer, omg, java so wow'
-        vac = Vacancy('test vacancy', vacancy_text)
-        proc_vac = ProcessedVacancy(vac, test_tags)
+        vac = va.Vacancy('test vacancy', vacancy_text)
+        proc_vac = va.ProcessedVacancy(vac, test_tags)
         assert proc_vac.name == 'test vacancy'
-        assert proc_vac.tags[test_tags[0].name]
-        assert proc_vac.tags[test_tags[1].name]
-        assert not proc_vac.tags[test_tags[2].name]
+        assert proc_vac.tags[test_tags[0][cfg.tag_name]]
+        assert proc_vac.tags[test_tags[1][cfg.tag_name]]
+        assert not proc_vac.tags[test_tags[2][cfg.tag_name]]
 
     def test_get_salary(self):
+        """ Check, if we can parse hh vacancies """
         salaries = [(60000, 90000),
                     (None, 40000),
                     (70000, None),
                     (None, None),]
-        for filename, (min_sal_exp, max_sal_exp) in zip(self.test_vac_files,
-                salaries):
+        result = zip(self.test_vac_files, salaries)
+        for filename, (min_sal_exp, max_sal_exp) in result:
             with open(filename) as testfd:
-                test_vac = get_vacancy('test_vac_name', testfd.read())
-                pvac = ProcessedVacancy(test_vac, [])
+                test_vac = vp.get_vacancy('test_vac_name',
+                                          testfd.read(),
+                                          'nolink')
+                pvac = vp.ProcessedVacancy(test_vac, [])
                 assert pvac.min_salary == min_sal_exp, \
                         'Got salary: {}'.format(pvac.min_salary)
                 assert pvac.max_salary == max_sal_exp, \
                         'Got salary: {}'.format(pvac.max_salary)
 
     def test_process_vac(self):
+        """ Need internet connection for this. """
         vacancies = []
-        next_link = get_vacancies_on_page(TEST_BASE_URL, vacancies, self.session)
+        next_link = vp.get_vacancies_on_page(cfg.TEST_BASE_URL,
+                                             vacancies,
+                                             self.session)
         assert next_link
         assert vacancies
 
     def test_output_csv(self):
+        """ Test output to csv, regresstion test. """
         for vac_file in self.test_vac_files:
-            vac = get_vacancy('aaa', open(vac_file).read())
+            vac = vp.get_vacancy('aaa', open(vac_file).read(), 'nolink')
             self.session.add(vac)
         self.session.commit()
-        output_csv(self.session, file_name=self.test_csv_fn)
-        reference_text =  open('data/test_reference.csv').read()
+        vp.output_csv(self.session, file_name=self.test_csv_fn)
+        reference_text = open('data/test_reference.csv').read()
         output = open(self.test_csv_fn).read()
         assert output == reference_text
 
+    def test_various_site(self):
+        """ Do we can access different sites? """
+        hh_parser = sp.site_parser_factory('hh.ru')
+        vac = hh_parser.get_vacancy('test_vac',
+                                    open(self.test_vac_files[0]).read(),
+                                    'someurl')
+        assert vac
+        vacancies = hh_parser.get_all_vacancies()
+        assert vacancies
+
+
+
 if __name__ == '__main__':
-    unittest.main(warnings='ignore')
+    try:
+        unittest.main(warnings='ignore')
+    except SystemExit as inst:
+        if inst.args[0] is True: # raised by sys.exit(True) when tests failed
+            raise

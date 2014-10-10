@@ -92,17 +92,17 @@ def output_csv(session, file_name='data/pvac.csv', tags=Tags, db_name=''):
     header = ''
     columns = []
     for tag in tags:
-        header += tag.title + '_min '
+        header += tag[tag_title] + '_min '
         columns.append([])
-        header += tag.title + '_max '
+        header += tag[tag_title] + '_max '
         columns.append([])
     for pvac in proc_vacs:
         tag_index = 0
         for tag in tags:
-            if pvac.tags[tag.name] and pvac.min_salary:
+            if pvac.tags[tag[tag_name]] and pvac.min_salary:
                 columns[tag_index].append(pvac.min_salary)
             tag_index += 1
-            if pvac.tags[tag.name] and pvac.max_salary:
+            if pvac.tags[tag[tag_name]] and pvac.max_salary:
                 columns[tag_index].append(pvac.max_salary)
             tag_index += 1
 
@@ -111,16 +111,16 @@ def output_csv(session, file_name='data/pvac.csv', tags=Tags, db_name=''):
         for tag in tags:
             l = columns[tag_index]
             num = len(l)
-            mean = int(sum(l))/len(l) if len(l) > 0 else int('nan')
+            mean = int(sum(l))/len(l) if len(l) > 0 else 0
             mean = int(mean)
-            label = '"' + tag.name + ' От. Средн:{}, Вакансий:{}'.format(mean, num) + '" '
+            label = '"' + tag[tag_name] + ' От. Средн:{}, Вакансий:{}'.format(mean, num) + '" '
             print(label, file=fd, end='')
             tag_index += 1
             l = columns[tag_index]
             num = len(l)
-            mean = int(sum(l))/len(l) if len(l) > 0 else int('nan')
+            mean = int(sum(l))/len(l) if len(l) > 0 else 0
             mean = int(mean)
-            label = '"' + tag.name + ' До. Средн:{}, Вакансий:{}'.format(mean, num) + '" '
+            label = '"' + tag[tag_name] + ' До. Средн:{}, Вакансий:{}'.format(mean, num) + '" '
             print(label, file=fd, end='')
             tag_index += 1
 
@@ -156,6 +156,7 @@ def compress_database(db_name):
         compressed_fd.close()
     os.remove(db_name)
 
+
 def uncompress_database(db_name):
     """ Create bz archive and delete sqlite database file. """
     with open(db_name, 'wb') as db_fd:
@@ -163,6 +164,7 @@ def uncompress_database(db_name):
         db_fd.write(compressed_fd.read())
         compressed_fd.close()
     os.remove(db_name + '.tgz')
+
 
 def main():
     """ Just choose what to do: download or process. """
