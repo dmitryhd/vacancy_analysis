@@ -6,7 +6,6 @@ import unittest
 import os
 
 import config as cfg
-import site_parser as sp
 import vacancy as va
 import vacancy_processor as vp
 
@@ -95,15 +94,6 @@ class TestFunc(unittest.TestCase):
         output = open(self.test_csv_fn).read()
         assert output == reference_text
 
-    def test_various_site(self):
-        """ Do we can access different sites? """
-        hh_parser = sp.site_parser_factory('hh.ru')
-        vac = hh_parser.get_vacancy('test_vac',
-                                    open(self.test_vac_files[0]).read(),
-                                    'someurl')
-        assert vac
-        vacancies = hh_parser.get_all_vacancies()
-        assert vacancies
 
 
 

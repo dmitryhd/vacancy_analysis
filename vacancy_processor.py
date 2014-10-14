@@ -15,12 +15,17 @@ import requests
 import time
 import argparse
 import sqlalchemy
-from sys import stdout
+from sys import stdout, argv
 import os
 import tarfile
 
 from config import *
 from vacancy import *
+
+title_filename = 'data/title.txt'
+plot_filename_container = 'data/plot_name.txt'
+labels_filename = 'data/pvac_labels.txt'
+csv_filename = 'data/pvac.csv'
 
 def get_url(url):
     """ Get HTML page by its URL. """
@@ -77,7 +82,7 @@ def get_vacancy(name, html, link):
     return Vacancy(name, new_html, url=link, site='hh.ru')
 
 
-def output_csv(session, file_name='data/pvac.csv', tags=Tags, db_name=''):
+def output_csv(session, file_name=csv_filename, tags=Tags, db_name=''):
     """ Generate csv file with vacancy name, minimum and maximum salary
         anb information about programming language.
     """
@@ -144,25 +149,24 @@ def output_csv(session, file_name='data/pvac.csv', tags=Tags, db_name=''):
     if time_in_sec:
         time_in_sec = time.localtime(int(time_in_sec.group()))
         stime = time.strftime("%Y-%m-%d", time_in_sec)
-    with open(label_file_name, 'w') as label_fd:
+    with open(title_filename, 'w') as label_fd:
         print(LABEL.format(CURRENT_SITE, stime), file=label_fd)
+    with open(plot_filename_container, 'w') as plot_fd:
+        print('plots/plot_{}_{}.png'.format(CURRENT_SITE, stime), file=plot_fd)
 
 
 def compress_database(db_name):
     """ Create bz archive and delete sqlite database file. """
-    with open(db_name, 'rb') as db_fd:
-        compressed_fd = tarfile.open(db_name+'.tgz', 'w:gz')
-        compressed_fd.write(db_fd.read())
-        compressed_fd.close()
+    compressed_fd = tarfile.open(db_name+'.tgz', 'w:gz')
+    compressed_fd.add(db_name)
+    compressed_fd.close()
     os.remove(db_name)
 
 
 def uncompress_database(db_name):
     """ Create bz archive and delete sqlite database file. """
-    with open(db_name, 'wb') as db_fd:
-        compressed_fd = tarfile.open(db_name+'.tgz', 'r:gz')
-        db_fd.write(compressed_fd.read())
-        compressed_fd.close()
+    compressed_fd = tarfile.open(db_name+'.tgz', 'r:gz')
+    compressed_fd.extractall()
     os.remove(db_name + '.tgz')
 
 
@@ -189,6 +193,7 @@ def main():
     def _plot():
         os.system('Rscript ./plot.R')
 
+    os.chdir(os.path.dirname(argv[0]))
     default_db_name = 'data/vac.db'
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--db_name", type=str,
