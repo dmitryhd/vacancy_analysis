@@ -27,11 +27,6 @@ plot_filename_container = 'data/plot_name.txt'
 labels_filename = 'data/pvac_labels.txt'
 csv_filename = 'data/pvac.csv'
 
-def get_url(url):
-    """ Get HTML page by its URL. """
-    session = requests.Session()
-    page = session.get(url).text
-    return page
 
 def prepare_db(db_name):
     """ Return sqlalchemy session. """
@@ -39,47 +34,6 @@ def prepare_db(db_name):
     Base.metadata.create_all(engine)
     session = sqlalchemy.orm.sessionmaker(bind=engine)()
     return session
-
-
-def get_vacancies_on_page(url, vacancies, session):
-    """ Download all vacancies from page and return link to next page. """
-    page = get_url(url)
-    soup = bs4.BeautifulSoup(page)
-    for vacancy in soup.find_all('div', class_='searchresult__name'):
-        name = vacancy.string
-        if name is not None:
-            link = vacancy.find_all('a')[0].attrs["href"]
-            vacancy_html = get_url(link)
-            new_vacancy = get_vacancy(name, vacancy_html, link)
-            vacancies.append(new_vacancy)
-            session.add(new_vacancy)
-            session.commit()
-            stdout.write("\rdownloaded {} vacancy".format(new_vacancy.id))
-            stdout.flush()
-    try:
-        link = soup.find_all('a', class_='b-pager__next-text')[1].attrs["href"]
-    except IndexError:
-        return None
-    next_link = 'http://hh.ru' + link
-    return next_link
-
-
-def get_vacancy(name, html, link):
-    """ Get base vacancy by name and html code of page. """
-    new_html = ''
-    soup = bs4.BeautifulSoup(html)
-    # delete js
-    [s.extract() for s in soup('script')]
-    # delete style
-    [s.extract() for s in soup('style')]
-    res = soup.find('div', class_='b-important b-vacancy-info')
-    if res:
-        new_html += res.decode()
-    res = soup.find('table', class_='l-content-2colums b-vacancy-container')
-    if res:
-        new_html += res.text
-    #print(bs4.BeautifulSoup(new_html))
-    return Vacancy(name, new_html, url=link, site='hh.ru')
 
 
 def output_csv(session, file_name=csv_filename, tags=Tags, db_name=''):
@@ -178,12 +132,8 @@ def main():
             all for programmer.
         """
         session = prepare_db(db_name)
-        vacancies = []
-        next_link = BASE_URL
-        for i in range(MAXIM_NUMBER_OF_PAGES):
-            next_link = get_vacancies_on_page(next_link, vacancies, session)
-            if next_link == None:
-                break
+        site_parser = site_parser_factory('hh.ru')
+        site_parser.get_all_vacancies(session)
 
     def _process_vacancies(db_name):
         """ Processing vacancies. """

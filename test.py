@@ -65,11 +65,12 @@ class TestFunc(unittest.TestCase):
                     (70000, None),
                     (None, None),]
         result = zip(self.test_vac_files, salaries)
+        parser = sp.site_parser_factory('hh.ru')
         for filename, (min_sal_exp, max_sal_exp) in result:
             with open(filename) as testfd:
-                test_vac = vp.get_vacancy('test_vac_name',
-                                          testfd.read(),
-                                          'nolink')
+                test_vac = parser.get_vacancy('test_vac_name',
+                                              testfd.read(),
+                                              'nolink')
                 pvac = vp.ProcessedVacancy(test_vac, [])
                 assert pvac.min_salary == min_sal_exp, \
                         'Got salary: {}'.format(pvac.min_salary)
@@ -79,16 +80,19 @@ class TestFunc(unittest.TestCase):
     def test_process_vac(self):
         """ Need internet connection for this. """
         vacancies = []
-        next_link = vp.get_vacancies_on_page(cfg.TEST_BASE_URL,
-                                             vacancies,
-                                             self.session)
+        parser = sp.site_parser_factory('hh.ru')
+        next_link = parser.get_vacancies_on_page(cfg.TEST_BASE_URL,
+                                                 vacancies,
+                                                 self.session,
+                                                 self.MAX_VAC_NUM)
         assert next_link
         assert vacancies
 
     def test_output_csv(self):
         """ Test output to csv, regresstion test. """
+        parser = sp.site_parser_factory('hh.ru')
         for vac_file in self.test_vac_files:
-            vac = vp.get_vacancy('aaa', open(vac_file).read(), 'nolink')
+            vac = parser.get_vacancy('aaa', open(vac_file).read(), 'nolink')
             self.session.add(vac)
         self.session.commit()
         vp.output_csv(self.session, file_name=self.test_csv_fn)
@@ -99,8 +103,7 @@ class TestFunc(unittest.TestCase):
     def test_site_parser(self):
         """ Create two site parsers and call get_all_vacancies. """
         sparser = sp.site_parser_factory('hh.ru')
-        print(type(sparser))
-        vacs = sparser.get_all_vacancies(self.MAX_VAC_NUM, self.session)
+        vacs = sparser.get_all_vacancies(self.session, self.MAX_VAC_NUM)
         assert vacs
         assert len(vacs) == self.MAX_VAC_NUM
 
