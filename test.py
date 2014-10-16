@@ -8,6 +8,7 @@ import os
 import config as cfg
 import vacancy as va
 import vacancy_processor as vp
+import site_parser as sp
 
 class TestFunc(unittest.TestCase):
     """ Test case for everything. """
@@ -18,6 +19,7 @@ class TestFunc(unittest.TestCase):
                       'data/test_vac04.html',
                      ]
     test_csv_fn = 'data/test.csv'
+    MAX_VAC_NUM = 10
 
     @classmethod
     def setUpClass(cls):
@@ -94,7 +96,13 @@ class TestFunc(unittest.TestCase):
         output = open(self.test_csv_fn).read()
         assert output == reference_text
 
-
+    def test_site_parser(self):
+        """ Create two site parsers and call get_all_vacancies. """
+        sparser = sp.site_parser_factory('hh.ru')
+        print(type(sparser))
+        vacs = sparser.get_all_vacancies(self.MAX_VAC_NUM, self.session)
+        assert vacs
+        assert len(vacs) == self.MAX_VAC_NUM
 
 
 if __name__ == '__main__':
