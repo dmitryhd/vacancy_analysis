@@ -33,4 +33,7 @@ MAXIM_NUMBER_OF_VACANCIES = 10000
 LABEL='Зарплата программистов по Москве. Данные {} на {}'
 CURRENT_SITE = 'hh.ru'
 
-label_file_name = 'data/label.txt'
+title_filename = 'data/title.txt'
+plot_filename_container = 'data/plot_name.txt'
+labels_filename = 'data/pvac_labels.txt'
+csv_filename = 'data/pvac.csv'

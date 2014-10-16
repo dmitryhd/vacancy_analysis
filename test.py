@@ -95,7 +95,7 @@ class TestFunc(unittest.TestCase):
             vac = parser.get_vacancy('aaa', open(vac_file).read(), 'nolink')
             self.session.add(vac)
         self.session.commit()
-        vp.output_csv(self.session, file_name=self.test_csv_fn)
+        vp.output_csv(self.session, tags=cfg.Tags, file_name=self.test_csv_fn)
         reference_text = open('data/test_reference.csv').read()
         output = open(self.test_csv_fn).read()
         assert output == reference_text
