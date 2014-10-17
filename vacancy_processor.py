@@ -135,13 +135,13 @@ def uncompress_database(db_name):
 def main():
     """ Just choose what to do: download or process. """
 
-    def _download_to_db(db_name):
+    def _download_to_db(db_name, max_vac=cfg.MAXIM_NUMBER_OF_VACANCIES):
         """ Download all vacancies to database
             all for programmer.
         """
         session = prepare_db(db_name)
         site_parser = sp.site_parser_factory('hh.ru')
-        site_parser.get_all_vacancies(session)
+        site_parser.get_all_vacancies(session, max_vac)
 
     def _process_vacancies(db_name):
         """ Processing vacancies. """
@@ -164,6 +164,7 @@ def main():
                         action="store_true")
     parser.add_argument("-p", "--process", help="run process on given db",
                         action="store_true")
+    parser.add_argument("-n", "--num_vac", help="none", type=int)
     args = parser.parse_args()
 
     db_name = default_db_name
@@ -174,7 +175,11 @@ def main():
     print('using database:', db_name)
 
     if not args.process:
-        _download_to_db(db_name)
+        if args.num_vac:
+            _download_to_db(db_name, args.num_vac)
+        else:
+            _download_to_db(db_name)
+
     elif args.compress:
         uncompress_database(db_name)
     _process_vacancies(db_name)
