@@ -185,6 +185,7 @@ def main():
             if next_link == None:
                 break
 
+
     def _process_vacancies(db_name):
         """ Processing vacancies. """
         session = prepare_db(db_name)
