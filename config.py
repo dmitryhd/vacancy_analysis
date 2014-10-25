@@ -35,7 +35,7 @@ LABEL = 'Зарплата программистов по Москве. Данн
 CURRENT_SITE = 'hh.ru'
 
 TITLE_FILENAME = 'data/title.txt'
-PLOT_FILENAME_container = 'data/plot_name.txt'
+PLOT_FILENAME_CONTAINER = 'data/plot_name.txt'
 LABELS_FILENAME = 'data/pvac_labels.txt'
 CSV_FILENAME = 'data/pvac.csv'
 

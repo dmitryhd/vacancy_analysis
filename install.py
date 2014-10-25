@@ -8,12 +8,13 @@
 import os
 
 def main():
+    """ Install to crontab. """
     user = 'dimert'
     path = os.path.dirname(os.path.abspath(__file__))
-    cron_line = '@daily dimert {}/vacancy_processor.py -t -c'.format(path)
+    cron_line = '@daily {} {}/vacancy_processor.py -t -c'.format(user, path)
     print(cron_line)
-    with open('/etc/crontab', 'a+') as cron_fd:
-        print(cron_line, file=cron_fd)
+    #with open('/etc/crontab', 'a+') as cron_fd:
+        #print(cron_line, file=cron_fd)
 
 if __name__ == '__main__':
     main()

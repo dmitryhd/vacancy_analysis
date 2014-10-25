@@ -10,6 +10,8 @@
     Date: 29.09.2014
 """
 
+# pylint: disable=F0401, R0903, R0201, R0921
+
 import bs4
 import datetime
 import re
@@ -17,12 +19,12 @@ import re
 import sqlalchemy
 from sqlalchemy.schema import Column
 from sqlalchemy.ext.declarative import declarative_base
-Base = declarative_base()
+BASE = declarative_base()
 
-from config import *
+import config as cfg
 
 
-class Vacancy(Base):
+class Vacancy(BASE):
     """ Simple unprocessed vacancy. Contains name and html page. """
     __tablename__ = 'vacancy'
     id = Column(sqlalchemy.types.Integer, primary_key=True)
@@ -51,7 +53,6 @@ class ProcessedVacancy():
     # Db: oragle, sql, mssql, postrgesql, db2
     # languages: c, ansi, ada
     # os: ios, linux, windows, unix,
-    # manager, руководитель, аналитик, стажер, senior, администратор
     def __init__(self, vacancy, tags):
         """ Generate processed vacancy from vacancy. """
         self.name = vacancy.name
@@ -60,10 +61,10 @@ class ProcessedVacancy():
         text = text.lower()
         self.tags = {}
         for tag in tags:
-            if tag[TAG_TEXT] in text:
-                self.tags[tag[TAG_NAME]] = True
+            if tag[cfg.TAG_TEXT] in text:
+                self.tags[tag[cfg.TAG_NAME]] = True
             else:
-                self.tags[tag[TAG_NAME]] = False
+                self.tags[tag[cfg.TAG_NAME]] = False
         self.min_salary, self.max_salary = self.get_salary(soup)
 
     def get_salary(self, soup):

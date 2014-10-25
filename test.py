@@ -2,6 +2,8 @@
 
 """ Unittest file for vacancy. """
 
+# pylint: disable=F0401, C0103, E1101, R0904
+
 import unittest
 import os
 
@@ -10,7 +12,8 @@ import vacancy as va
 import vacancy_processor as vp
 import site_parser as sp
 
-class TestFunc(unittest.TestCase):
+
+class BaseT(unittest.TestCase):
     """ Test case for everything. """
     test_db = 'data/test.db'
     test_vac_files = ['data/test_vac01.html',
@@ -35,6 +38,9 @@ class TestFunc(unittest.TestCase):
         except FileNotFoundError:
             pass
 
+class TestVacancy(BaseT):
+    """ Test database, vacancy and processor. """
+
     def test_vacancy(self):
         """ Case for vacancy class. """
         vac = va.Vacancy('aaa', 'sdfvsdf')
@@ -58,6 +64,41 @@ class TestFunc(unittest.TestCase):
         assert proc_vac.tags[test_tags[1][cfg.TAG_NAME]]
         assert not proc_vac.tags[test_tags[2][cfg.TAG_NAME]]
 
+    def test_output_csv(self):
+        """ Test output to csv, regresstion test. """
+        parser = sp.site_parser_factory('hh.ru')
+        for vac_file in self.test_vac_files:
+            vac = parser.get_vacancy('aaa', open(vac_file).read(), 'nolink')
+            self.session.add(vac)
+        self.session.commit()
+        vp.output_csv(self.session, tags=cfg.TAGS, file_name=self.test_csv_fn)
+        reference_text = open('data/test_reference.csv').read()
+        output = open(self.test_csv_fn).read()
+        assert output == reference_text
+
+
+class TestSiteParser(BaseT):
+    """ Test different sites. """
+
+    def test_site_parser_hh(self):
+        """ Create two site parsers and call get_all_vacancies. """
+        sparser = sp.site_parser_factory('hh.ru')
+        vacs = sparser.get_all_vacancies(self.session, self.MAX_VAC_NUM)
+        assert vacs
+        assert len(vacs) == self.MAX_VAC_NUM
+
+    @staticmethod
+    def test_composite_vacancy():
+        """ Read test vacancy from html and check if output is right. """
+        parser = sp.site_parser_factory('sj.ru')
+        test_input = ['data/test_vac_sj_01.html',
+                     ]
+        for file_name in test_input:
+            with open(file_name) as testfd:
+                test_vac = parser.get_vacancy(html=testfd.read())
+                assert test_vac.name and test_vac.name != 'cant parse'
+                assert test_vac.html
+
     def test_get_salary(self):
         """ Check, if we can parse hh vacancies """
         salaries = [(60000, 90000),
@@ -77,39 +118,8 @@ class TestFunc(unittest.TestCase):
                 assert pvac.max_salary == max_sal_exp, \
                         'Got salary: {}'.format(pvac.max_salary)
 
-    def test_composite_vacancy(self):
-        """ Read test vacancy from html and check if output is right. """
-        parser = sp.site_parser_factory('sj.ru')
-        test_input = ['data/test_vac_sj_01.html',
-                     ]
-        for file_name in test_input:
-            with open(file_name) as testfd:
-                test_vac = parser.get_vacancy(html=testfd.read())
-                assert test_vac.name and test_vac.name != 'cant parse'
-                assert test_vac.html
-                pvac = vp.ProcessedVacancy(test_vac, [])
-
-    def test_output_csv(self):
-        """ Test output to csv, regresstion test. """
-        parser = sp.site_parser_factory('hh.ru')
-        for vac_file in self.test_vac_files:
-            vac = parser.get_vacancy('aaa', open(vac_file).read(), 'nolink')
-            self.session.add(vac)
-        self.session.commit()
-        vp.output_csv(self.session, tags=cfg.TAGS, file_name=self.test_csv_fn)
-        reference_text = open('data/test_reference.csv').read()
-        output = open(self.test_csv_fn).read()
-        assert output == reference_text
-
-    def test_site_parser_hh(self):
-        """ Create two site parsers and call get_all_vacancies. """
-        sparser = sp.site_parser_factory('hh.ru')
-        vacs = sparser.get_all_vacancies(self.session, self.MAX_VAC_NUM)
-        assert vacs
-        assert len(vacs) == self.MAX_VAC_NUM
-
-
 def main():
+    """ Safely run test. """
     try:
         unittest.main(warnings='ignore')
     except SystemExit as inst:
