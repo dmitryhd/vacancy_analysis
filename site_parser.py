@@ -8,7 +8,7 @@ import requests
 from sys import stdout
 
 from vacancy import Vacancy
-from config import Sites, MAXIM_NUMBER_OF_VACANCIES
+from config import SITE_URLS, MAXIM_NUMBER_OF_VACANCIES
 
 def site_parser_factory(site_name):
     """ Must return site parser proper implementation. """
@@ -19,14 +19,15 @@ class SiteParser():
     """ Base class for parser. """
     def __init__(self, name):
         self.name = name
-        self.base_url = Sites[name]
+        self.base_url = SITE_URLS[name]
         self.web_session = requests.Session()
 
-    def get_vacancy(self, name, html, url):
+    def get_vacancy(self, name='', html='', url=''):
         """ Must return Vacancy. """
         raise NotImplementedError
 
-    def get_all_vacancies(self, session,  maximum_vac=MAXIM_NUMBER_OF_VACANCIES):
+    def get_all_vacancies(self, session,
+            maximum_vac=MAXIM_NUMBER_OF_VACANCIES):
         """ Must return list of vacancies and save them to session. """
         raise NotImplementedError
 
@@ -43,6 +44,15 @@ class SiteParser():
         # delete style
         tmp = [s.extract() for s in soup('style')]
         return soup
+
+    def _compose_vacancy(self, html):
+        new_html = ''
+        soup = SiteParser._sanitize_html(html)
+        for TAG_NAME, tag_class in self.vacancy_body_tags:
+            res = soup.find(TAG_NAME, class_=tag_class)
+            if res:
+                new_html += res.decode()
+        return new_html
 
 
 class SiteParserHH(SiteParser):
@@ -102,26 +112,36 @@ class SiteParserHH(SiteParser):
 
 class SiteParserSJ(SiteParser):
     """ Implementation of Head hunter parser. """
+    # Vacancy tag->class, which contains main body.
+    vacancy_body_tags = (('div', 'VacancyView_details'),
+                         ('div', 'VacancyView_salary'),
+                         ('div', 'VacancyView_location')
+                        )
+    vac_name_tags = ('h1', 'VacancyView_title h_color_gray_dk')
 
-    def get_vacancy(self, name, html, url):
+    def get_vacancy(self, name='', html='', url=''):
         """ Get base vacancy by name and html code of page. """
-        new_html = ''
-        soup = SiteParser._sanitize_html(html)
-        res = soup.find('div', class_='b-important b-vacancy-info')
-        if res:
-            new_html += res.decode()
-        res = soup.find('table',
-                        class_='l-content-2colums b-vacancy-container')
-        if res:
-            new_html += res.text
-        return Vacancy(name, new_html, url=url, site='hh.ru')
+        if not html and url:
+            html = self.get_url(url)
+        elif not html:
+            raise ValueError('should give html or url.')
+        new_html = self._compose_vacancy(html)
+        if not name:
+            soup = bs4.BeautifulSoup(html)
+            res = soup.find(self.vac_name_tags[0], self.vac_name_tags[1])
+            if res:
+                name = res.text
+            else:
+                name = 'cant parse'
+        return Vacancy(name, new_html, url=url, site='sj.ru')
 
     def get_vacancies_on_page(self, url, vacancies, session, maximum_vac):
         """ Download all vacancies from page and return link to next page. """
         page = self.get_url(url)
         soup = bs4.BeautifulSoup(page)
         print('')
-        for vacancy in soup.find_all('div', class_='searchresult__name'):
+        for vacancy in soup.find_all('h2',
+                                      class_='VacancyListElement_position_wr'):
             name = vacancy.string
             if name is not None:
                 link = vacancy.find_all('a')[0].attrs["href"]
@@ -154,4 +174,5 @@ class SiteParserSJ(SiteParser):
                 break
         return vacancies
 
-ParserImpl = {'hh.ru': SiteParserHH}
+ParserImpl = {'hh.ru': SiteParserHH,
+              'sj.ru': SiteParserSJ}

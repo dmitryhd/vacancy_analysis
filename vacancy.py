@@ -60,10 +60,10 @@ class ProcessedVacancy():
         text = text.lower()
         self.tags = {}
         for tag in tags:
-            if tag[tag_text] in text:
-                self.tags[tag[tag_name]] = True
+            if tag[TAG_TEXT] in text:
+                self.tags[tag[TAG_NAME]] = True
             else:
-                self.tags[tag[tag_name]] = False
+                self.tags[tag[TAG_NAME]] = False
         self.min_salary, self.max_salary = self.get_salary(soup)
 
     def get_salary(self, soup):

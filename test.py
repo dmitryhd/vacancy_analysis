@@ -54,9 +54,9 @@ class TestFunc(unittest.TestCase):
         vac = va.Vacancy('test vacancy', vacancy_text)
         proc_vac = va.ProcessedVacancy(vac, test_tags)
         assert proc_vac.name == 'test vacancy'
-        assert proc_vac.tags[test_tags[0][cfg.tag_name]]
-        assert proc_vac.tags[test_tags[1][cfg.tag_name]]
-        assert not proc_vac.tags[test_tags[2][cfg.tag_name]]
+        assert proc_vac.tags[test_tags[0][cfg.TAG_NAME]]
+        assert proc_vac.tags[test_tags[1][cfg.TAG_NAME]]
+        assert not proc_vac.tags[test_tags[2][cfg.TAG_NAME]]
 
     def test_get_salary(self):
         """ Check, if we can parse hh vacancies """
@@ -66,8 +66,8 @@ class TestFunc(unittest.TestCase):
                     (None, None),]
         result = zip(self.test_vac_files, salaries)
         parser = sp.site_parser_factory('hh.ru')
-        for filename, (min_sal_exp, max_sal_exp) in result:
-            with open(filename) as testfd:
+        for file_name, (min_sal_exp, max_sal_exp) in result:
+            with open(file_name) as testfd:
                 test_vac = parser.get_vacancy('test_vac_name',
                                               testfd.read(),
                                               'nolink')
@@ -77,16 +77,17 @@ class TestFunc(unittest.TestCase):
                 assert pvac.max_salary == max_sal_exp, \
                         'Got salary: {}'.format(pvac.max_salary)
 
-    def test_process_vac(self):
-        """ Need internet connection for this. """
-        vacancies = []
-        parser = sp.site_parser_factory('hh.ru')
-        next_link = parser.get_vacancies_on_page(cfg.TEST_BASE_URL,
-                                                 vacancies,
-                                                 self.session,
-                                                 self.MAX_VAC_NUM)
-        assert next_link
-        assert vacancies
+    def test_composite_vacancy(self):
+        """ Read test vacancy from html and check if output is right. """
+        parser = sp.site_parser_factory('sj.ru')
+        test_input = ['data/test_vac_sj_01.html',
+                     ]
+        for file_name in test_input:
+            with open(file_name) as testfd:
+                test_vac = parser.get_vacancy(html=testfd.read())
+                assert test_vac.name and test_vac.name != 'cant parse'
+                assert test_vac.html
+                pvac = vp.ProcessedVacancy(test_vac, [])
 
     def test_output_csv(self):
         """ Test output to csv, regresstion test. """
@@ -95,12 +96,12 @@ class TestFunc(unittest.TestCase):
             vac = parser.get_vacancy('aaa', open(vac_file).read(), 'nolink')
             self.session.add(vac)
         self.session.commit()
-        vp.output_csv(self.session, tags=cfg.Tags, file_name=self.test_csv_fn)
+        vp.output_csv(self.session, tags=cfg.TAGS, file_name=self.test_csv_fn)
         reference_text = open('data/test_reference.csv').read()
         output = open(self.test_csv_fn).read()
         assert output == reference_text
 
-    def test_site_parser(self):
+    def test_site_parser_hh(self):
         """ Create two site parsers and call get_all_vacancies. """
         sparser = sp.site_parser_factory('hh.ru')
         vacs = sparser.get_all_vacancies(self.session, self.MAX_VAC_NUM)
@@ -108,9 +109,12 @@ class TestFunc(unittest.TestCase):
         assert len(vacs) == self.MAX_VAC_NUM
 
 
-if __name__ == '__main__':
+def main():
     try:
         unittest.main(warnings='ignore')
     except SystemExit as inst:
         if inst.args[0] is True: # raised by sys.exit(True) when tests failed
             raise
+
+if __name__ == '__main__':
+    main()

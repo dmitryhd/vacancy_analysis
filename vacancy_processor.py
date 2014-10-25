@@ -40,31 +40,31 @@ def __load_vacancies_from_db(session, tags):
     header = ''
     columns = []
     for tag in tags:
-        header += tag[cfg.tag_title] + '_min '
+        header += tag[cfg.TAG_TITLE] + '_min '
         columns.append([])
-        header += tag[cfg.tag_title] + '_max '
+        header += tag[cfg.TAG_TITLE] + '_max '
         columns.append([])
     for pvac in proc_vacs:
         tag_index = 0
         for tag in tags:
-            if pvac.tags[tag[cfg.tag_name]] and pvac.min_salary:
+            if pvac.tags[tag[cfg.TAG_NAME]] and pvac.min_salary:
                 columns[tag_index].append(pvac.min_salary)
             tag_index += 1
-            if pvac.tags[tag[cfg.tag_name]] and pvac.max_salary:
+            if pvac.tags[tag[cfg.TAG_NAME]] and pvac.max_salary:
                 columns[tag_index].append(pvac.max_salary)
             tag_index += 1
     return header, columns
 
 def __create_labels(columns, tags):
     """ Write file, creating headers for plot. """
-    with open(cfg.labels_filename, 'w+') as labels_fd:
+    with open(cfg.LABELS_FILENAME, 'w+') as labels_fd:
         tag_index = 0
         for tag in tags:
             data = columns[tag_index]
             num = len(data)
             mean = int(sum(data))/len(data) if len(data) > 0 else 0
             mean = int(mean)
-            label = '"' + tag[cfg.tag_name]
+            label = '"' + tag[cfg.TAG_NAME]
             label += ' От. Средн:{}, Вакансий:{}'.format(mean, num) + '" '
             print(label, file=labels_fd, end='')
             tag_index += 1
@@ -72,7 +72,7 @@ def __create_labels(columns, tags):
             num = len(data)
             mean = int(sum(data))/len(data) if len(data) > 0 else 0
             mean = int(mean)
-            label = '"' + tag[cfg.tag_name]
+            label = '"' + tag[cfg.TAG_NAME]
             label += ' До. Средн:{}, Вакансий:{}'.format(mean, num) + '" '
             print(label, file=labels_fd, end='')
             tag_index += 1
@@ -99,14 +99,14 @@ def __create_csv(columns, header, file_name, db_name):
     if time_in_sec:
         time_in_sec = time.localtime(int(time_in_sec.group()))
         stime = time.strftime("%Y-%m-%d", time_in_sec)
-    with open(cfg.title_filename, 'w') as label_fd:
+    with open(cfg.TITLE_FILENAME, 'w') as label_fd:
         print(cfg.LABEL.format(cfg.CURRENT_SITE, stime), file=label_fd)
-    with open(cfg.plot_filename_container, 'w') as plot_fd:
+    with open(cfg.PLOT_FILENAME_container, 'w') as plot_fd:
         print('plots/plot_{}_{}.png'.format(cfg.CURRENT_SITE, stime),
               file=plot_fd)
 
 
-def output_csv(session, tags, file_name=cfg.csv_filename, db_name=''):
+def output_csv(session, tags, file_name=cfg.CSV_FILENAME, db_name=''):
     """ Generate csv file with vacancy name, minimum and maximum salary
         anb information about programming language.
     """
@@ -147,7 +147,7 @@ def main():
     def _process_vacancies(db_name):
         """ Processing vacancies. """
         session = prepare_db(db_name)
-        output_csv(session, tags=cfg.Tags, db_name=db_name)
+        output_csv(session, tags=cfg.TAGS, db_name=db_name)
 
     def _plot():
         """ Create plot png. """
