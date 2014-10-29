@@ -6,7 +6,6 @@
 
 # pylint: disable=F0401, R0921
 
-
 import bs4
 import requests
 from sys import stdout
@@ -147,6 +146,47 @@ class SiteParserSJ(SiteParser):
             maximum_vac=MAXIM_NUMBER_OF_VACANCIES):
         """ Must return list of vacancies and save them to session. """
         raise NotImplementedError
+
+    def get_vacancies_on_page(self, url, vacancies, session, maximum_vac):
+        """ Download all vacancies from page and return link to next page. """
+        page = self.get_url(url)
+        soup = bs4.BeautifulSoup(page)
+        print('')
+        for link_to_vac in soup.find_all('a', class_='vacancy-url'):
+            link = link_to_vac.attrs["href"]
+            vacancy_html = self.get_url(link)
+            new_vacancy = self.get_vacancy(html=vacancy_html, url=link)
+            print(new_vacancy)
+            vacancies.append(new_vacancy)
+            session.add(new_vacancy)
+            session.commit()
+            if len(vacancies) >= maximum_vac:
+                return None
+            stdout.write("\rdownloaded {} vacancy".format(new_vacancy.id))
+            stdout.flush()
+        try:
+            next_link_candidates = soup.find_all('a',
+                    class_='row_navigation pagination-link')
+            for next_link_cand in next_link_candidates:
+                if 'следуюящая' in next_link_cand.text:
+                    return next_link_cand.attrs['href']
+        except:
+            return None
+        return None
+
+    def get_all_vacancies(self, session,
+                          maximum_vac=MAXIM_NUMBER_OF_VACANCIES):
+        """ Must return list of Vacancies. """
+        vacancies = []
+        next_link = self.base_url
+        cnt = 0
+        while cnt < maximum_vac:
+            next_link = self.get_vacancies_on_page(next_link, vacancies,
+                                                   session, maximum_vac)
+            if next_link == None:
+                break
+            cnt += 1
+        return vacancies
 
 
 PARSER_IMPL = {'hh.ru': SiteParserHH,
