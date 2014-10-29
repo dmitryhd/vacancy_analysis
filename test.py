@@ -99,6 +99,12 @@ class TestSiteParser(BaseT):
                 assert test_vac.name and test_vac.name != 'cant parse'
                 assert test_vac.html
 
+    def test_site_parser_sj(self):
+        """ """
+        sparser = sp.site_parser_factory('sj.ru')
+        vacs = sparser.get_all_vacancies(self.session, self.MAX_VAC_NUM)
+        assert vacs
+
     def test_get_salary(self):
         """ Check, if we can parse hh vacancies """
         salaries = [(60000, 90000),
