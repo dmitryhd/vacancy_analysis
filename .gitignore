@@ -1,0 +1,8 @@
+*.db
+*.txt
+*.tgz
+.RData
+.Rhistory
+__pycache__
+*.csv
+*.png
