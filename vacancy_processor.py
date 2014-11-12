@@ -10,7 +10,6 @@
     Date: 29.09.2014
 """
 
-
 import time
 import argparse
 import sqlalchemy
@@ -32,6 +31,7 @@ def prepare_db(db_name):
     BASE.metadata.create_all(engine)
     session = sqlalchemy.orm.sessionmaker(bind=engine)()
     return session
+
 
 def __load_vacancies_from_db(session, tags):
     """ Return header, columns of data. """
@@ -57,6 +57,7 @@ def __load_vacancies_from_db(session, tags):
             tag_index += 1
     return header, columns
 
+
 def __create_labels(columns, tags):
     """ Write file, creating headers for plot. """
     with open(cfg.LABELS_FILENAME, 'w+') as labels_fd:
@@ -78,6 +79,7 @@ def __create_labels(columns, tags):
             label += ' До. Средн:{}, Вакансий:{}'.format(mean, num) + '" '
             print(label, file=labels_fd, end='')
             tag_index += 1
+
 
 def __create_csv(columns, header, file_name, db_name):
     """ Output result to csv! """
@@ -182,8 +184,7 @@ def main():
             _download_to_db(db_name, args.num_vac)
         else:
             _download_to_db(db_name)
-
-    elif args.compress:
+    elif args.compress:  # if process and compress
         uncompress_database(db_name)
     _process_vacancies(db_name)
     if args.compress:

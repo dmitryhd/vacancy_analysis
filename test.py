@@ -13,6 +13,32 @@ import vacancy_processor as vp
 import site_parser as sp
 
 
+class TestCompression(unittest.TestCase):
+    """ Compress and decompress cetrain file. """
+    @classmethod
+    def tearDownClass(cls):
+        os.remove('data/testfn.txt')
+
+    @staticmethod
+    def test_compress_decompress():
+        test_fn = 'data/testfn.txt'
+        initial_text = 'abcdefg'
+        with open(test_fn, 'w') as test_fd:
+            test_fd.write(initial_text)
+            test_fd.close()
+        assert os.path.isfile(test_fn)
+        with open(test_fn) as test_fd:
+            assert test_fd.read() == initial_text
+        vp.compress_database(test_fn)
+        assert not os.path.isfile(test_fn)
+        assert os.path.isfile(test_fn + '.tgz')
+        vp.uncompress_database(test_fn)
+        assert not os.path.isfile(test_fn + '.tgz')
+        assert os.path.isfile(test_fn)
+        with open(test_fn) as test_fd:
+            assert test_fd.read() == initial_text
+
+
 class BaseT(unittest.TestCase):
     """ Test case for everything. """
     test_db = 'data/test.db'
