@@ -80,7 +80,6 @@ class SiteParserHH(SiteParser):
         """ Download all vacancies from page and return link to next page. """
         page = self.get_url(url)
         soup = bs4.BeautifulSoup(page)
-        print('')
         for vacancy in soup.find_all('div', class_='searchresult__name'):
             name = vacancy.string
             if name is not None:
@@ -151,12 +150,10 @@ class SiteParserSJ(SiteParser):
         """ Download all vacancies from page and return link to next page. """
         page = self.get_url(url)
         soup = bs4.BeautifulSoup(page)
-        print('')
         for link_to_vac in soup.find_all('a', class_='vacancy-url'):
             link = link_to_vac.attrs["href"]
             vacancy_html = self.get_url(link)
             new_vacancy = self.get_vacancy(html=vacancy_html, url=link)
-            print(new_vacancy)
             vacancies.append(new_vacancy)
             session.add(new_vacancy)
             session.commit()

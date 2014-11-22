@@ -120,7 +120,6 @@ def output_csv(session, tags, file_name=cfg.CSV_FILENAME, db_name=''):
     __create_csv(columns, header, file_name, db_name)
 
 
-
 def compress_database(db_name):
     """ Create bz archive and delete sqlite database file. """
     compressed_fd = tarfile.open(db_name+'.tgz', 'w:gz')
