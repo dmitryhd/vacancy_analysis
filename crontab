@@ -2,5 +2,6 @@ SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
 MAILTO=root
 HOME=/home/dimert
-# * * * * * root /usr/bin/env > /tmp/cron-env
-07 * * * * root /home/dimert/repos/vacancy_analysis/vacancy_processor.py -t -c
+LC_CTYPE="en_US.UTF-8"
+* * * * * root /usr/bin/env > /tmp/cron-env
+25 19 * * * root /home/dimert/repos/vacancy_analysis/vacancy_processor.py -t -c
