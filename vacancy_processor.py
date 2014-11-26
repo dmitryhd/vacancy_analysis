@@ -98,11 +98,17 @@ def __create_csv(columns, header, file_name, db_name):
             out += str(column[i]) + ' '
         print(out, file=csv_fd)
 
-    time_in_sec = re.search(r'(\d)+', db_name)
+    time_in_sec = re.search(r'(\d+)', db_name)
     stime = ''
-    if time_in_sec:
+    if not time_in_sec:
         time_in_sec = time.localtime(int(time_in_sec.group()))
         stime = time.strftime("%Y-%m-%d", time_in_sec)
+    else:
+        time_in_sec = int(time_in_sec.groups()[0])
+        print('time_in_sec:', time_in_sec)
+        stime = time.strftime("%Y-%m-%d", time.localtime(time_in_sec))
+        print('stime:', stime)
+
     with open(cfg.TITLE_FILENAME, 'w') as label_fd:
         print(cfg.LABEL.format(cfg.CURRENT_SITE, stime), file=label_fd)
     with open(cfg.PLOT_FILENAME_CONTAINER, 'w') as plot_fd:

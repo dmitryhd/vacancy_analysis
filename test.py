@@ -42,12 +42,12 @@ class TestCompression(unittest.TestCase):
 class BaseT(unittest.TestCase):
     """ Test case for everything. """
     test_db = 'data/test.db'
-    test_vac_files = ['data/test_vac01.html',
-                      'data/test_vac02.html',
-                      'data/test_vac03.html',
-                      'data/test_vac04.html',
+    test_vac_files = ['data/test/test_vac01.html',
+                      'data/test/test_vac02.html',
+                      'data/test/test_vac03.html',
+                      'data/test/test_vac04.html',
                      ]
-    test_csv_fn = 'data/test.csv'
+    test_csv_fn = 'data/test/test.csv'
     MAX_VAC_NUM = 10
 
     @classmethod
@@ -98,7 +98,7 @@ class TestVacancy(BaseT):
             self.session.add(vac)
         self.session.commit()
         vp.output_csv(self.session, tags=cfg.TAGS, file_name=self.test_csv_fn)
-        reference_text = open('data/test_reference.csv').read()
+        reference_text = open('data/test/test_reference.csv').read()
         output = open(self.test_csv_fn).read()
         assert output == reference_text
 
@@ -117,7 +117,7 @@ class TestSiteParser(BaseT):
     def test_composite_vacancy():
         """ Read test vacancy from html and check if output is right. """
         parser = sp.site_parser_factory('sj.ru')
-        test_input = ['data/test_vac_sj_01.html',
+        test_input = ['data/test/test_vac_sj_01.html',
                      ]
         for file_name in test_input:
             with open(file_name) as testfd:
