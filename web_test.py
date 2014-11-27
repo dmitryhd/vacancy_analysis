@@ -15,7 +15,6 @@ class TestServer(unittest.TestCase):
         res = self.app.get('/')
         assert 'iGallery' in str(res.data), str(res.data)
         assert '<img' in str(res.data), str(res.data)
-        assert 'png' in str(res.data) or 'jpg' in str(res.data), str(res.data)
 
 unittest.main()
 
