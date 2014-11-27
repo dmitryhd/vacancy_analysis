@@ -1,0 +1,44 @@
+<!doctype html>
+<head>
+    <title>iGallery</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link href="/static/favicon.ico" rel="shortcut icon" type="image/x-icon">
+
+</head>
+<body>
+    <div class='gallery_container center_align'>
+        <h1>Gallery</h1>
+        <button class='to_left'> + </button>
+        <button class='to_right'> - </button>
+        <hr>
+    </div>
+    <dev class='gallery_container'>
+    <img class='gallery_picture gallery_container' src='' alt=''>
+    </dev>
+    <script>
+    var cnt = 0;
+    var pictures = 0;
+    $(".to_left").click(function(){
+        $.getJSON( "/_get_plots", function( data ) {
+            var myObject = JSON.parse(data);
+            pictures = myObject;
+        });
+        $(".gallery_picture").attr("src", pictures[cnt]);
+        if (cnt + 1 < pictures.length) {
+            cnt++;
+        }
+    });
+    $(".to_right").click(function(){
+        $.getJSON( "/_get_plots", function( data ) {
+            var myObject = JSON.parse(data);
+            pictures = myObject;
+        });
+        $(".gallery_picture").attr("src", pictures[cnt]);
+        if (cnt - 1 >= 0) {
+            cnt--;
+        }
+    });
+    </script>
+</body>

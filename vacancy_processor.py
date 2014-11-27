@@ -101,7 +101,7 @@ def __create_csv(columns, header, file_name, db_name):
     time_in_sec = re.search(r'(\d+)', db_name)
     stime = ''
     if not time_in_sec:
-        time_in_sec = time.localtime(int(time_in_sec.group()))
+        time_in_sec = time.localtime()
         stime = time.strftime("%Y-%m-%d", time_in_sec)
     else:
         time_in_sec = int(time_in_sec.groups()[0])
