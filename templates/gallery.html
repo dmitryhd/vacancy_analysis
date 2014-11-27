@@ -6,28 +6,16 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <link href="/static/favicon.ico" rel="shortcut icon" type="image/x-icon">
 
+    <script type=text/javascript src="/static/js/image_gallery.js"></script>
 </head>
 <body>
     <div class='gallery_container center_align'>
         <h1>Gallery</h1>
-        <button class='to_left'> + </button>
-        <button class='to_right'> - </button>
+        <button class='later'> later </button>
+        <button class='earlier'> earlier </button>
         <hr>
     </div>
     <dev class='gallery_container'>
     <img class='gallery_picture gallery_container' src='' alt=''>
     </dev>
-
-    
-<script type=text/javascript>
-  $(function() {
-    $('.to_left').bind('click', function() {
-      $.getJSON('/_get_plots', {}, function(data) {
-        $(".gallery_picture").attr("src", data.images);
-      });
-      return false;
-    });
-  });
-</script>
-
 </body>
