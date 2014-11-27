@@ -25,7 +25,7 @@ def get_plots():
     for img in images:
         tail, filename = os.path.split(img)
         plots.append('/plots/' + filename)
-    return jsonify(images=plots)
+    return jsonify(images=plots[0])
 
 @app.route('/')
 def hello_world():
@@ -40,6 +40,11 @@ def main():
     """ Parse command line arguments. """
     run_server()
 
+@app.route('/_add_numbers')
+def add_numbers():
+    a = request.args.get('a', 0, type=int)
+    b = request.args.get('b', 0, type=int)
+    return jsonify(result=a + b)
 
 if __name__ == '__main__':
     main()

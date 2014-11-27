@@ -17,28 +17,17 @@
     <dev class='gallery_container'>
     <img class='gallery_picture gallery_container' src='' alt=''>
     </dev>
-    <script>
-    var cnt = 0;
-    var pictures = 0;
-    $(".to_left").click(function(){
-        $.getJSON( "/_get_plots", function( data ) {
-            var myObject = JSON.parse(data);
-            pictures = myObject;
-        });
-        $(".gallery_picture").attr("src", pictures[cnt]);
-        if (cnt + 1 < pictures.length) {
-            cnt++;
-        }
+
+    
+<script type=text/javascript>
+  $(function() {
+    $('.to_left').bind('click', function() {
+      $.getJSON('/_get_plots', {}, function(data) {
+        $(".gallery_picture").attr("src", data.images);
+      });
+      return false;
     });
-    $(".to_right").click(function(){
-        $.getJSON( "/_get_plots", function( data ) {
-            var myObject = JSON.parse(data);
-            pictures = myObject;
-        });
-        $(".gallery_picture").attr("src", pictures[cnt]);
-        if (cnt - 1 >= 0) {
-            cnt--;
-        }
-    });
-    </script>
+  });
+</script>
+
 </body>
