@@ -46,6 +46,7 @@ class Vacancy(BASE):
                                                          self.name,
                                                          len(self.html))
 
+class ProcessedResult()
 
 class ProcessedVacancy():
     """ Processed vacancy. Contains name and tags."""
@@ -88,3 +89,4 @@ class ProcessedVacancy():
         out = '{} {} {}'.format(self.name, self.min_salary, self.max_salary)
         out += '\ntags:' + str(self.tags)
         return out
+

@@ -39,6 +39,10 @@ class TestCompression(unittest.TestCase):
             assert test_fd.read() == initial_text
 
 
+class TestProcessedResult(unittest.TestCase):
+    
+
+
 class BaseT(unittest.TestCase):
     """ Test case for everything. """
     test_db = 'data/test.db'
