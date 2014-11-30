@@ -2,9 +2,9 @@
 
 """ Main module to download html pages fro hh.ru, parse them and
     save to database.
-    run: ./market_analysis.py
+    run: ./vacancy_processor.py -t -c
     Also can process database data to csv file for futher analysis.
-    run: ./market_analysis.py -p
+    run: ./vacancy_processor.py -p -d <db_name>
 
     Author: Dmitriy Khodakov <dmitryhd@gmail.com>
     Date: 29.09.2014
