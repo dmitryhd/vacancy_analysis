@@ -39,13 +39,32 @@ class TestCompression(unittest.TestCase):
             assert test_fd.read() == initial_text
 
 
-class TestProcessedResult(unittest.TestCase):
-    
+class TestProcessedStatistics(unittest.TestCase):
+    test_db = 'data/test/test_stat.db'
+    test_info_db = 'data/test/test_stat_info.db'
+    MAX_VAC = 10
+
+    def test_save_some_statistics(self):
+        """ Create processed statistics entry from example database. """
+        out_session = vp.prepare_db(self.test_db)
+        in_session = vp.prepare_db(self.test_info_db)
+        header, colunms, proc_vacs = vp._load_vacancies_from_db(
+            in_session, tags=cfg.TAGS)
+        proc_stat = va.ProcessedStatistics(proc_vacs[:self.MAX_VAC],
+                                           _time='now')
+        out_session.add(proc_stat)
+        out_session.commit()
+        query = out_session.query(va.ProcessedStatistics)
+        assert query
+        for vac_stat in query:
+            assert vac_stat.get_proc_vac()
+            assert len(vac_stat.get_proc_vac()) == self.MAX_VAC
+            assert vac_stat.date
 
 
 class BaseT(unittest.TestCase):
     """ Test case for everything. """
-    test_db = 'data/test.db'
+    test_db = 'data/test/test.db'
     test_vac_files = ['data/test/test_vac01.html',
                       'data/test/test_vac02.html',
                       'data/test/test_vac03.html',

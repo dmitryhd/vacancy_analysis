@@ -15,7 +15,7 @@
 import bs4
 import datetime
 import re
-
+import pickle
 import sqlalchemy
 from sqlalchemy.schema import Column
 from sqlalchemy.ext.declarative import declarative_base
@@ -46,7 +46,28 @@ class Vacancy(BASE):
                                                          self.name,
                                                          len(self.html))
 
-class ProcessedResult()
+class ProcessedStatistics(BASE):
+    """ Table entry for vacancy statistics for certain time. """
+    __tablename__ = 'statistics'
+    id = Column(sqlalchemy.types.Integer, primary_key=True)
+    proc_vac = Column(sqlalchemy.types.PickleType)
+    date = Column(sqlalchemy.types.DateTime)
+
+    def __init__(self, proc_vac, _time='now'):
+        self.set_proc_vac(proc_vac)
+        if _time == 'now':
+            self.date = datetime.datetime.now()
+        else:
+            self.date = _time
+
+    def get_proc_vac(self):
+        if not self.proc_vac:
+            return None
+        return pickle.loads(self.proc_vac)
+
+    def set_proc_vac(self, new_proc_vac):
+        self.proc_vac = pickle.dumps(new_proc_vac)
+
 
 class ProcessedVacancy():
     """ Processed vacancy. Contains name and tags."""

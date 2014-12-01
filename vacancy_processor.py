@@ -33,7 +33,7 @@ def prepare_db(db_name):
     return session
 
 
-def __load_vacancies_from_db(session, tags):
+def _load_vacancies_from_db(session, tags):
     """ Return header, columns of data. """
     proc_vacs = []
     vacancies = session.query(Vacancy)
@@ -55,7 +55,7 @@ def __load_vacancies_from_db(session, tags):
             if pvac.tags[tag[cfg.TAG_NAME]] and pvac.max_salary:
                 columns[tag_index].append(pvac.max_salary)
             tag_index += 1
-    return header, columns
+    return header, columns, proc_vacs
 
 
 def __create_labels(columns, tags):
@@ -121,7 +121,7 @@ def output_csv(session, tags, file_name=cfg.CSV_FILENAME, db_name=''):
         anb information about programming language.
     """
 
-    header, columns = __load_vacancies_from_db(session, tags)
+    header, columns, pvacs = _load_vacancies_from_db(session, tags)
     __create_labels(columns, tags)
     __create_csv(columns, header, file_name, db_name)
 
