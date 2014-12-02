@@ -34,6 +34,7 @@ def get_plots():
 
 @app.route('/_get_plot_data')
 def get_plot_data():
+    """ """
     plot_name = request.args.get('plot', "", type=str)
     print('plot_name', plot_name)
     import vacancy_processor as vp
