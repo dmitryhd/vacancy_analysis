@@ -6,6 +6,7 @@ from flask import request, Flask, render_template, send_from_directory, jsonify
 import sys
 import os
 import glob
+import config as cfg
 
 PORT = 9999
 app = Flask(__name__)
@@ -33,10 +34,24 @@ def get_plots():
 
 @app.route('/_get_plot_data')
 def get_plot_data():
-    a = request.args.get('plot', "", type=str)
-    categories = ['Java', '1c', 'OMG']
-    _from = [1, 2, 3]
-    to = [10, 11, 13]
+    plot_name = request.args.get('plot', "", type=str)
+    print('plot_name', plot_name)
+    import vacancy_processor as vp
+    import vacancy as va
+    s = vp.prepare_db('data/stat.db')
+    q = s.query(va.ProcessedStatistics)
+    proc_vac = {}
+    for res in q:
+        proc_vac[res.date] = res.get_tag_bins()
+        print(res.date, res.get_tag_bins())
+
+    categories = [tag[0] for tag in cfg.TAGS]
+    tag_bins = proc_vac[plot_name]
+    _from = []
+    to = []
+    for cat in categories:
+        _from.append(tag_bins[cat])
+        to.append(tag_bins[cat])
     return jsonify(d_categories=categories, d_from=_from, d_to=to)
 # -------------- END AJAX ----------------
 

@@ -14,6 +14,7 @@
 
 import bs4
 import datetime
+import time
 import re
 import pickle
 import sqlalchemy
@@ -50,13 +51,14 @@ class ProcessedStatistics(BASE):
     """ Table entry for vacancy statistics for certain time. """
     __tablename__ = 'statistics'
     id = Column(sqlalchemy.types.Integer, primary_key=True)
+    date = Column(sqlalchemy.types.Integer)
     proc_vac = Column(sqlalchemy.types.PickleType)
-    date = Column(sqlalchemy.types.DateTime)
+    tag_bins = Column(sqlalchemy.types.PickleType)
 
     def __init__(self, proc_vac, _time='now'):
         self.set_proc_vac(proc_vac)
         if _time == 'now':
-            self.date = datetime.datetime.now()
+            self.date = int(time.time())
         else:
             self.date = _time
 
@@ -65,8 +67,21 @@ class ProcessedStatistics(BASE):
             return None
         return pickle.loads(self.proc_vac)
 
+    def get_tag_bins(self):
+        if not self.tag_bins:
+            return None
+        return pickle.loads(self.tag_bins)
+
     def set_proc_vac(self, new_proc_vac):
         self.proc_vac = pickle.dumps(new_proc_vac)
+
+    def calculate_tag_bins(self, tags=cfg.TAGS):
+        pvacancies = self.get_proc_vac()
+        tag_bins = {tag[cfg.TAG_NAME]: 0 for tag in tags}
+        for pvac in pvacancies:
+            for tag_name, tag_val in pvac.tags.items():
+                tag_bins[tag_name] += tag_val
+        self.tag_bins = pickle.dumps(tag_bins)
 
 
 class ProcessedVacancy():

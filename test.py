@@ -52,6 +52,7 @@ class TestProcessedStatistics(unittest.TestCase):
             in_session, tags=cfg.TAGS)
         proc_stat = va.ProcessedStatistics(proc_vacs[:self.MAX_VAC],
                                            _time='now')
+        proc_stat.calculate_tag_bins()
         out_session.add(proc_stat)
         out_session.commit()
         query = out_session.query(va.ProcessedStatistics)
@@ -60,6 +61,7 @@ class TestProcessedStatistics(unittest.TestCase):
             assert vac_stat.get_proc_vac()
             assert len(vac_stat.get_proc_vac()) == self.MAX_VAC
             assert vac_stat.date
+            assert vac_stat.get_tag_bins()
 
 
 class BaseT(unittest.TestCase):

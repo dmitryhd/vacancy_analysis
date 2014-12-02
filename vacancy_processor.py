@@ -11,6 +11,7 @@
 """
 
 import time
+import datetime
 import argparse
 import sqlalchemy
 from sys import argv
@@ -21,7 +22,7 @@ import re
 
 import site_parser as sp
 import config as cfg
-from vacancy import BASE, Vacancy, ProcessedVacancy
+from vacancy import BASE, Vacancy, ProcessedVacancy, ProcessedStatistics
 
 # pylint: disable=E0001, R0921
 
@@ -80,6 +81,14 @@ def __create_labels(columns, tags):
             print(label, file=labels_fd, end='')
             tag_index += 1
 
+def get_time_by_filename(fname):
+    seconds = re.search(r'(\d+)', fname)
+    if not seconds:
+        seconds = int(time.time())
+    else:
+        seconds = int(seconds.groups()[0])
+    return seconds
+
 
 def __create_csv(columns, header, file_name, db_name):
     """ Output result to csv! """
@@ -98,16 +107,8 @@ def __create_csv(columns, header, file_name, db_name):
             out += str(column[i]) + ' '
         print(out, file=csv_fd)
 
-    time_in_sec = re.search(r'(\d+)', db_name)
-    stime = ''
-    if not time_in_sec:
-        time_in_sec = time.localtime()
-        stime = time.strftime("%Y-%m-%d", time_in_sec)
-    else:
-        time_in_sec = int(time_in_sec.groups()[0])
-        print('time_in_sec:', time_in_sec)
-        stime = time.strftime("%Y-%m-%d", time.localtime(time_in_sec))
-        print('stime:', stime)
+    seconds = get_time_by_filename(db_name)
+    stime = datetime.datetime.fromtimestamp(seconds).strftime("%Y-%m-%d")
 
     with open(cfg.TITLE_FILENAME, 'w') as label_fd:
         print(cfg.LABEL.format(cfg.CURRENT_SITE, stime), file=label_fd)
@@ -124,6 +125,13 @@ def output_csv(session, tags, file_name=cfg.CSV_FILENAME, db_name=''):
     header, columns, pvacs = _load_vacancies_from_db(session, tags)
     __create_labels(columns, tags)
     __create_csv(columns, header, file_name, db_name)
+
+    out_session = prepare_db(cfg.STAT_DB)
+    file_time = get_time_by_filename(db_name)
+    proc_stat = ProcessedStatistics(pvacs, _time=file_time)
+    proc_stat.calculate_tag_bins()
+    out_session.add(proc_stat)
+    out_session.commit()
 
 
 def compress_database(db_name):
@@ -157,6 +165,7 @@ def main():
         """ Processing vacancies. """
         session = prepare_db(db_name)
         output_csv(session, tags=cfg.TAGS, db_name=db_name)
+
 
     def _plot():
         """ Create plot png. """
