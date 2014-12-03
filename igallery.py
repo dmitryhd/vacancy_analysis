@@ -35,8 +35,12 @@ def get_plots():
 @app.route('/_get_plot_data')
 def get_plot_data():
     """ """
-    plot_name = request.args.get('plot', "", type=int)
+    plot_name = request.args.get('plot', "", type=str)
     print('plot_name', plot_name)
+    import re
+    seconds = int(re.search(r'(\d+)', plot_name).groups()[0])
+    print('----------------')
+    print('seconds', seconds)
     import vacancy_processor as vp
     import vacancy as va
     s = vp.prepare_db('data/stat.db')
@@ -48,7 +52,7 @@ def get_plot_data():
 
     categories = [tag[0] for tag in cfg.TAGS]
     print('proc_vac:', proc_vac)
-    tag_bins = proc_vac[plot_name]
+    tag_bins = proc_vac[seconds]
     _from = []
     to = []
     for cat in categories:

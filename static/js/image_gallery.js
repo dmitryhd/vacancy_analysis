@@ -11,13 +11,38 @@ d_to = [];
 
 $(function() {
   $('.earlier').bind('click', function() {
+    $.getJSON('/_get_plot_data', {plot: pics[cnt]}, function(data) {
+        d_categories = data.d_categories;
+        d_from = data.d_from;
+        d_to = data.d_to;
+    $('#container').highcharts({
+        chart: {
+            type: 'bar'
+        },
+        title: {
+            text: 'Количество вакансий по языку'
+        },
+        xAxis: {
+            categories: d_categories
+        },
+        yAxis: {
+            title: {
+                text: 'Количество вакансий по языку'
+            }
+        },
+        series: [{
+            name: 'Число вакансий',
+            data: d_from
+        } ]
+    });
+    })
       $(".gallery_picture").attr("src", pics[cnt]);
       if (cnt + 1 < pics.length) {
           cnt++;
       }
   });
   $('.later').bind('click', function() {
-    $.getJSON('/_get_plot_data', {plot: 1417618752}, function(data) {
+    $.getJSON('/_get_plot_data', {plot: pics[cnt]}, function(data) {
         d_categories = data.d_categories;
         d_from = data.d_from;
         d_to = data.d_to;

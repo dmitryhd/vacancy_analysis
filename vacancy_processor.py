@@ -113,7 +113,7 @@ def __create_csv(columns, header, file_name, db_name):
     with open(cfg.TITLE_FILENAME, 'w') as label_fd:
         print(cfg.LABEL.format(cfg.CURRENT_SITE, stime), file=label_fd)
     with open(cfg.PLOT_FILENAME_CONTAINER, 'w') as plot_fd:
-        print('plots/plot_{}_{}.png'.format(cfg.CURRENT_SITE, stime),
+        print('plots/plot_{}_{}.png'.format(cfg.CURRENT_SITE, seconds),
               file=plot_fd)
 
 
