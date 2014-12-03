@@ -4,9 +4,9 @@ $.getJSON('/_get_plots', {}, function(data) {
     pics = data.images;
 });
 
-var d_categories = [];
-var d_from = [];
-var d_to = [];
+d_categories = ['yy'];
+d_from = [12];
+d_to = [];
 
 
 $(function() {
@@ -17,15 +17,10 @@ $(function() {
       }
   });
   $('.later').bind('click', function() {
-      $(".gallery_picture").attr("src", pics[cnt]);
-      if (cnt - 1 >= 0) {
-          cnt--;
-      }
-    $.getJSON('/_get_plot_data', {}, function(data) {
+    $.getJSON('/_get_plot_data', {plot: 1417618752}, function(data) {
         d_categories = data.d_categories;
         d_from = data.d_from;
         d_to = data.d_to;
-    });
     $('#container').highcharts({
         chart: {
             type: 'bar'
@@ -42,13 +37,15 @@ $(function() {
             }
         },
         series: [{
-            name: 'От',
+            name: 'Число вакансий',
             data: d_from
-        }, {
-            name: 'До',
-            data: d_to
-        }]
+        } ]
     });
+    })
+      $(".gallery_picture").attr("src", pics[cnt]);
+      if (cnt - 1 >= 0) {
+          cnt--;
+      }
   });
 
 });

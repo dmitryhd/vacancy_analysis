@@ -35,7 +35,7 @@ def get_plots():
 @app.route('/_get_plot_data')
 def get_plot_data():
     """ """
-    plot_name = request.args.get('plot', "", type=str)
+    plot_name = request.args.get('plot', "", type=int)
     print('plot_name', plot_name)
     import vacancy_processor as vp
     import vacancy as va
@@ -47,12 +47,14 @@ def get_plot_data():
         print(res.date, res.get_tag_bins())
 
     categories = [tag[0] for tag in cfg.TAGS]
+    print('proc_vac:', proc_vac)
     tag_bins = proc_vac[plot_name]
     _from = []
     to = []
     for cat in categories:
         _from.append(tag_bins[cat])
         to.append(tag_bins[cat])
+    print(categories, _from, to)
     return jsonify(d_categories=categories, d_from=_from, d_to=to)
 # -------------- END AJAX ----------------
 
