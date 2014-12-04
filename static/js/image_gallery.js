@@ -22,6 +22,13 @@ $(function() {
                 chart: {
                     type: 'bar'
                 },
+                plotOptions: {
+                    series: {
+                        animation: {
+                            duration: 100
+                        }
+                    }
+                },
                 title: {
                     text: 'Количество вакансий по языку'
                 },
