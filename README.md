@@ -11,4 +11,4 @@ How to use it:
 4. Plot saved in plots/vacancy_summary.png
 
 Result plot example:
-![Alt text](plots/vacancy_summary.png?raw=true "Result plot example")
+![Alt text](screens/plot_sample.png?raw=true "Result plot example")
