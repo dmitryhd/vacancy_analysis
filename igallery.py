@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
-
+# pylint: disable=invalid-name
 """ Just a web server in python + flask. Shows content of folder images. """
 
-from flask import request, Flask, render_template, send_from_directory, jsonify
 import os
 import glob
-import config as cfg
+from flask import request, Flask, render_template, send_from_directory, jsonify
 
-import re
-import vacancy_processor as vp
+import config as cfg
 import data_model as dm
+import vacancy_processor as vp
 
 app = Flask(__name__)
 app.debug = True
@@ -22,7 +21,7 @@ def run_server():
 # --------------- AJAX ------------------
 @app.route('/_get_plots')
 def get_plots():
-    """ """
+    """ Serve list of all plot filenames as json. """
     images = glob.glob(cfg.PLOT_PATH + '*.jpg')
     images.extend(glob.glob(cfg.PLOT_PATH + '*.png'))
     images = sorted(images, reverse=True)
@@ -35,29 +34,30 @@ def get_plots():
 
 @app.route('/_get_plot_data')
 def get_plot_data():
-    """ """
+    """ Serve statistics as json.
+        Plot file name given by request.
+    """
     plot_name = request.args.get('plot', "", type=str)
-    print('plot_name', plot_name)
-    seconds = int(re.search(r'(\d+)', plot_name).groups()[0])
-    print('----------------')
-    print('seconds', seconds)
-    s = vp.prepare_db('data/stat.db')
-    q = s.query(dm.ProcessedStatistics)
-    proc_vac = {}
-    for res in q:
-        proc_vac[res.date] = res.get_tag_bins()
-        print(res.date, res.get_tag_bins())
-
+    # Get timestamp from plot to search database for statistics.
+    timestamp = vp.get_time_by_filename(plot_name)
+    print('plot_name: {}, timestamp: {}'.format(plot_name, timestamp))
+    statistics_db = dm.open_db('data/stat.db', 'r')
+    stat_list = statistics_db.query(dm.ProcessedStatistics)
+    # Number of vacancies by time.
+    for stat in stat_list:
+        print(stat)
+        if stat.date == timestamp:
+            number_of_vacs_by_tag = stat.get_tag_bins()
+            break
     categories = [tag[0] for tag in cfg.TAGS]
-    print('proc_vac:', proc_vac)
-    tag_bins = proc_vac[seconds]
-    _from = []
-    to = []
-    for cat in categories:
-        _from.append(tag_bins[cat])
-        to.append(tag_bins[cat])
-    print(categories, _from, to)
-    return jsonify(d_categories=categories, d_from=_from, d_to=to)
+    # Number of vacancies.
+    values = [number_of_vacs_by_tag[cat] for cat in categories]
+    return jsonify(d_categories=categories, d_values=values)
+
+@app.route('/plots/<path:filename>')
+def serve_plots(filename):
+    """ Static function to serve png plots. """
+    return send_from_directory('./plots/', filename)
 # -------------- END AJAX ----------------
 
 
@@ -65,11 +65,6 @@ def get_plot_data():
 def hello_world():
     """ Index view. """
     return render_template('gallery.html')
-
-
-@app.route('/plots/<path:filename>')
-def send_foo(filename):
-    return send_from_directory('./plots/', filename)
 
 
 def main():

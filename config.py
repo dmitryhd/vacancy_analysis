@@ -36,7 +36,6 @@ TAGS = [TagRepr('c++', 'c++', 'cpp'),
         # Position...
        ]
 
-MAXIM_NUMBER_OF_PAGES = 1000
 MAXIM_NUMBER_OF_VACANCIES = 10000
 LABEL = 'Зарплата программистов по Москве. Данные {} на {}'
 STAT_DB = 'data/stat.db'

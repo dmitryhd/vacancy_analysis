@@ -23,6 +23,7 @@ class TestCompression(unittest.TestCase):
 
     @staticmethod
     def test_compress_decompress():
+        """ Compress file, then decompress. """
         test_fn = 'data/testfn.txt'
         initial_text = 'abcdefg'
         with open(test_fn, 'w') as test_fd:
@@ -42,22 +43,22 @@ class TestCompression(unittest.TestCase):
 
 
 class TestProcessedStatistics(unittest.TestCase):
+    """ Save some processed data. """
     test_db = 'data/test/test_stat.db'
     test_info_db = 'data/test/test_stat_info.db'
     MAX_VAC = 10
 
     def test_save_some_statistics(self):
         """ Create processed statistics entry from example database. """
-        out_session = vp.prepare_db(self.test_db)
-        in_session = vp.prepare_db(self.test_info_db)
-        header, colunms, proc_vacs = vp._load_vacancies_from_db(
-            in_session, tags=cfg.TAGS)
+        statistics_db = dm.open_db(self.test_db, 'w')
+        raw_vacancies_db = dm.open_db(self.test_info_db, 'r')
+        proc_vacs = dm.process_vacancies_from_db(raw_vacancies_db, cfg.TAGS)
         proc_stat = dm.ProcessedStatistics(proc_vacs[:self.MAX_VAC],
                                            _time='now')
         proc_stat.calculate_tag_bins()
-        out_session.add(proc_stat)
-        out_session.commit()
-        query = out_session.query(dm.ProcessedStatistics)
+        statistics_db.add(proc_stat)
+        statistics_db.commit()
+        query = statistics_db.query(dm.ProcessedStatistics)
         assert query
         for vac_stat in query:
             assert vac_stat.get_proc_vac()
@@ -80,7 +81,7 @@ class BaseT(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """ Prepare db. """
-        cls.session = vp.prepare_db(cls.test_db)
+        cls.session = dm.open_db(cls.test_db, 'w')
 
     @classmethod
     def tearDownClass(cls):
@@ -124,8 +125,10 @@ class TestVacancy(BaseT):
             vac = parser.get_vacancy('aaa', open(vac_file).read(), 'nolink')
             self.session.add(vac)
         self.session.commit()
-        header, columns, pvacs = vp._load_vacancies_from_db(self.session, cfg.TAGS)
-        vp.output_csv(header, columns, tags=cfg.TAGS, file_name=self.test_csv_fn)
+        processed_vacancies = dm.process_vacancies_from_db(self.session,
+                                                           cfg.TAGS)
+        vp.output_csv(processed_vacancies, tags=cfg.TAGS,
+                      csv_file_name=self.test_csv_fn)
         reference_text = open('data/test/test_reference.csv').read()
         output = open(self.test_csv_fn).read()
         assert output == reference_text
@@ -154,7 +157,7 @@ class TestSiteParser(BaseT):
                 assert test_vac.html
 
     def test_site_parser_sj(self):
-        """ """
+        """ Download data from superjob.ru """
         sparser = sp.site_parser_factory('sj.ru')
         vacs = sparser.get_all_vacancies(self.session, self.MAX_VAC_NUM)
         assert vacs

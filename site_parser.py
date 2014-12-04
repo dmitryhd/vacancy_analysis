@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
+# pylint: disable=F0401, R0921
 
-""" Author: Dmitriy Khodakov <dmitryhd@gmail.com>
+""" Here goes site specific implementation of get vacancies.
+    Author: Dmitriy Khodakov <dmitryhd@gmail.com>
     Date: 29.09.2014
 """
-
-# pylint: disable=F0401, R0921
 
 import bs4
 import requests
@@ -31,7 +31,7 @@ class SiteParser():
         raise NotImplementedError
 
     def get_all_vacancies(self, session,
-            maximum_vac=MAXIM_NUMBER_OF_VACANCIES):
+                          maximum_vac=MAXIM_NUMBER_OF_VACANCIES):
         """ Must return list of vacancies and save them to session. """
         raise NotImplementedError
 
@@ -94,7 +94,8 @@ class SiteParserHH(SiteParser):
                 if len(vacancies) >= maximum_vac:
                     return None
                 if PRINT_PROGRESS:
-                    stdout.write("\rdownloaded {} vacancy".format(new_vacancy.id))
+                    stdout.write("\rdownloaded {} vacancy".format(
+                        new_vacancy.id))
                     stdout.flush()
         try:
             link = soup.find_all('a',
@@ -144,11 +145,6 @@ class SiteParserSJ(SiteParser):
                 name = 'cant parse'
         return Vacancy(name, new_html, url=url, site='sj.ru')
 
-    def get_all_vacancies(self, session,
-            maximum_vac=MAXIM_NUMBER_OF_VACANCIES):
-        """ Must return list of vacancies and save them to session. """
-        raise NotImplementedError
-
     def get_vacancies_on_page(self, url, vacancies, session, maximum_vac):
         """ Download all vacancies from page and return link to next page. """
         page = self.get_url(url)
@@ -168,12 +164,12 @@ class SiteParserSJ(SiteParser):
                 stdout.write("\rdownloaded {} vacancy".format(new_vacancy.id))
                 stdout.flush()
         try:
-            next_link_candidates = soup.find_all('a',
-                    class_='row_navigation pagination-link')
+            next_link_candidates = soup.find_all(
+                'a', class_='row_navigation pagination-link')
             for next_link_cand in next_link_candidates:
                 if 'следуюящая' in next_link_cand.text:
                     return next_link_cand.attrs['href']
-        except:
+        except AttributeError:
             return None
         return None
 

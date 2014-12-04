@@ -22,23 +22,14 @@ import re
 
 import site_parser as sp
 import config as cfg
-from data_model import BASE, Vacancy, ProcessedVacancy, ProcessedStatistics
+from data_model import Vacancy, ProcessedVacancy, ProcessedStatistics
+import data_model as dm
 
 
-def prepare_db(db_name):
-    """ Return sqlalchemy session. """
-    engine = sqlalchemy.create_engine('sqlite:///' + db_name, echo=False)
-    BASE.metadata.create_all(engine)
-    session = sqlalchemy.orm.sessionmaker(bind=engine)()
-    return session
-
-
-def _load_vacancies_from_db(session, tags):
-    """ Return header, columns of data. """
-    proc_vacs = []
-    vacancies = session.query(Vacancy)
-    for vac in vacancies:
-        proc_vacs.append(ProcessedVacancy(vac, tags))
+def create_csv_data(proc_vacs, tags):
+    """ Get header and columns of values of equal lengths
+        from processed vacancies.
+    """
     header = ''
     columns = []
     for tag in tags:
@@ -55,11 +46,25 @@ def _load_vacancies_from_db(session, tags):
             if pvac.tags[tag.name] and pvac.max_salary:
                 columns[tag_index].append(pvac.max_salary)
             tag_index += 1
-    return header, columns, proc_vacs
+    return header, columns
 
 
-def __create_labels(columns, tags):
-    """ Write file, creating headers for plot. """
+def get_time_by_filename(fname):
+    """ Return timestamp, encoded in filename. """
+    seconds = re.search(r'(\d+)', fname)
+    if not seconds:
+        seconds = int(time.time())
+    else:
+        seconds = int(seconds.groups()[0])
+    return seconds
+
+
+def output_csv(processed_vacancies, tags, csv_file_name=cfg.CSV_FILENAME):
+    """ Generate csv file with vacancy name, minimum and maximum salary
+        anb information about programming language.
+    """
+    header, columns = create_csv_data(processed_vacancies, tags)
+    # Create labels.
     with open(cfg.LABELS_FILENAME, 'w+') as labels_fd:
         tag_index = 0
         for tag in tags:
@@ -80,24 +85,13 @@ def __create_labels(columns, tags):
             print(label, file=labels_fd, end='')
             tag_index += 1
 
-def get_time_by_filename(fname):
-    seconds = re.search(r'(\d+)', fname)
-    if not seconds:
-        seconds = int(time.time())
-    else:
-        seconds = int(seconds.groups()[0])
-    return seconds
-
-
-def __create_csv(columns, header, csv_file_name):
-    """ Output result to csv! """
+    # Output result to csv.
     max_length = 0
     for column in columns:
         max_length = max(max_length, len(column))
     for column in columns:
         need_to_fill = max_length - len(column)
         column.extend(['NA']*need_to_fill)
-    #save result
     csv_fd = open(csv_file_name, 'w')
     print(header, file=csv_fd)
     for i in range(max_length):
@@ -105,16 +99,6 @@ def __create_csv(columns, header, csv_file_name):
         for column in columns:
             out += str(column[i]) + ' '
         print(out, file=csv_fd)
-
-
-def output_csv(header, columns, tags, file_name=cfg.CSV_FILENAME):
-    """ Generate csv file with vacancy name, minimum and maximum salary
-        anb information about programming language.
-    """
-
-    __create_labels(columns, tags)
-    __create_csv(columns, header, file_name)
-
 
 
 def compress_database(db_name):
@@ -132,46 +116,23 @@ def uncompress_database(db_name):
     os.remove(db_name + '.tgz')
 
 
+def plot(data_gather_time, site):
+    """ Create plot png. Get time in seconds."""
+    # Create config files for R script, which will plot data to image.
+    stime = datetime.datetime.fromtimestamp(
+        data_gather_time).strftime("%Y-%m-%d")
+
+    with open(cfg.TITLE_FILENAME, 'w') as label_fd:
+        print(cfg.LABEL.format(site, stime), file=label_fd)
+    with open(cfg.PLOT_FILENAME_CONTAINER, 'w') as plot_fd:
+        print('plots/plot_{}_{}.png'.format(site, data_gather_time),
+              file=plot_fd)
+    # Run R script.
+    os.system('Rscript ./plot.R')
+
+
 def main():
     """ Just choose what to do: download or process. """
-    site = 'hh.ru'
-
-    def _download_to_db(db_name, max_vac=cfg.MAXIM_NUMBER_OF_VACANCIES):
-        """ Download all vacancies to database
-            all for programmer.
-        """
-        session = prepare_db(db_name)
-        site_parser = sp.site_parser_factory(site)
-        site_parser.get_all_vacancies(session, max_vac)
-
-
-    def _process_vacancies(db_name):
-        """ Processing vacancies. """
-        session = prepare_db(db_name)
-        data_gather_time = get_time_by_filename(db_name)
-        header, columns, pvacs = _load_vacancies_from_db(session, cfg.TAGS)
-        output_csv(header, columns, cfg.TAGS)
-        # create plot
-        stime = datetime.datetime.fromtimestamp(
-            data_gather_time).strftime("%Y-%m-%d")
-
-        with open(cfg.TITLE_FILENAME, 'w') as label_fd:
-            print(cfg.LABEL.format(site, stime), file=label_fd)
-        with open(cfg.PLOT_FILENAME_CONTAINER, 'w') as plot_fd:
-            print('plots/plot_{}_{}.png'.format(site, data_gather_time),
-                  file=plot_fd)
-
-        # output to stat db
-        out_session = prepare_db(cfg.STAT_DB)
-        proc_stat = ProcessedStatistics(pvacs, _time=data_gather_time)
-        proc_stat.calculate_tag_bins()
-        out_session.add(proc_stat)
-        out_session.commit()
-
-
-    def _plot():
-        """ Create plot png. """
-        os.system('Rscript ./plot.R')
 
     os.chdir(os.path.dirname(argv[0]))
     default_db_name = 'data/vac.db'
@@ -193,19 +154,32 @@ def main():
         db_name = args.db_name
     if args.timestamp:
         db_name = 'data/vac_{}.db'.format(int(time.time()))
-    print('using database:', db_name)
 
+    site = 'hh.ru'
+    max_vac = args.num_vac if args.num_vac else cfg.MAXIM_NUMBER_OF_VACANCIES
     if not args.process:
-        if args.num_vac:
-            _download_to_db(db_name, args.num_vac)
-        else:
-            _download_to_db(db_name)
+        session = dm.open_db(db_name, 'w')
+        site_parser = sp.site_parser_factory(site)
+        site_parser.get_all_vacancies(session, max_vac)
+
     elif args.compress:  # if process and compress
         uncompress_database(db_name)
-    _process_vacancies(db_name)
+
+    # Process vacancies to csv.
+    raw_vac_db = dm.open_db(db_name, 'r')
+    proc_vacs = dm.process_vacancies_from_db(raw_vac_db, cfg.TAGS)
+    output_csv(proc_vacs, cfg.TAGS)
+    # Save processed vacancies to statistics database.
+    out_session = dm.open_db(cfg.STAT_DB, 'w')
+    data_gather_time = get_time_by_filename(db_name)
+    proc_stat = ProcessedStatistics(proc_vacs, _time=data_gather_time)
+    proc_stat.calculate_tag_bins()
+    out_session.add(proc_stat)
+    out_session.commit()
+
     if args.compress:
         compress_database(db_name)
-    _plot()
+    plot(data_gather_time, site)
 
 
 if __name__ == '__main__':

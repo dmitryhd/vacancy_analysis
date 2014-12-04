@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
+# pylint: disable=F0401, R0903, R0201, R0921
 
 """ Contain database representation of all classes.
     Author: Dmitriy Khodakov <dmitryhd@gmail.com>
     Date: 29.09.2014
 """
-
-# pylint: disable=F0401, R0903, R0201, R0921
 
 import bs4
 import datetime
@@ -58,25 +57,32 @@ class ProcessedStatistics(BASE):
             self.date = _time
 
     def get_proc_vac(self):
+        """ Decapsulate pickle. """
         if not self.proc_vac:
             return None
         return pickle.loads(self.proc_vac)
 
     def get_tag_bins(self):
+        """ Decapsulate pickle. """
         if not self.tag_bins:
             return None
         return pickle.loads(self.tag_bins)
 
     def set_proc_vac(self, new_proc_vac):
+        """ Encapsulate to pickle. """
         self.proc_vac = pickle.dumps(new_proc_vac)
 
     def calculate_tag_bins(self, tags=cfg.TAGS):
+        """ Calculate statistics for number of vacancies by bins. """
         pvacancies = self.get_proc_vac()
         tag_bins = {tag.name: 0 for tag in tags}
         for pvac in pvacancies:
             for tag_name, tag_val in pvac.tags.items():
                 tag_bins[tag_name] += tag_val
         self.tag_bins = pickle.dumps(tag_bins)
+
+    def __repr__(self):
+        return 'Statistics: {}'.format(self.date)
 
 
 class ProcessedVacancy():
@@ -117,3 +123,19 @@ class ProcessedVacancy():
         out += '\ntags:' + str(self.tags)
         return out
 
+
+def open_db(db_name, mode='w'):
+    """ Return sqlalchemy session. Modes of operation: Read, Write [r, w]. """
+    engine = sqlalchemy.create_engine('sqlite:///' + db_name, echo=False)
+    if mode != 'r':
+        BASE.metadata.create_all(engine)
+    return sqlalchemy.orm.sessionmaker(bind=engine)()
+
+
+def process_vacancies_from_db(session, tags):
+    """ Get list of processed vacancies from database of raw vacancies."""
+    proc_vacs = []
+    vacancies = session.query(Vacancy)
+    for vac in vacancies:
+        proc_vacs.append(ProcessedVacancy(vac, tags))
+    return proc_vacs
