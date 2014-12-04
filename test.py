@@ -8,9 +8,11 @@ import unittest
 import os
 
 import config as cfg
-import vacancy as va
+cfg.PRINT_PROGRESS = False
+import data_model as dm
 import vacancy_processor as vp
 import site_parser as sp
+from igallery import app
 
 
 class TestCompression(unittest.TestCase):
@@ -50,16 +52,16 @@ class TestProcessedStatistics(unittest.TestCase):
         in_session = vp.prepare_db(self.test_info_db)
         header, colunms, proc_vacs = vp._load_vacancies_from_db(
             in_session, tags=cfg.TAGS)
-        proc_stat = va.ProcessedStatistics(proc_vacs[:self.MAX_VAC],
+        proc_stat = dm.ProcessedStatistics(proc_vacs[:self.MAX_VAC],
                                            _time='now')
         proc_stat.calculate_tag_bins()
         out_session.add(proc_stat)
         out_session.commit()
-        query = out_session.query(va.ProcessedStatistics)
+        query = out_session.query(dm.ProcessedStatistics)
         assert query
         for vac_stat in query:
             assert vac_stat.get_proc_vac()
-            assert len(vac_stat.get_proc_vac()) == self.MAX_VAC
+            assert len(vac_stat.get_proc_vac()) <= self.MAX_VAC
             assert vac_stat.date
             assert vac_stat.get_tag_bins()
 
@@ -73,7 +75,7 @@ class BaseT(unittest.TestCase):
                       'data/test/test_vac04.html',
                      ]
     test_csv_fn = 'data/test/test.csv'
-    MAX_VAC_NUM = 10
+    MAX_VAC_NUM = 2
 
     @classmethod
     def setUpClass(cls):
@@ -94,26 +96,26 @@ class TestVacancy(BaseT):
 
     def test_vacancy(self):
         """ Case for vacancy class. """
-        vac = va.Vacancy('aaa', 'sdfvsdf')
+        vac = dm.Vacancy('aaa', 'sdfvsdf')
         self.session.add(vac)
         self.session.commit()
-        query = self.session.query(va.Vacancy)
+        query = self.session.query(dm.Vacancy)
         assert query
 
     @staticmethod
     def test_tag():
         """ Case for processed vacancy class. """
-        test_tags = [('c++', 'c++', 'cpp'),
-                     ('java', 'java', 'java'),
-                     ('python', 'python', 'python'),
+        test_tags = [cfg.TagRepr('c++', 'c++', 'cpp'),
+                     cfg.TagRepr('java', 'java', 'java'),
+                     cfg.TagRepr('python', 'python', 'python'),
                     ]
         vacancy_text = 'needed c++ developer, omg, java so wow'
-        vac = va.Vacancy('test vacancy', vacancy_text)
-        proc_vac = va.ProcessedVacancy(vac, test_tags)
+        vac = dm.Vacancy('test vacancy', vacancy_text)
+        proc_vac = dm.ProcessedVacancy(vac, test_tags)
         assert proc_vac.name == 'test vacancy'
-        assert proc_vac.tags[test_tags[0][cfg.TAG_NAME]]
-        assert proc_vac.tags[test_tags[1][cfg.TAG_NAME]]
-        assert not proc_vac.tags[test_tags[2][cfg.TAG_NAME]]
+        assert proc_vac.tags[test_tags[0].name]
+        assert proc_vac.tags[test_tags[1].name]
+        assert not proc_vac.tags[test_tags[2].name]
 
     def test_output_csv(self):
         """ Test output to csv, regresstion test. """
@@ -122,7 +124,8 @@ class TestVacancy(BaseT):
             vac = parser.get_vacancy('aaa', open(vac_file).read(), 'nolink')
             self.session.add(vac)
         self.session.commit()
-        vp.output_csv(self.session, tags=cfg.TAGS, file_name=self.test_csv_fn)
+        header, columns, pvacs = vp._load_vacancies_from_db(self.session, cfg.TAGS)
+        vp.output_csv(header, columns, tags=cfg.TAGS, file_name=self.test_csv_fn)
         reference_text = open('data/test/test_reference.csv').read()
         output = open(self.test_csv_fn).read()
         assert output == reference_text
@@ -174,6 +177,19 @@ class TestSiteParser(BaseT):
                         'Got salary: {}'.format(pvac.min_salary)
                 assert pvac.max_salary == max_sal_exp, \
                         'Got salary: {}'.format(pvac.max_salary)
+
+
+class TestServer(unittest.TestCase):
+    """ Basic test of main page view. """
+    def setUp(self):
+        """ Init test app """
+        self.app = app.test_client()
+
+    def test_index(self):
+        """ Check if images are in main page. """
+        res = self.app.get('/')
+        assert 'iGallery' in str(res.data), str(res.data)
+        assert '<img' in str(res.data), str(res.data)
 
 def main():
     """ Safely run test. """

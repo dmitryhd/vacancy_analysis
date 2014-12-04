@@ -3,27 +3,28 @@
 """ Just a web server in python + flask. Shows content of folder images. """
 
 from flask import request, Flask, render_template, send_from_directory, jsonify
-import sys
 import os
 import glob
 import config as cfg
 
-PORT = 9999
+import re
+import vacancy_processor as vp
+import data_model as dm
+
 app = Flask(__name__)
 app.debug = True
-PLOT_PATH = './plots/'
-
 
 def run_server():
     """ Runs gallery. """
-    app.run(host='0.0.0.0', port=PORT)
+    app.run(host='0.0.0.0', port=cfg.PORT)
 
 
 # --------------- AJAX ------------------
 @app.route('/_get_plots')
 def get_plots():
-    images = glob.glob(PLOT_PATH + '*.jpg')
-    images.extend(glob.glob(PLOT_PATH + '*.png'))
+    """ """
+    images = glob.glob(cfg.PLOT_PATH + '*.jpg')
+    images.extend(glob.glob(cfg.PLOT_PATH + '*.png'))
     images = sorted(images, reverse=True)
     plots = []
     for img in images:
@@ -37,14 +38,11 @@ def get_plot_data():
     """ """
     plot_name = request.args.get('plot', "", type=str)
     print('plot_name', plot_name)
-    import re
     seconds = int(re.search(r'(\d+)', plot_name).groups()[0])
     print('----------------')
     print('seconds', seconds)
-    import vacancy_processor as vp
-    import vacancy as va
     s = vp.prepare_db('data/stat.db')
-    q = s.query(va.ProcessedStatistics)
+    q = s.query(dm.ProcessedStatistics)
     proc_vac = {}
     for res in q:
         proc_vac[res.date] = res.get_tag_bins()

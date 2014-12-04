@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
+# pylint: disable=E0001, R0921
 
-""" Main module to download html pages fro hh.ru, parse them and
+""" Main module to download html pages from job sites, parse them and
     save to database.
     run: ./vacancy_processor.py -t -c
     Also can process database data to csv file for futher analysis.
     run: ./vacancy_processor.py -p -d <db_name>
 
     Author: Dmitriy Khodakov <dmitryhd@gmail.com>
-    Date: 29.09.2014
+    Date: 04.12.2014
 """
 
 import time
@@ -19,12 +20,10 @@ import os
 import tarfile
 import re
 
-
 import site_parser as sp
 import config as cfg
-from vacancy import BASE, Vacancy, ProcessedVacancy, ProcessedStatistics
+from data_model import BASE, Vacancy, ProcessedVacancy, ProcessedStatistics
 
-# pylint: disable=E0001, R0921
 
 def prepare_db(db_name):
     """ Return sqlalchemy session. """
@@ -43,17 +42,17 @@ def _load_vacancies_from_db(session, tags):
     header = ''
     columns = []
     for tag in tags:
-        header += tag[cfg.TAG_TITLE] + '_min '
+        header += tag.title + '_min '
         columns.append([])
-        header += tag[cfg.TAG_TITLE] + '_max '
+        header += tag.title + '_max '
         columns.append([])
     for pvac in proc_vacs:
         tag_index = 0
         for tag in tags:
-            if pvac.tags[tag[cfg.TAG_NAME]] and pvac.min_salary:
+            if pvac.tags[tag.name] and pvac.min_salary:
                 columns[tag_index].append(pvac.min_salary)
             tag_index += 1
-            if pvac.tags[tag[cfg.TAG_NAME]] and pvac.max_salary:
+            if pvac.tags[tag.name] and pvac.max_salary:
                 columns[tag_index].append(pvac.max_salary)
             tag_index += 1
     return header, columns, proc_vacs
@@ -68,7 +67,7 @@ def __create_labels(columns, tags):
             num = len(data)
             mean = int(sum(data))/len(data) if len(data) > 0 else 0
             mean = int(mean)
-            label = '"' + tag[cfg.TAG_NAME]
+            label = '"' + tag.name
             label += ' От. Средн:{}, Вакансий:{}'.format(mean, num) + '" '
             print(label, file=labels_fd, end='')
             tag_index += 1
@@ -76,7 +75,7 @@ def __create_labels(columns, tags):
             num = len(data)
             mean = int(sum(data))/len(data) if len(data) > 0 else 0
             mean = int(mean)
-            label = '"' + tag[cfg.TAG_NAME]
+            label = '"' + tag.name
             label += ' До. Средн:{}, Вакансий:{}'.format(mean, num) + '" '
             print(label, file=labels_fd, end='')
             tag_index += 1
@@ -90,7 +89,7 @@ def get_time_by_filename(fname):
     return seconds
 
 
-def __create_csv(columns, header, file_name, db_name):
+def __create_csv(columns, header, csv_file_name):
     """ Output result to csv! """
     max_length = 0
     for column in columns:
@@ -99,7 +98,7 @@ def __create_csv(columns, header, file_name, db_name):
         need_to_fill = max_length - len(column)
         column.extend(['NA']*need_to_fill)
     #save result
-    csv_fd = open(file_name, 'w')
+    csv_fd = open(csv_file_name, 'w')
     print(header, file=csv_fd)
     for i in range(max_length):
         out = ''
@@ -107,31 +106,15 @@ def __create_csv(columns, header, file_name, db_name):
             out += str(column[i]) + ' '
         print(out, file=csv_fd)
 
-    seconds = get_time_by_filename(db_name)
-    stime = datetime.datetime.fromtimestamp(seconds).strftime("%Y-%m-%d")
 
-    with open(cfg.TITLE_FILENAME, 'w') as label_fd:
-        print(cfg.LABEL.format(cfg.CURRENT_SITE, stime), file=label_fd)
-    with open(cfg.PLOT_FILENAME_CONTAINER, 'w') as plot_fd:
-        print('plots/plot_{}_{}.png'.format(cfg.CURRENT_SITE, seconds),
-              file=plot_fd)
-
-
-def output_csv(session, tags, file_name=cfg.CSV_FILENAME, db_name=''):
+def output_csv(header, columns, tags, file_name=cfg.CSV_FILENAME):
     """ Generate csv file with vacancy name, minimum and maximum salary
         anb information about programming language.
     """
 
-    header, columns, pvacs = _load_vacancies_from_db(session, tags)
     __create_labels(columns, tags)
-    __create_csv(columns, header, file_name, db_name)
+    __create_csv(columns, header, file_name)
 
-    out_session = prepare_db(cfg.STAT_DB)
-    file_time = get_time_by_filename(db_name)
-    proc_stat = ProcessedStatistics(pvacs, _time=file_time)
-    proc_stat.calculate_tag_bins()
-    out_session.add(proc_stat)
-    out_session.commit()
 
 
 def compress_database(db_name):
@@ -151,20 +134,39 @@ def uncompress_database(db_name):
 
 def main():
     """ Just choose what to do: download or process. """
+    site = 'hh.ru'
 
     def _download_to_db(db_name, max_vac=cfg.MAXIM_NUMBER_OF_VACANCIES):
         """ Download all vacancies to database
             all for programmer.
         """
         session = prepare_db(db_name)
-        site_parser = sp.site_parser_factory('hh.ru')
+        site_parser = sp.site_parser_factory(site)
         site_parser.get_all_vacancies(session, max_vac)
 
 
     def _process_vacancies(db_name):
         """ Processing vacancies. """
         session = prepare_db(db_name)
-        output_csv(session, tags=cfg.TAGS, db_name=db_name)
+        data_gather_time = get_time_by_filename(db_name)
+        header, columns, pvacs = _load_vacancies_from_db(session, cfg.TAGS)
+        output_csv(header, columns, cfg.TAGS)
+        # create plot
+        stime = datetime.datetime.fromtimestamp(
+            data_gather_time).strftime("%Y-%m-%d")
+
+        with open(cfg.TITLE_FILENAME, 'w') as label_fd:
+            print(cfg.LABEL.format(site, stime), file=label_fd)
+        with open(cfg.PLOT_FILENAME_CONTAINER, 'w') as plot_fd:
+            print('plots/plot_{}_{}.png'.format(site, data_gather_time),
+                  file=plot_fd)
+
+        # output to stat db
+        out_session = prepare_db(cfg.STAT_DB)
+        proc_stat = ProcessedStatistics(pvacs, _time=data_gather_time)
+        proc_stat.calculate_tag_bins()
+        out_session.add(proc_stat)
+        out_session.commit()
 
 
     def _plot():

@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 
-""" Main module to download html pages fro hh.ru, parse them and
-    save to database.
-    run: ./market_analysis.py
-    Also can process database data to csv file for futher analysis.
-    run: ./market_analysis.py -p
-
+""" Contain database representation of all classes.
     Author: Dmitriy Khodakov <dmitryhd@gmail.com>
     Date: 29.09.2014
 """
@@ -20,10 +15,10 @@ import pickle
 import sqlalchemy
 from sqlalchemy.schema import Column
 from sqlalchemy.ext.declarative import declarative_base
-BASE = declarative_base()
 
 import config as cfg
 
+BASE = declarative_base()
 
 class Vacancy(BASE):
     """ Simple unprocessed vacancy. Contains name and html page. """
@@ -77,7 +72,7 @@ class ProcessedStatistics(BASE):
 
     def calculate_tag_bins(self, tags=cfg.TAGS):
         pvacancies = self.get_proc_vac()
-        tag_bins = {tag[cfg.TAG_NAME]: 0 for tag in tags}
+        tag_bins = {tag.name: 0 for tag in tags}
         for pvac in pvacancies:
             for tag_name, tag_val in pvac.tags.items():
                 tag_bins[tag_name] += tag_val
@@ -85,11 +80,7 @@ class ProcessedStatistics(BASE):
 
 
 class ProcessedVacancy():
-    """ Processed vacancy. Contains name and tags."""
-    # Possible tags:
-    # Db: oragle, sql, mssql, postrgesql, db2
-    # languages: c, ansi, ada
-    # os: ios, linux, windows, unix,
+    """ Processed vacancy. Contains name, tags and salary."""
     def __init__(self, vacancy, tags):
         """ Generate processed vacancy from vacancy. """
         self.name = vacancy.name
@@ -98,10 +89,10 @@ class ProcessedVacancy():
         text = text.lower()
         self.tags = {}
         for tag in tags:
-            if tag[cfg.TAG_TEXT] in text:
-                self.tags[tag[cfg.TAG_NAME]] = True
+            if tag.text in text:
+                self.tags[tag.name] = True
             else:
-                self.tags[tag[cfg.TAG_NAME]] = False
+                self.tags[tag.name] = False
         self.min_salary, self.max_salary = self.get_salary(soup)
 
     def get_salary(self, soup):
