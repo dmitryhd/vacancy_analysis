@@ -1,16 +1,17 @@
 $(function() {
     var cnt = 0;
     var pics = [];
-    $.getJSON('/_get_plots', {}, function(data) {
-        pics = data.images;
-    });
-    $(".gallery_picture").attr("src", pics[cnt]);
-    plot_statistics(pics[cnt]);
-    $('#cnt').text(cnt);
-    $('#plot_name').text(pics[cnt]);
-
     d_categories = [''];
     d_values = [0];
+
+    $.getJSON('/_get_plots', {}, function(data) {
+        pics = data.images;
+        $(".gallery_picture").attr("src", pics[cnt]);
+        plot_statistics(pics[cnt]);
+        $('#cnt').text(cnt);
+        $('#plot_name').text(pics[cnt]);
+    });
+
     function plot_statistics(plot_name) {
         $.getJSON('/_get_plot_data', {
             plot: plot_name

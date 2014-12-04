@@ -33,7 +33,7 @@ def get_plots():
 
 
 @app.route('/_get_plot_data')
-def get_plot_data():
+def get_statistics():
     """ Serve statistics as json.
         Plot file name given by request.
     """
@@ -52,6 +52,13 @@ def get_plot_data():
     categories = [tag[0] for tag in cfg.TAGS]
     # Number of vacancies.
     values = [number_of_vacs_by_tag[cat] for cat in categories]
+    zip_stat = zip(categories, values)
+    categories = []
+    values = []
+    for cat, val in sorted(list(zip_stat), key=lambda x: x[1], reverse=True):
+        values.append(val)
+        categories.append(cat)
+    print(values)
     return jsonify(d_categories=categories, d_values=values)
 
 @app.route('/plots/<path:filename>')
