@@ -15,7 +15,7 @@ import site_parser as sp
 from igallery import app
 
 
-class TestCompression(unittest.TestCase):
+class TestProcessor(unittest.TestCase):
     """ Compress and decompress cetrain file. """
     @classmethod
     def tearDownClass(cls):
@@ -41,6 +41,13 @@ class TestCompression(unittest.TestCase):
         with open(test_fn) as test_fd:
             assert test_fd.read() == initial_text
 
+
+    @staticmethod
+    def test_main():
+        raw_vac_file = 'data/test/vac_1416631701.db'
+        import sys
+        sys.argv = ['./vacancy_processor', '-p', '-d', raw_vac_file]
+        vp.main()
 
 class TestProcessedStatistics(unittest.TestCase):
     """ Save some processed data. """
