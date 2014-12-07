@@ -70,6 +70,7 @@ def create_plot_labels(columns, tags):
             print(label, file=labels_fd, end='')
             tag_index += 1
 
+
 def get_time_by_filename(fname):
     seconds = re.search(r'(\d+)', fname)
     if not seconds:
@@ -113,6 +114,7 @@ def uncompress_database(db_name):
     compressed_fd = tarfile.open(db_name+'.tgz', 'r:gz')
     compressed_fd.extractall()
     os.remove(db_name + '.tgz')
+
 
 def plot(gather_time_sec, site):
     """ Create plot png. """

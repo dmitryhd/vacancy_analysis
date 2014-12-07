@@ -32,7 +32,7 @@ def get_plots():
     return jsonify(images=plots)
 
 
-@app.route('/_get_plot_data')
+@app.route('/_get_statistics')
 def get_statistics():
     """ Serve statistics as json.
         Plot file name given by request.
@@ -40,26 +40,19 @@ def get_statistics():
     plot_name = request.args.get('plot', "", type=str)
     # Get timestamp from plot to search database for statistics.
     timestamp = vp.get_time_by_filename(plot_name)
-    print('plot_name: {}, timestamp: {}'.format(plot_name, timestamp))
     statistics_db = dm.open_db('data/stat.db', 'r')
-    stat_list = statistics_db.query(dm.ProcessedStatistics)
-    # Number of vacancies by time.
-    for stat in stat_list:
-        print(stat)
-        if stat.date == timestamp:
-            number_of_vacs_by_tag = stat.get_tag_bins()
-            break
-    categories = [tag[0] for tag in cfg.TAGS]
-    # Number of vacancies.
-    values = [number_of_vacs_by_tag[cat] for cat in categories]
-    zip_stat = zip(categories, values)
-    categories = []
-    values = []
-    for cat, val in sorted(list(zip_stat), key=lambda x: x[1], reverse=True):
-        values.append(val)
-        categories.append(cat)
-    print(values)
+    stat = statistics_db.query(
+        dm.ProcessedStatistics).filter_by(date=timestamp).one()
+
+    categories = [tag.name for tag in cfg.TAGS]
+    stat_cat_val = zip(categories,
+                       [stat.get_tag_bins()[cat] for cat in categories])
+    stat_cat_val = list(stat_cat_val)
+    stat_cat_val.sort(key=lambda cat_val: cat_val[1], reverse=True)  # by val
+    categories = [cat_val[0] for cat_val in stat_cat_val]
+    values = [cat_val[1] for cat_val in stat_cat_val]
     return jsonify(d_categories=categories, d_values=values)
+
 
 @app.route('/plots/<path:filename>')
 def serve_plots(filename):

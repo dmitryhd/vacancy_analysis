@@ -13,7 +13,7 @@ $(function() {
     });
 
     function plot_statistics(plot_name) {
-        $.getJSON('/_get_plot_data', {
+        $.getJSON('/_get_statistics', {
             plot: plot_name
         }, function(data) {
             d_categories = data.d_categories;
