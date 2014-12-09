@@ -6,6 +6,8 @@
 
 import unittest
 import os
+import sys
+import json
 
 import config as cfg
 cfg.PRINT_PROGRESS = False
@@ -41,13 +43,12 @@ class TestProcessor(unittest.TestCase):
         with open(test_fn) as test_fd:
             assert test_fd.read() == initial_text
 
-
     @staticmethod
     def test_main():
         raw_vac_file = 'data/test/vac_1416631701.db'
-        import sys
         sys.argv = ['./vacancy_processor', '-p', '-d', raw_vac_file]
         vp.main()
+
 
 class TestProcessedStatistics(unittest.TestCase):
     """ Save some processed data. """
@@ -200,6 +201,15 @@ class TestServer(unittest.TestCase):
         res = self.app.get('/')
         assert 'iGallery' in str(res.data), str(res.data)
         assert '<img' in str(res.data), str(res.data)
+
+    def test_queries(self):
+        """ Get json. """
+        res = self.app.get('/_get_statistics?plot=/plots/'
+                           'plot_hh.ru_1417943222.png')
+        res = json.loads(res.data.decode('utf8'))
+        assert 'd_values' in res, res
+        assert 'd_categories' in res, res
+
 
 def main():
     """ Safely run test. """
