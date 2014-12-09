@@ -20,7 +20,6 @@ import os
 import tarfile
 import re
 
-
 import site_parser as sp
 import config as cfg
 from data_model import BASE, Vacancy, ProcessedVacancy, ProcessedStatistics
@@ -130,7 +129,6 @@ def plot(gather_time_sec, site):
     output = subprocess.check_output('Rscript ./plot.R',
                                      stderr=subprocess.DEVNULL,
                                      shell=True);
-
 
 def parse_args():
     parser = argparse.ArgumentParser()
