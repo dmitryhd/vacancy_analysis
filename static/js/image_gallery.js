@@ -1,16 +1,21 @@
 $(function() {
     var cnt = 0;
-    var pics = [];
+    var dates = [];
     d_categories = [''];
     d_values = [0];
+    function print_plot_info(cnt, dates) {
+        $('#cnt').text('Plot: ' + (cnt + 1) + '/' + dates.length);
+        $('#date').text('id: ' + dates[cnt]);
+        dateObj = new Date(dates[cnt] * 1000);
+        $('#date_s').text(dateObj.toString());
+    }
 
-    $.getJSON('/_get_plots', {}, function(data) {
-        pics = data.images;
-        $(".gallery_picture").attr("src", pics[cnt]);
-        plot_statistics(pics[cnt]);
-        $('#cnt').text(cnt);
-        $('#plot_name').text(pics[cnt]);
+    $.getJSON('/_get_dates', {}, function(data) {
+        dates = data.dates;
+        plot_statistics(dates[cnt]);
+        print_plot_info(cnt, dates);
     });
+
 
     function plot_statistics(plot_name) {
         $.getJSON('/_get_statistics', {
@@ -90,19 +95,15 @@ $(function() {
     }
 
     $('.earlier').bind('click', function() {
-        $(".gallery_picture").attr("src", pics[cnt]);
-        plot_statistics(pics[cnt]);
-        $('#cnt').text(cnt);
-        $('#plot_name').text(pics[cnt]);
-        if (cnt + 1 < pics.length) {
+        plot_statistics(dates[cnt]);
+        print_plot_info(cnt, dates);
+        if (cnt + 1 < dates.length) {
             cnt++;
         }
     });
     $('.later').bind('click', function() {
-        $(".gallery_picture").attr("src", pics[cnt]);
-        plot_statistics(pics[cnt]);
-        $('#cnt').text(cnt);
-        $('#plot_name').text(pics[cnt]);
+        plot_statistics(dates[cnt]);
+        print_plot_info(cnt, dates);
         if (cnt - 1 >= 0) {
             cnt--;
         }

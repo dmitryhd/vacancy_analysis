@@ -228,7 +228,7 @@ class TestServer(unittest.TestCase):
 
     def test_index(self):
         """ Check if all elements are in main page. """
-        elements = ['iGallery', '<img', 'vac_number_container',
+        elements = ['iGallery', 'vac_number_container',
                     'vac_salary_container']
         index_html = self.get_html('/')
         for element in elements:

@@ -2,9 +2,6 @@
 
 <html>
 <head>
-  <meta name="generator" content=
-  "HTML Tidy for Linux (vers 25 March 2009), see www.w3.org">
-
   <title>iGallery</title>
   <link rel="stylesheet" type="text/css" href="/static/style.css">
   <meta http-equiv="Content-Type" content=
@@ -18,13 +15,13 @@
   <script src="http://code.highcharts.com/highcharts.js" type=
   "text/javascript">
 </script>
-  <script type="text/javascript" src="/static/js/image_gallery.js">
+  <script type="text/javascript" src="/static/js/tag_stat.js">
 </script>
 </head>
 
 <body>
   <div class='gallery_container center_align'>
-    <h1>Gallery</h1>
+      <h1>Lang: {{tag_name}}</h1>
     <button class='later'>later</button>
     <button class='earlier'>earlier</button>
     <hr>
@@ -36,8 +33,7 @@
   </div>
 
   <div id="chart_container">
-      <div id="vac_salary_container"></div>
-      <div id="vac_number_container"></div>
+      <div id="vac_salary_hist_container"></div>
   </div>
 
 </body>

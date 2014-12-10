@@ -20,17 +20,14 @@ def run_server():
 
 
 # --------------- AJAX ------------------
-@app.route('/_get_plots')
-def get_plots():
-    """ Serve list of all plot filenames as json. """
-    images = glob.glob(cfg.PLOT_PATH + '*.jpg')
-    images.extend(glob.glob(cfg.PLOT_PATH + '*.png'))
-    images = sorted(images, reverse=True)
-    plots = []
-    for img in images:
-        tail, filename = os.path.split(img)
-        plots.append('/plots/' + filename)
-    return jsonify(images=plots)
+@app.route('/_get_dates')
+def get_dates():
+    """ Serve list of all dates int format. """
+    statistics_db = dm.open_db(stat_db, 'r')
+    statistics = statistics_db.query(dm.ProcessedStatistics)
+    dates = [statistic.date for statistic in statistics]
+    dates.sort(reverse=True)
+    return jsonify(dates=dates)
 
 
 def get_vac_num(stat):
@@ -44,6 +41,10 @@ def get_vac_num(stat):
     values = [cat_val[1] for cat_val in stat_cat_val]
     return categories, values
 
+def get_mean_max_salary_for_tag(stat, tag):
+    """ """
+    max_salaries = stat.get_mean_max_salary()[tag]
+    return categories, mean_max_salary, mean_min_salary
 
 def get_vac_salary(stat):
     """ Get mean min and max of vacancies from statistics. """
@@ -57,6 +58,18 @@ def get_vac_salary(stat):
     mean_max_salary = [cat_val[1] for cat_val in stat_cat_val]
     mean_min_salary = [cat_val[2] for cat_val in stat_cat_val]
     return categories, mean_max_salary, mean_min_salary
+
+@app.route('/_get_tag_statistics')
+def get_tag_statistics():
+    """ """
+    tag_name = request.args.get('tag', "", type=str)
+    statistics_db = dm.open_db(stat_db, 'r')
+    statistics = statistics_db.query(dm.ProcessedStatistics)
+    plot_data = []
+    for stat in statistics:
+        max_salary = stat.get_mean_max_salary()[tag_name]
+        plot_data.append([stat.date * 1000, max_salary])
+    return jsonify(max_salary_history=plot_data)
 
 
 @app.route('/_get_statistics')
@@ -90,10 +103,14 @@ def serve_plots(filename):
 
 
 @app.route('/')
-def hello_world():
+def index():
     """ Index view. """
     return render_template('gallery.html')
 
+@app.route('/tag/<tag_name>')
+def tag_view(tag_name):
+    """ Index view. """
+    return render_template('lang.html', tag_name=tag_name)
 
 def main():
     """ Parse command line arguments. """
