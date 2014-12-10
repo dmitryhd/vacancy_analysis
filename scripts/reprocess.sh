@@ -9,3 +9,5 @@ for i in data/*.tgz; do
     echo "./vacancy_processor.py -c -p -d $i;"
     ./vacancy_processor.py -c -p -d $i;
 done
+
+rm -v data/stat.db.tgz
