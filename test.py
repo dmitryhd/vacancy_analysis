@@ -16,6 +16,11 @@ import data_model as dm
 import vacancy_processor as vp
 import site_parser as sp
 
+TEST_VAC_FILES = ['data/test/test_vac01.html',
+                  'data/test/test_vac02.html',
+                  'data/test/test_vac03.html',
+                  'data/test/test_vac04.html',
+                 ]
 
 class TestProcessor(unittest.TestCase):
     """ Compress and decompress cetrain file. """
@@ -75,33 +80,37 @@ class TestProcessedStatistics(unittest.TestCase):
             assert vac_stat.get_tag_bins()
 
 
-class BaseT(unittest.TestCase):
-    """ Test case for everything. """
-    test_db = 'data/test/test.db'
-    test_vac_files = ['data/test/test_vac01.html',
-                      'data/test/test_vac02.html',
-                      'data/test/test_vac03.html',
-                      'data/test/test_vac04.html',
-                     ]
-    test_csv_fn = 'data/test/test.csv'
-    MAX_VAC_NUM = 2
+class DatabaseTestCase(unittest.TestCase):
+    """ Test case abstract class for any test case, which is using database.
+    """
+    TEST_DB = 'data/test/test.db'
 
     @classmethod
     def setUpClass(cls):
         """ Prepare db. """
-        cls.session = dm.open_db(cls.test_db, 'w')
+        cls.session = dm.open_db(cls.TEST_DB, 'w')
 
     @classmethod
     def tearDownClass(cls):
         """ Delete db and tmp files. """
         try:
-            os.remove(cls.test_db)
-            os.remove(cls.test_csv_fn)
+            os.remove(cls.TEST_DB)
         except FileNotFoundError:
             pass
 
-class TestVacancy(BaseT):
+
+class TestVacancy(DatabaseTestCase):
     """ Test database, vacancy and processor. """
+    TEST_CSV_FN = 'data/test/test.csv'
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        try:
+            os.remove(cls.TEST_CSV_FN)
+        except FileNotFoundError:
+            pass
+
 
     def test_vacancy(self):
         """ Case for vacancy class. """
@@ -129,21 +138,22 @@ class TestVacancy(BaseT):
     def test_output_csv(self):
         """ Test output to csv, regresstion test. """
         parser = sp.site_parser_factory('hh.ru')
-        for vac_file in self.test_vac_files:
+        for vac_file in TEST_VAC_FILES:
             vac = parser.get_vacancy('aaa', open(vac_file).read(), 'nolink')
             self.session.add(vac)
         self.session.commit()
         processed_vacancies = dm.process_vacancies_from_db(self.session,
                                                            cfg.TAGS)
         vp.output_csv(processed_vacancies, tags=cfg.TAGS,
-                      csv_file_name=self.test_csv_fn)
+                      csv_file_name=self.TEST_CSV_FN)
         reference_text = open('data/test/test_reference.csv').read()
-        output = open(self.test_csv_fn).read()
+        output = open(self.TEST_CSV_FN).read()
         assert output == reference_text
 
 
-class TestSiteParser(BaseT):
+class TestSiteParser(DatabaseTestCase):
     """ Test different sites. """
+    MAX_VAC_NUM = 2
 
     def test_site_parser_hh(self):
         """ Create two site parsers and call get_all_vacancies. """
@@ -176,7 +186,7 @@ class TestSiteParser(BaseT):
                     (None, 40000),
                     (70000, None),
                     (None, None),]
-        result = zip(self.test_vac_files, salaries)
+        result = zip(TEST_VAC_FILES, salaries)
         parser = sp.site_parser_factory('hh.ru')
         for file_name, (min_sal_exp, max_sal_exp) in result:
             with open(file_name) as testfd:
