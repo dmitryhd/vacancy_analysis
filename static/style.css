@@ -11,10 +11,12 @@
   text-align: center;
   margin-bottom: 15px;
 }
-#vac_number_container {
+#chart_container {
   width:80%;
   display: block;
-  height: 300px;
   margin-left: auto;
   margin-right: auto;
+}
+#vac_number_container,#vac_salary_container {
+  height: 450px;
 }
