@@ -22,73 +22,31 @@ $(function() {
             plot: plot_name,
             ask: 'vac_num'
         }, function(data) {
-            d_categories = data.d_categories;
-            d_values = data.d_values;
             $('#vac_number_container').highcharts({
-                chart: {
-                    type: 'bar'
-                },
+                chart: { type: 'bar'},
                 plotOptions: {
-                    series: {
-                        animation: {
-                            duration: 100
-                        }
-                    }
+                    series: {animation: {duration: 100}}
                 },
-                title: {
-                    text: 'Количество вакансий по языку'
-                },
-                xAxis: {
-                    categories: d_categories
-                },
-                yAxis: {
-                    title: {
-                        text: 'Количество вакансий по языку'
-                    }
-                },
+                title: {text: 'Количество вакансий по языку'},
+                xAxis: {categories: data.categories },
+                yAxis: {title: {text: 'Количество вакансий по языку'}},
                 series: [{
                     name: 'Число вакансий',
-                    data: d_values
+                    data: data.vacancy_number
                 }]
             });
-        })
-        $.getJSON('/_get_statistics', {
-            plot: plot_name,
-            ask: 'vac_sal'
-        }, function(data) {
-            d_categories = data.categories;
-            mean_max_salary = data.mean_max_salary;
-            mean_min_salary = data.mean_min_salary;
             $('#vac_salary_container').highcharts({
-                chart: {
-                    type: 'bar'
-                },
-                plotOptions: {
-                    series: {
-                        animation: {
-                            duration: 100
-                        }
-                    }
-                },
-                title: {
-                    text: 'Зарплата'
-                },
-                xAxis: {
-                    categories: d_categories
-                },
-                yAxis: {
-                    title: {
-                        text: 'Количество вакансий по языку'
-                    }
-                },
-                series: [
-                {
+                chart: { type: 'bar' },
+                plotOptions: { series: { animation: { duration: 100 } } },
+                title: { text: 'Зарплата' },
+                xAxis: { categories: d_categories },
+                yAxis: { title: { text: 'Количество вакансий по языку' } },
+                series: [{
                     name: 'Минимальная зп. (средняя)',
-                    data: mean_min_salary
-                },
-                {
+                    data: data.mean_min_salary
+                    }, {
                     name: 'Максимальная зп. (средняя)',
-                    data: mean_max_salary
+                    data: data.mean_max_salary
                 }]
             });
         })

@@ -9,6 +9,7 @@ from flask import request, Flask, render_template, send_from_directory, jsonify
 import config as cfg
 import data_model as dm
 import vacancy_processor as vp
+from utility import round_to_thousands
 
 stat_db = 'data/stat.db'
 app = Flask(__name__)
@@ -55,6 +56,22 @@ def get_vac_salary(stat):
     mean_min_salary = [cat_val[2] for cat_val in stat_cat_val]
     return categories, mean_max_salary, mean_min_salary
 
+
+@app.route('/_get_date_statistics')
+def get_date_statistics():
+    """ """
+    date = request.args.get('date', 0, type=int)
+    statistics_db = dm.open_db(stat_db, 'r')
+    stat = statistics_db.query(
+    dm.ProcessedStatistics).filter_by(date=date).first()
+    categories, vacancy_number = get_vac_num(stat)
+    categories, mean_max_salary, mean_min_salary = get_vac_salary(stat)
+    return jsonify(categories=categories,
+                   vacancy_number=vacancy_number,
+                   mean_max_salary=mean_max_salary,
+                   mean_min_salary=mean_min_salary)
+
+
 @app.route('/_get_tag_statistics')
 def get_tag_statistics():
     """ """
@@ -71,11 +88,11 @@ def get_tag_statistics():
     return jsonify(max_salary_history=mean_max_salary,
                    min_salary_history=mean_min_salary)
 
+
 @app.route('/_get_tag_histogram')
 def get_tag_histogram():
     """ """
     tag_name = request.args.get('tag', "", type=str)
-    # Get timestamp from plot to search database for statistics.
     date = request.args.get('date', 0, type=int)
     statistics_db = dm.open_db(stat_db, 'r')
     stat = statistics_db.query(dm.ProcessedStatistics).filter_by(date=date).first()
@@ -97,34 +114,9 @@ def get_tag_histogram():
         bin_edge_bot = bottom_max_salary + (bin_num) * bin_size
         bin_edge_top = bottom_max_salary + (bin_num + 1) * bin_size
         bins.append('{} <-> {}'.format(round_to_thousands(bin_edge_bot),
-                                         round_to_thousands(bin_edge_top)))
+                                       round_to_thousands(bin_edge_top)))
     return jsonify(bins=bins,
                    counts=counts)
-
-def round_to_thousands(num):
-    return int(round(num, -3))
-
-@app.route('/_get_statistics')
-def get_statistics():
-    """ Serve statistics as json.
-        Plot file name given by request.
-    """
-    plot_name = request.args.get('plot', "", type=str)
-    # Get timestamp from plot to search database for statistics.
-    timestamp = vp.get_time_by_filename(plot_name)
-    statistics_db = dm.open_db(stat_db, 'r')
-    req_type = request.args.get('ask', "", type=str)
-    print('request type:', req_type)
-    stat = statistics_db.query(
-        dm.ProcessedStatistics).filter_by(date=timestamp).first()
-    if req_type == 'vac_num':
-        categories, values = get_vac_num(stat)
-        return jsonify(d_categories=categories, d_values=values)
-    elif req_type == 'vac_sal':
-        categories, mean_max_salary, mean_min_salary = get_vac_salary(stat)
-        return jsonify(categories=categories,
-                       mean_max_salary=mean_max_salary,
-                       mean_min_salary=mean_min_salary)
 
 
 @app.route('/plots/<path:filename>')

@@ -22,6 +22,7 @@ TEST_VAC_FILES = ['data/test/test_vac01.html',
                   'data/test/test_vac03.html',
                   'data/test/test_vac04.html',
                  ]
+TEST_STAT_DB_DATE = 1418224021  # this date must be in STAT_DB
 
 class TestProcessor(unittest.TestCase):
     """ Compress and decompress cetrain file. """
@@ -215,7 +216,7 @@ class TestServer(unittest.TestCase):
         self.app = igallery.app.test_client()
         igallery.stat_db = 'data/test/test_stat.db'
         self.stat_url = '/_get_statistics'
-        self.query = self.stat_url + '?plot=1418224021'
+        self.query = self.stat_url + '?plot=' + str(TEST_STAT_DB_DATE)
 
     def get_html(self, url):
         """ Get utf8 string, containig html code of url. """
@@ -226,6 +227,46 @@ class TestServer(unittest.TestCase):
         data_text = self.get_html(url)
         return json.loads(data_text)
 
+    def test_get_dates(self):
+        """ Trying to ask server about entries available in database. """
+        dates = self.get_json('/_get_dates')['dates']
+        assert TEST_STAT_DB_DATE in dates
+
+    def test_get_date_statistics(self):
+        """ Trying to ask server about number of vacancies. """
+        json_data = self.get_json('/_get_date_statistics'
+                                  '?date=' + str(TEST_STAT_DB_DATE))
+        assert json_data['vacancy_number']
+        assert json_data['categories'][0] == 'sap'
+        assert json_data['mean_max_salary'][0] == 165000.0
+        assert json_data['mean_min_salary'][0] == 122500.0
+        assert json_data['categories'][2] == 'c#'
+        assert int(json_data['mean_max_salary'][2]) == 112155
+        assert int(json_data['mean_min_salary'][2]) == 86295
+
+    def test_tag_statistics(self):
+        """ Trying to ask server about specific tag statistics. """
+        tag_stat = self.get_json('/_get_tag_statistics?tag=python')
+        assert tag_stat['max_salary_history']
+        assert tag_stat['min_salary_history']
+
+    def test_tag_histogram(self):
+        """ Trying to ask server about specific tag histogram. """
+        tag_stat = self.get_json('/_get_tag_histogram?tag=python'
+                                 '&date=' + str(TEST_STAT_DB_DATE))
+        assert tag_stat['bins']
+        assert tag_stat['counts']
+
+    def test_tag(self):
+        """ Check if all elements are in page with detailed tag statistics. """
+        for tag in cfg.TAGS:
+            elements = ['Lang: {}'.format(tag.title), 'vac_salary_hist_container',
+                        'vac_salary_histogram']
+            index_html = self.get_html('/tag/{}'.format(tag.title))
+            for element in elements:
+                assert element in index_html, \
+                    'no {} in {}'.format(element, index_html)
+
     def test_index(self):
         """ Check if all elements are in main page. """
         elements = ['iGallery', 'vac_number_container',
@@ -235,22 +276,6 @@ class TestServer(unittest.TestCase):
             assert element in index_html, \
                 'no {} in {}'.format(element, index_html)
 
-    def test_get_vac_num(self):
-        """ Trying to ask server about number of vacancies. """
-        json_data = self.get_json(self.query + '&ask=vac_num')
-        assert 'd_values' in json_data, json_data
-        assert 'd_categories' in json_data, json_data
-
-    def test_get_vac_salary(self):
-        """ Trying to ask server about salary. """
-        json_data = self.get_json(self.query + '&ask=vac_sal')
-        assert json_data
-        assert json_data['categories'][0] == 'sap'
-        assert json_data['mean_max_salary'][0] == 165000.0
-        assert json_data['mean_min_salary'][0] == 122500.0
-        assert json_data['categories'][2] == 'c#'
-        assert int(json_data['mean_max_salary'][2]) == 112155
-        assert int(json_data['mean_min_salary'][2]) == 86295
 
 
 def main():
