@@ -48,6 +48,8 @@ class ProcessedStatistics(BASE):
     date = Column(sqlalchemy.types.Integer)
     proc_vac = Column(sqlalchemy.types.PickleType)
     tag_bins = Column(sqlalchemy.types.PickleType)
+    mean_max_salary = Column(sqlalchemy.types.PickleType)
+    mean_min_salary = Column(sqlalchemy.types.PickleType)
 
     def __init__(self, proc_vac, _time='now'):
         self.set_proc_vac(proc_vac)
@@ -81,19 +83,58 @@ class ProcessedStatistics(BASE):
                 tag_bins[tag_name] += tag_val
         self.tag_bins = pickle.dumps(tag_bins)
 
-    def calculate_salary_max(self, tags=cfg.TAGS):
-        """ Calculate statistics for number of vacancies by bins. """
+
+    def calculate_mean_max_salary(self, tags=cfg.TAGS):
+        """ Return list of mean values of maximum salary by tags. """
         pvacancies = self.get_proc_vac()
-        tag_bins = {tag.name: 0 for tag in tags}
+        salary_by_tag = {tag.name: [0, 0] for tag in tags}  # [counter, salary]
         for pvac in pvacancies:
+            if not pvac.max_salary:
+                continue
             for tag_name, tag_val in pvac.tags.items():
-                if not tag_val:
-                    continue
-                tag_bins[tag_name] += tag_val
-        self.tag_bins = pickle.dumps(tag_bins)
+                if tag_val:
+                    salary_by_tag[tag_name][0] += 1
+                    salary_by_tag[tag_name][1] += pvac.max_salary
+        for tag_name in salary_by_tag.keys():
+            cnt, sum_salary = salary_by_tag[tag_name]
+            salary_by_tag[tag_name] = sum_salary / cnt if cnt else 0
+        self.mean_max_salary = pickle.dumps(salary_by_tag)
+
+    def get_mean_max_salary(self):
+        if not self.mean_max_salary:
+            return None
+        return pickle.loads(self.mean_max_salary)
+
+
+    def calculate_mean_min_salary(self, tags=cfg.TAGS):
+        """ Return list of mean values of maximum salary by tags. """
+        pvacancies = self.get_proc_vac()
+        salary_by_tag = {tag.name: [0, 0] for tag in tags}  # [counter, salary]
+        for pvac in pvacancies:
+            if not pvac.min_salary:
+                continue
+            for tag_name, tag_val in pvac.tags.items():
+                if tag_val:
+                    salary_by_tag[tag_name][0] += 1
+                    salary_by_tag[tag_name][1] += pvac.min_salary
+        for tag_name in salary_by_tag.keys():
+            cnt, sum_salary = salary_by_tag[tag_name]
+            salary_by_tag[tag_name] = sum_salary / cnt if cnt else 0
+        self.mean_min_salary = pickle.dumps(salary_by_tag)
+
+    def get_mean_min_salary(self):
+        if not self.mean_min_salary:
+            return None
+        return pickle.loads(self.mean_min_salary)
+
 
     def __repr__(self):
         return 'Statistics: {}'.format(self.date)
+
+    def calculate_all(self):
+        self.calculate_tag_bins()
+        self.calculate_mean_max_salary()
+        self.calculate_mean_min_salary()
 
 
 class ProcessedVacancy():

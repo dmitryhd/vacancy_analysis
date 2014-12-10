@@ -57,27 +57,35 @@ class TestProcessor(unittest.TestCase):
 
 class TestProcessedStatistics(unittest.TestCase):
     """ Save some processed data. """
-    test_db = 'data/test/test_stat.db'
-    test_info_db = 'data/test/test_stat_info.db'
+    TEST_STAT_DB = 'data/test/test_stat_new.db'
+    TEST_INFO_DB = 'data/test/test_stat_info.db'
     MAX_VAC = 10
+
+    def tearDown(self):
+        try:
+            os.remove(self.TEST_STAT_DB)
+        except FileNotFoundError:
+            pass
 
     def test_save_some_statistics(self):
         """ Create processed statistics entry from example database. """
-        statistics_db = dm.open_db(self.test_db, 'w')
-        raw_vacancies_db = dm.open_db(self.test_info_db, 'r')
+        statistics_db = dm.open_db(self.TEST_STAT_DB, 'w')
+        raw_vacancies_db = dm.open_db(self.TEST_INFO_DB, 'r')
         proc_vacs = dm.process_vacancies_from_db(raw_vacancies_db, cfg.TAGS)
         proc_stat = dm.ProcessedStatistics(proc_vacs[:self.MAX_VAC],
                                            _time='now')
-        proc_stat.calculate_tag_bins()
+        proc_stat.calculate_all()
         statistics_db.add(proc_stat)
         statistics_db.commit()
         query = statistics_db.query(dm.ProcessedStatistics)
         assert query
         for vac_stat in query:
-            assert vac_stat.get_proc_vac()
-            assert len(vac_stat.get_proc_vac()) <= self.MAX_VAC
             assert vac_stat.date
             assert vac_stat.get_tag_bins()
+            assert vac_stat.get_mean_max_salary()
+            assert vac_stat.get_mean_min_salary()
+            assert vac_stat.get_proc_vac()
+            assert len(vac_stat.get_proc_vac()) <= self.MAX_VAC
 
 
 class DatabaseTestCase(unittest.TestCase):
@@ -110,7 +118,6 @@ class TestVacancy(DatabaseTestCase):
             os.remove(cls.TEST_CSV_FN)
         except FileNotFoundError:
             pass
-
 
     def test_vacancy(self):
         """ Case for vacancy class. """
@@ -205,21 +212,44 @@ class TestServer(unittest.TestCase):
     def setUp(self):
         """ Init test app """
         self.app = igallery.app.test_client()
+        igallery.stat_db = 'data/test/test_stat.db'
+        self.stat_url = '/_get_statistics'
+        self.query = self.stat_url + '?plot=/plots/plot_hh.ru_1417003723.png'
+
+    def get_html(self, url):
+        """ Get utf8 string, containig html code of url. """
+        return self.app.get(url).data.decode('utf8')  # TODO: trainwreck?
+
+    def get_json(self, url):
+        """ Get utf8 string, containig json code of url. """
+        data_text = self.get_html(url)
+        return json.loads(data_text)
 
     def test_index(self):
-        """ Check if images are in main page. """
-        res = self.app.get('/')
-        assert 'iGallery' in str(res.data), str(res.data)
-        assert '<img' in str(res.data), str(res.data)
+        """ Check if all elements are in main page. """
+        elements = ['iGallery', '<img', 'vac_number_container',
+                    'vac_salary_container']
+        index_html = self.get_html('/')
+        for element in elements:
+            assert element in index_html, \
+                'no {} in {}'.format(element, index_html)
 
-    def test_queries(self):
-        """ Get json. """
-        igallery.stat_db = 'data/test/test_stat.db'
-        res = self.app.get('/_get_statistics?plot=/plots/'
-                           'plot_hh.ru_1412852895git.png')
-        res = json.loads(res.data.decode('utf8'))
-        assert 'd_values' in res, res
-        assert 'd_categories' in res, res
+    def test_get_vac_num(self):
+        """ Trying to ask server about number of vacancies. """
+        json_data = self.get_json(self.query + '&ask=vac_num')
+        assert 'd_values' in json_data, json_data
+        assert 'd_categories' in json_data, json_data
+
+    def test_get_vac_salary(self):
+        """ Trying to ask server about salary. """
+        json_data = self.get_json(self.query + '&ask=vac_sal')
+        assert json_data
+        assert json_data['categories'][0] == 'sap'
+        assert json_data['mean_max_salary'][0] == 150000.0
+        assert json_data['mean_min_salary'][0] == 130000.0
+        assert json_data['categories'][2] == 'python'
+        assert json_data['mean_max_salary'][2] == 112500.0
+        assert int(json_data['mean_min_salary'][2]) == 80227
 
 
 def main():

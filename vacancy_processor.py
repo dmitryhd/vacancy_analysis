@@ -177,7 +177,7 @@ def main():
     stat_db = open_db(cfg.STAT_DB)
     gather_time_sec = get_time_by_filename(args.db_name)
     proc_stat = ProcessedStatistics(processed_vacancies, gather_time_sec)
-    proc_stat.calculate_tag_bins()
+    proc_stat.calculate_all()
     stat_db.add(proc_stat)
     stat_db.commit()
 

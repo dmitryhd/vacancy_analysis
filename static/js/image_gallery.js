@@ -18,7 +18,7 @@ $(function() {
         }, function(data) {
             d_categories = data.d_categories;
             d_values = data.d_values;
-            $('#container').highcharts({
+            $('#vac_number_container').highcharts({
                 chart: {
                     type: 'bar'
                 },
