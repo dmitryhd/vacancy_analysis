@@ -11,6 +11,7 @@ import json
 
 import config as cfg
 cfg.PRINT_PROGRESS = False
+cfg.STAT_DB = 'data/test/test_stat.db'
 import igallery
 import data_model as dm
 import vacancy_processor as vp
@@ -42,7 +43,7 @@ class TestProcessor(unittest.TestCase):
         vp.compress_database(test_fn)
         assert not os.path.isfile(test_fn)
         assert os.path.isfile(test_fn + '.tgz')
-        vp.uncompress_database(test_fn)
+        vp.uncompress_database(test_fn + '.tgz')
         assert not os.path.isfile(test_fn + '.tgz')
         assert os.path.isfile(test_fn)
         with open(test_fn) as test_fd:

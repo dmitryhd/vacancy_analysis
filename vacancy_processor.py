@@ -102,17 +102,15 @@ def output_csv(pvacs, tags, csv_file_name=cfg.CSV_FILENAME):
 
 def compress_database(db_name):
     """ Create bz archive and delete sqlite database file. """
-    compressed_fd = tarfile.open(db_name+'.tgz', 'w:gz')
-    compressed_fd.add(db_name)
-    compressed_fd.close()
+    os.system('tar czf {} {}'.format(db_name + '.tgz', db_name))
     os.remove(db_name)
 
 
 def uncompress_database(db_name):
     """ Create bz archive and delete sqlite database file. """
-    compressed_fd = tarfile.open(db_name+'.tgz', 'r:gz')
-    compressed_fd.extractall()
-    os.remove(db_name + '.tgz')
+    os.system('tar xzf {} '.format(db_name))
+    os.remove(db_name)
+    return db_name.replace('.tgz', '')
 
 
 def plot(gather_time_sec, site):
@@ -158,12 +156,12 @@ def main():
     os.chdir(os.path.dirname(sys.argv[0]))
     args = parse_args()
 
+    if args.compress and args.process:
+        args.db_name = uncompress_database(args.db_name)
     raw_vac_db = open_db(args.db_name)
     if not args.process:
         site_parser = sp.site_parser_factory(site)
         site_parser.get_all_vacancies(raw_vac_db, args.num_vac)
-    elif args.compress:  # if process and compress
-        uncompress_database(args.db_name)
     # Process vacs:
     current_tags = cfg.TAGS
     proc_vac_db = open_db(args.db_name)
