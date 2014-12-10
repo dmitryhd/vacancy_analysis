@@ -215,7 +215,7 @@ class TestServer(unittest.TestCase):
         self.app = igallery.app.test_client()
         igallery.stat_db = 'data/test/test_stat.db'
         self.stat_url = '/_get_statistics'
-        self.query = self.stat_url + '?plot=/plots/plot_hh.ru_1417003723.png'
+        self.query = self.stat_url + '?plot=1418224021'
 
     def get_html(self, url):
         """ Get utf8 string, containig html code of url. """
@@ -246,11 +246,11 @@ class TestServer(unittest.TestCase):
         json_data = self.get_json(self.query + '&ask=vac_sal')
         assert json_data
         assert json_data['categories'][0] == 'sap'
-        assert json_data['mean_max_salary'][0] == 150000.0
-        assert json_data['mean_min_salary'][0] == 130000.0
-        assert json_data['categories'][2] == 'python'
-        assert json_data['mean_max_salary'][2] == 112500.0
-        assert int(json_data['mean_min_salary'][2]) == 80227
+        assert json_data['mean_max_salary'][0] == 165000.0
+        assert json_data['mean_min_salary'][0] == 122500.0
+        assert json_data['categories'][2] == 'c#'
+        assert int(json_data['mean_max_salary'][2]) == 112155
+        assert int(json_data['mean_min_salary'][2]) == 86295
 
 
 def main():
