@@ -81,6 +81,17 @@ class ProcessedStatistics(BASE):
                 tag_bins[tag_name] += tag_val
         self.tag_bins = pickle.dumps(tag_bins)
 
+    def calculate_salary_max(self, tags=cfg.TAGS):
+        """ Calculate statistics for number of vacancies by bins. """
+        pvacancies = self.get_proc_vac()
+        tag_bins = {tag.name: 0 for tag in tags}
+        for pvac in pvacancies:
+            for tag_name, tag_val in pvac.tags.items():
+                if not tag_val:
+                    continue
+                tag_bins[tag_name] += tag_val
+        self.tag_bins = pickle.dumps(tag_bins)
+
     def __repr__(self):
         return 'Statistics: {}'.format(self.date)
 

@@ -10,6 +10,7 @@ import config as cfg
 import data_model as dm
 import vacancy_processor as vp
 
+stat_db = 'data/stat.db'
 app = Flask(__name__)
 app.debug = True
 
@@ -32,6 +33,18 @@ def get_plots():
     return jsonify(images=plots)
 
 
+def get_vac_num(stat):
+    """ Get number of vacancies from statistics. """
+    categories = [tag.name for tag in cfg.TAGS]
+    stat_cat_val = zip(categories,
+                       [stat.get_tag_bins()[cat] for cat in categories])
+    stat_cat_val = list(stat_cat_val)
+    stat_cat_val.sort(key=lambda cat_val: cat_val[1], reverse=True)  # by val
+    categories = [cat_val[0] for cat_val in stat_cat_val]
+    values = [cat_val[1] for cat_val in stat_cat_val]
+    return categories, values
+
+
 @app.route('/_get_statistics')
 def get_statistics():
     """ Serve statistics as json.
@@ -40,17 +53,10 @@ def get_statistics():
     plot_name = request.args.get('plot', "", type=str)
     # Get timestamp from plot to search database for statistics.
     timestamp = vp.get_time_by_filename(plot_name)
-    statistics_db = dm.open_db('data/stat.db', 'r')
+    statistics_db = dm.open_db(stat_db, 'r')
     stat = statistics_db.query(
-        dm.ProcessedStatistics).filter_by(date=timestamp).one()
-
-    categories = [tag.name for tag in cfg.TAGS]
-    stat_cat_val = zip(categories,
-                       [stat.get_tag_bins()[cat] for cat in categories])
-    stat_cat_val = list(stat_cat_val)
-    stat_cat_val.sort(key=lambda cat_val: cat_val[1], reverse=True)  # by val
-    categories = [cat_val[0] for cat_val in stat_cat_val]
-    values = [cat_val[1] for cat_val in stat_cat_val]
+        dm.ProcessedStatistics).filter_by(date=timestamp).first()
+    categories, values = get_vac_num(stat)
     return jsonify(d_categories=categories, d_values=values)
 
 

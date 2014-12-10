@@ -11,10 +11,10 @@ import json
 
 import config as cfg
 cfg.PRINT_PROGRESS = False
+import igallery
 import data_model as dm
 import vacancy_processor as vp
 import site_parser as sp
-from igallery import app
 
 
 class TestProcessor(unittest.TestCase):
@@ -194,7 +194,7 @@ class TestServer(unittest.TestCase):
     """ Basic test of main page view. """
     def setUp(self):
         """ Init test app """
-        self.app = app.test_client()
+        self.app = igallery.app.test_client()
 
     def test_index(self):
         """ Check if images are in main page. """
@@ -204,8 +204,9 @@ class TestServer(unittest.TestCase):
 
     def test_queries(self):
         """ Get json. """
+        igallery.stat_db = 'data/test/test_stat.db'
         res = self.app.get('/_get_statistics?plot=/plots/'
-                           'plot_hh.ru_1417943222.png')
+                           'plot_hh.ru_1412852895git.png')
         res = json.loads(res.data.decode('utf8'))
         assert 'd_values' in res, res
         assert 'd_categories' in res, res
