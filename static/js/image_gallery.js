@@ -17,9 +17,9 @@ $(function() {
     });
 
 
-    function plot_statistics(plot_name) {
-        $.getJSON('/_get_statistics', {
-            plot: plot_name,
+    function plot_statistics(given_date) {
+        $.getJSON('/_get_date_statistics', {
+            date: given_date,
             ask: 'vac_num'
         }, function(data) {
             $('#vac_number_container').highcharts({
