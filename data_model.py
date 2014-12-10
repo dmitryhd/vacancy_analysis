@@ -17,6 +17,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 import config as cfg
 
+pickle.DEFAULT_PROTOCOL = 3
 BASE = declarative_base()
 
 class Vacancy(BASE):
