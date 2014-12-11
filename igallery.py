@@ -4,6 +4,7 @@
 
 from flask import request, Flask, render_template, send_from_directory, jsonify
 
+import os
 import config as cfg
 import data_model as dm
 from utility import round_to_thousands, format_timestamp
@@ -144,6 +145,7 @@ def tag_view():
 
 def main():
     """ Runs gallery. """
+    os.chdir(os.path.dirname(sys.argv[0]))
     app.run(host='0.0.0.0', port=cfg.PORT)
 
 
