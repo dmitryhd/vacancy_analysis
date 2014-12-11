@@ -24,6 +24,7 @@ TEST_VAC_FILES = ['data/test/test_vac01.html',
                  ]
 TEST_STAT_DB_DATE = 1418224021  # this date must be in STAT_DB
 
+
 class TestProcessor(unittest.TestCase):
     """ Compress and decompress cetrain file. """
     @classmethod
@@ -237,10 +238,10 @@ class TestServer(unittest.TestCase):
         json_data = self.get_json('/_get_date_statistics'
                                   '?date=' + str(TEST_STAT_DB_DATE))
         assert json_data['vacancy_number']
-        assert json_data['categories'][0] == 'sap'
+        assert json_data['sal_categories'][0] == 'sap'
         assert json_data['mean_max_salary'][0] == 165000.0
         assert json_data['mean_min_salary'][0] == 122500.0
-        assert json_data['categories'][2] == 'c#'
+        assert json_data['sal_categories'][2] == 'c#'
         assert int(json_data['mean_max_salary'][2]) == 112155
         assert int(json_data['mean_min_salary'][2]) == 86295
 
@@ -257,25 +258,25 @@ class TestServer(unittest.TestCase):
         assert tag_stat['bins']
         assert tag_stat['counts']
 
-    def test_tag(self):
-        """ Check if all elements are in page with detailed tag statistics. """
-        for tag in cfg.TAGS:
-            elements = ['Lang: {}'.format(tag.title), 'vac_salary_hist_container',
-                        'vac_salary_histogram']
-            index_html = self.get_html('/tag/{}'.format(tag.title))
-            for element in elements:
-                assert element in index_html, \
-                    'no {} in {}'.format(element, index_html)
 
     def test_index(self):
         """ Check if all elements are in main page. """
         elements = ['iGallery', 'vac_number_container',
-                    'vac_salary_container']
+                    'vac_salary_container', 'Данные:', 'Теги:']
         index_html = self.get_html('/')
         for element in elements:
             assert element in index_html, \
                 'no {} in {}'.format(element, index_html)
 
+    def test_tag(self):
+        """ Check if all elements are in page with detailed tag statistics. """
+        for tag in cfg.TAGS:
+            elements = ['Lang: {}'.format(tag.title), 'vac_salary_hist_container',
+                        'vac_salary_histogram']
+            index_html = self.get_html('/tag/?tag={}'.format(tag.title))
+            for element in elements:
+                assert element in index_html, \
+                    'no {} in {}'.format(element, index_html)
 
 
 def main():

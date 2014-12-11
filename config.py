@@ -48,3 +48,5 @@ CSV_FILENAME = 'data/tmp/pvac.csv'
 PORT = 9999
 PLOT_PATH = './plots/'
 PRINT_PROGRESS = True
+
+NUMBER_OF_BINS = 20
