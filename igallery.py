@@ -12,7 +12,7 @@ from utility import round_to_thousands, format_timestamp
 
 
 stat_db = 'data/stat.db'
-app = Flask(__name__)
+app = Flask('igallery')
 app.debug = True
 
 
@@ -151,4 +151,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    os.chdir(os.path.dirname(sys.argv[0]))
+    app.run(host='0.0.0.0', port=cfg.PORT)
+    #main()
