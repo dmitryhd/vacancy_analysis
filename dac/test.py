@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 
+import os
+import sys
+sys.path = [os.path.abspath(os.path.dirname(__file__))] + sys.path
+
 import unittest
 import json
 
-import dac.dac_web as web
-import dac.config as cfg
+import dac_web as web
+import config as cfg
 import uva.data_model as dm
 
 cfg.PRINT_PROGRESS = False

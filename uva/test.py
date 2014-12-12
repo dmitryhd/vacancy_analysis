@@ -7,13 +7,14 @@
 import unittest
 import os
 import sys
+sys.path = [os.path.abspath(os.path.dirname(__file__))] + sys.path
 
-import uva.config as cfg
+import config as cfg
 cfg.PRINT_PROGRESS = False
 cfg.STAT_DB = 'data/test/test_stat.db'
-import uva.data_model as dm
-import uva.vacancy_processor as vp
-import uva.site_parser as sp
+import data_model as dm
+import vacancy_processor as vp
+import site_parser as sp
 
 TEST_VAC_FILES = ['data/test/test_vac01.html',
                   'data/test/test_vac02.html',

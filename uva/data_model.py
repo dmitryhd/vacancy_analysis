@@ -15,7 +15,7 @@ import sqlalchemy
 from sqlalchemy.schema import Column
 from sqlalchemy.ext.declarative import declarative_base
 
-import uva.config as cfg
+import config as cfg
 
 pickle.DEFAULT_PROTOCOL = 3
 BASE = declarative_base()

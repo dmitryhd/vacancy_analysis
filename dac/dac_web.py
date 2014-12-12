@@ -6,10 +6,10 @@ from flask import request, Flask, render_template, send_from_directory, jsonify
 
 import os
 import sys
-
-import dac.config as cfg
+sys.path.append('..')
+import config as cfg
 import uva.data_model as dm
-from dac.utility import round_to_thousands, format_timestamp
+from utility import round_to_thousands, format_timestamp
 
 
 stat_db = cfg.STAT_DB

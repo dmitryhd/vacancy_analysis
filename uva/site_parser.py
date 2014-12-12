@@ -10,8 +10,8 @@ import bs4
 import requests
 from sys import stdout
 
-from uva.data_model import Vacancy
-from uva.config import SITE_URLS, MAXIM_NUMBER_OF_VACANCIES, PRINT_PROGRESS
+from data_model import Vacancy
+from config import SITE_URLS, MAXIM_NUMBER_OF_VACANCIES, PRINT_PROGRESS
 
 def site_parser_factory(site_name):
     """ Must return site parser proper implementation. """
