@@ -62,6 +62,7 @@ class SiteParser():
 
 class SiteParserHH(SiteParser):
     """ Implementation of Head hunter parser. """
+    VACANCY_LINK_TAG = 'search-result-item__head'
 
     def get_vacancy(self, name='', html='', url=''):
         """ Get base vacancy by name and html code of page. """
@@ -79,10 +80,11 @@ class SiteParserHH(SiteParser):
     def get_vacancies_on_page(self, url, vacancies, session, maximum_vac):
         """ Download all vacancies from page and return link to next page. """
         page = self.get_url(url)
+        print(url)
         soup = bs4.BeautifulSoup(page)
         if PRINT_PROGRESS:
             print('\n')
-        for vacancy in soup.find_all('div', class_='searchresult__name'):
+        for vacancy in soup.find_all('div', class_=self.VACANCY_LINK_TAG):
             name = vacancy.string
             if name is not None:
                 link = vacancy.find_all('a')[0].attrs["href"]
