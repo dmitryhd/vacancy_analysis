@@ -7,13 +7,17 @@ sys.path = [os.path.abspath(os.path.dirname(__file__))] + sys.path
 import unittest
 import json
 
-import dac_web as web
+import web
 import config as cfg
-import uva.data_model as dm
+import processor.data_model as dm
 
 cfg.PRINT_PROGRESS = False
 cfg.STAT_DB = '../exchange/test_stat.db'
-TEST_STAT_DB_DATE = 1418224021  # this date must be in STAT_DB
+TEST_STAT_DB_DATE = 1420953910 # this date must be in STAT_DB
+TEST_STAT_DB_PARAMS = {'sal_categories': 'python',
+                       'mean_max_salary': 90000.0,
+                       'mean_min_salary': 60000.0,
+                      }
 
 class TestServer(unittest.TestCase):
     """ Basic test of main page view. """
@@ -36,19 +40,15 @@ class TestServer(unittest.TestCase):
     def test_get_dates(self):
         """ Trying to ask server about entries available in database. """
         dates = self.get_json('/_get_dates')['dates']
-        assert TEST_STAT_DB_DATE in dates
+        assert TEST_STAT_DB_DATE in dates, dates
 
     def test_get_date_statistics(self):
         """ Trying to ask server about number of vacancies. """
         json_data = self.get_json('/_get_date_statistics'
                                   '?date=' + str(TEST_STAT_DB_DATE))
         assert json_data['vacancy_number']
-        assert json_data['sal_categories'][0] == 'sap'
-        assert json_data['mean_max_salary'][0] == 165000.0
-        assert json_data['mean_min_salary'][0] == 122500.0
-        assert json_data['sal_categories'][2] == 'c#'
-        assert int(json_data['mean_max_salary'][2]) == 112155
-        assert int(json_data['mean_min_salary'][2]) == 86295
+        for parameter_name, expected_value in TEST_STAT_DB_PARAMS.items():
+            assert json_data[parameter_name][0] == expected_value, 'got: {} {}'.format(json_data[parameter_name][0], parameter_name)
 
     def test_tag_statistics(self):
         """ Trying to ask server about specific tag statistics. """

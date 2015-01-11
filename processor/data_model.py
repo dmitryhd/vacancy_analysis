@@ -82,8 +82,8 @@ class ProcessedStatistics(BASE):
         for pvac in pvacancies:
             for tag_name, tag_val in pvac.tags.items():
                 tag_bins[tag_name] += tag_val
+        print('tag_bins:', tag_bins)
         self.tag_bins = pickle.dumps(tag_bins)
-
 
     def calculate_mean_max_salary(self, tags=cfg.TAGS):
         """ Return list of mean values of maximum salary by tags. """
@@ -100,12 +100,12 @@ class ProcessedStatistics(BASE):
             cnt, sum_salary = salary_by_tag[tag_name]
             salary_by_tag[tag_name] = sum_salary / cnt if cnt else 0
         self.mean_max_salary = pickle.dumps(salary_by_tag)
+        print('salary by tag:', salary_by_tag)
 
     def get_mean_max_salary(self):
         if not self.mean_max_salary:
             return None
         return pickle.loads(self.mean_max_salary)
-
 
     def calculate_mean_min_salary(self, tags=cfg.TAGS):
         """ Return list of mean values of maximum salary by tags. """
@@ -121,6 +121,7 @@ class ProcessedStatistics(BASE):
         for tag_name in salary_by_tag.keys():
             cnt, sum_salary = salary_by_tag[tag_name]
             salary_by_tag[tag_name] = sum_salary / cnt if cnt else 0
+        print('salary by tag:', salary_by_tag)
         self.mean_min_salary = pickle.dumps(salary_by_tag)
 
     def get_mean_min_salary(self):

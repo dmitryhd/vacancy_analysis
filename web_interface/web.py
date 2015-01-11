@@ -8,12 +8,12 @@ import os
 import sys
 sys.path.append('..')
 import config as cfg
-import uva.data_model as dm
+import processor.data_model as dm
 from utility import round_to_thousands, format_timestamp
 
 
 stat_db = cfg.STAT_DB
-app = Flask('dac.dac_web')
+app = Flask('web_interface.web')
 app.debug = True
 
 
