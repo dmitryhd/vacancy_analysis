@@ -79,12 +79,12 @@ class ProcessedStatistics(BASE):
     def get_max_salary_by_tag(self, tag_name):
         if not self.max_salary_by_tag:
             return None
-        return pickle.loads(self.max_salary_by_tag)
+        return pickle.loads(self.max_salary_by_tag)[tag_name]
 
     def get_min_salary_by_tag(self, tag_name):
         if not self.min_salary_by_tag:
             return None
-        return pickle.loads(self.min_salary_by_tag)
+        return pickle.loads(self.min_salary_by_tag)[tag_name]
 
     def get_proc_vac(self):
         """ Decapsulate pickle. """

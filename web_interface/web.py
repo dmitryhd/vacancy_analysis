@@ -63,7 +63,6 @@ def get_date_statistics_json():
     """ Get number of vacancies, mean_max and mean_min salary for overview. """
     date = request.args.get('date', 0, type=int)
     statistics_db = dm.open_db(stat_db, 'r')
-    print(stat_db)
     stat = statistics_db.query(
         dm.ProcessedStatistics).filter_by(date=date).first()
     vac_num_categories, vacancy_number = get_vac_num(stat)
@@ -99,10 +98,8 @@ def get_tag_histogram_json():
     date = request.args.get('date', 0, type=int)
     stat = statistics_db.query(dm.ProcessedStatistics).filter_by(
         date=date).first()
-    pvacs = stat.get_proc_vac()
     tag_name = request.args.get('tag', "", type=str)
-    max_salaries = [pvac.max_salary for pvac in pvacs
-                    if pvac.max_salary and pvac.tags[tag_name] == True]
+    max_salaries = stat.get_max_salary_by_tag(tag_name)
     bottom_max_salary = min(max_salaries)
     bin_size = (max(max_salaries) - bottom_max_salary) / cfg.NUMBER_OF_BINS
     counts = [0] * cfg.NUMBER_OF_BINS

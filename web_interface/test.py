@@ -13,10 +13,10 @@ import processor.data_model as dm
 
 cfg.PRINT_PROGRESS = False
 cfg.STAT_DB = '../exchange/test_stat.db'
-TEST_STAT_DB_DATE = 1420953910 # this date must be in STAT_DB
-TEST_STAT_DB_PARAMS = {'sal_categories': 'python',
-                       'mean_max_salary': 90000.0,
-                       'mean_min_salary': 60000.0,
+TEST_STAT_DB_DATE = 1420961760 # this date must be in STAT_DB
+TEST_STAT_DB_PARAMS = {'sal_categories': 'java',
+                       'mean_max_salary': 150000.0,
+                       'mean_min_salary': 70000.0,
                       }
 
 class TestServer(unittest.TestCase):
@@ -52,13 +52,13 @@ class TestServer(unittest.TestCase):
 
     def test_tag_statistics(self):
         """ Trying to ask server about specific tag statistics. """
-        tag_stat = self.get_json('/_get_tag_statistics?tag=python')
+        tag_stat = self.get_json('/_get_tag_statistics?tag=java')
         assert tag_stat['max_salary_history']
         assert tag_stat['min_salary_history']
 
     def test_tag_histogram(self):
         """ Trying to ask server about specific tag histogram. """
-        tag_stat = self.get_json('/_get_tag_histogram?tag=python'
+        tag_stat = self.get_json('/_get_tag_histogram?tag=java'
                                  '&date=' + str(TEST_STAT_DB_DATE))
         assert tag_stat['bins']
         assert tag_stat['counts']
