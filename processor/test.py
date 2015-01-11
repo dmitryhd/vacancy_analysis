@@ -88,7 +88,7 @@ class TestProcessedStatistics(unittest.TestCase):
             assert vac_stat.get_mean_min_salary()
             assert vac_stat.get_proc_vac()
             assert vac_stat.get_max_salary_by_tag('python')
-            assert vac_stat.get_min_salary_by_tag('python')
+            assert vac_stat.get_min_salary_by_tag('java')
             assert len(vac_stat.get_proc_vac()) <= self.MAX_VAC
 
 
