@@ -155,4 +155,3 @@ def main():
 if __name__ == '__main__':
     os.chdir(os.path.dirname(sys.argv[0]))
     app.run(host='0.0.0.0', port=cfg.PORT)
-    #main()

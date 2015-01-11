@@ -80,7 +80,6 @@ class SiteParserHH(SiteParser):
     def get_vacancies_on_page(self, url, vacancies, session, maximum_vac):
         """ Download all vacancies from page and return link to next page. """
         page = self.get_url(url)
-        print(url)
         soup = bs4.BeautifulSoup(page)
         if PRINT_PROGRESS:
             print('\n')

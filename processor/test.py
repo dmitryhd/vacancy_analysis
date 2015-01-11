@@ -80,12 +80,15 @@ class TestProcessedStatistics(unittest.TestCase):
         statistics_db.commit()
         query = statistics_db.query(dm.ProcessedStatistics)
         assert query
+        # TODO: specific numbers
         for vac_stat in query:
             assert vac_stat.date
             assert vac_stat.get_tag_bins()
             assert vac_stat.get_mean_max_salary()
             assert vac_stat.get_mean_min_salary()
             assert vac_stat.get_proc_vac()
+            assert vac_stat.get_max_salary_by_tag('python')
+            assert vac_stat.get_min_salary_by_tag('python')
             assert len(vac_stat.get_proc_vac()) <= self.MAX_VAC
 
 
