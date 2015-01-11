@@ -11,7 +11,8 @@ sys.path = [os.path.abspath(os.path.dirname(__file__))] + sys.path
 
 import config as cfg
 cfg.PRINT_PROGRESS = False
-cfg.STAT_DB = 'data/test/test_stat.db'
+TEST_STAT_DB = 'data/test/test_stat.db'
+cfg.STAT_DB = TEST_STAT_DB
 import data_model as dm
 import vacancy_processor as vp
 import site_parser as sp
@@ -28,6 +29,7 @@ class TestProcessor(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         os.remove('data/testfn.txt')
+        os.remove(TEST_STAT_DB)
 
     @staticmethod
     def test_compress_decompress():
