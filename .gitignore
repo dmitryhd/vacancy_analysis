@@ -7,3 +7,4 @@ __pycache__
 *.csv
 *.png
 data/tmp/*
+.coverage

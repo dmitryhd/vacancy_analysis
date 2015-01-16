@@ -23,6 +23,55 @@ TEST_VAC_FILES = ['data/test/test_vac01.html',
                   'data/test/test_vac04.html',
                  ]
 
+class DatabaseTestCase(unittest.TestCase):
+    """ Test case abstract class for any test case, which is using database.
+    """
+    TEST_DB = 'data/test/test.db'
+
+    @classmethod
+    def setUpClass(cls):
+        """ Prepare db. """
+        cls.session = dm.open_db(cls.TEST_DB, 'w')
+
+    @classmethod
+    def tearDownClass(cls):
+        """ Delete db and tmp files. """
+        try:
+            os.remove(cls.TEST_DB)
+        except FileNotFoundError:
+            pass
+
+
+class TestVacancy(DatabaseTestCase):
+    """ Test basic datamodel for raw vacancy. """
+
+    def test_vacancy(self):
+        """ Case for vacancy class. """
+        vac_name = 'test_vac_name'
+        vac_html = 'test_vac_html'
+        vac = dm.Vacancy(vac_name, vac_html)
+        self.session.add(vac)
+        self.session.commit()
+        print(vac)
+        loaded_vac = self.session.query(dm.Vacancy).first()
+        assert loaded_vac.name == vac_name
+        assert loaded_vac.html == vac_html
+
+    @staticmethod
+    def test_tag():
+        """ Case for processed vacancy class. """
+        test_tags = [cfg.TagRepr('c++', 'c++', 'cpp'),
+                     cfg.TagRepr('java', 'java', 'java'),
+                     cfg.TagRepr('python', 'python', 'python'),
+                    ]
+        vacancy_text = 'needed c++ developer, omg, java so wow'
+        vac = dm.Vacancy('test vacancy', vacancy_text)
+        proc_vac = dm.ProcessedVacancy(vac, test_tags)
+        assert proc_vac.name == 'test vacancy'
+        assert proc_vac.tags[test_tags[0].name]
+        assert proc_vac.tags[test_tags[1].name]
+        assert not proc_vac.tags[test_tags[2].name]
+
 
 class TestProcessor(unittest.TestCase):
     """ Compress and decompress cetrain file. """
@@ -94,52 +143,6 @@ class TestProcessedStatistics(unittest.TestCase):
             assert len(vac_stat.get_proc_vac()) <= self.MAX_VAC
 
 
-class DatabaseTestCase(unittest.TestCase):
-    """ Test case abstract class for any test case, which is using database.
-    """
-    TEST_DB = 'data/test/test.db'
-
-    @classmethod
-    def setUpClass(cls):
-        """ Prepare db. """
-        cls.session = dm.open_db(cls.TEST_DB, 'w')
-
-    @classmethod
-    def tearDownClass(cls):
-        """ Delete db and tmp files. """
-        try:
-            os.remove(cls.TEST_DB)
-        except FileNotFoundError:
-            pass
-
-
-class TestVacancy(DatabaseTestCase):
-    """ Test database, vacancy and processor. """
-
-    def test_vacancy(self):
-        """ Case for vacancy class. """
-        vac = dm.Vacancy('aaa', 'sdfvsdf')
-        self.session.add(vac)
-        self.session.commit()
-        query = self.session.query(dm.Vacancy)
-        assert query
-
-    @staticmethod
-    def test_tag():
-        """ Case for processed vacancy class. """
-        test_tags = [cfg.TagRepr('c++', 'c++', 'cpp'),
-                     cfg.TagRepr('java', 'java', 'java'),
-                     cfg.TagRepr('python', 'python', 'python'),
-                    ]
-        vacancy_text = 'needed c++ developer, omg, java so wow'
-        vac = dm.Vacancy('test vacancy', vacancy_text)
-        proc_vac = dm.ProcessedVacancy(vac, test_tags)
-        assert proc_vac.name == 'test vacancy'
-        assert proc_vac.tags[test_tags[0].name]
-        assert proc_vac.tags[test_tags[1].name]
-        assert not proc_vac.tags[test_tags[2].name]
-
-
 class TestSiteParser(DatabaseTestCase):
     """ Test different sites. """
     MAX_VAC_NUM = 1
@@ -186,7 +189,6 @@ class TestSiteParser(DatabaseTestCase):
                         'Got salary: {}'.format(pvac.min_salary)
                 assert pvac.max_salary == max_sal_exp, \
                         'Got salary: {}'.format(pvac.max_salary)
-
 
 
 def main():
