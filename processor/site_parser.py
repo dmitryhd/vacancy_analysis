@@ -10,7 +10,7 @@ import bs4
 import requests
 from sys import stdout
 
-from data_model import Vacancy
+from data_model import RawVacancy
 from config import SITE_URLS, MAXIM_NUMBER_OF_VACANCIES, PRINT_PROGRESS
 
 def site_parser_factory(site_name):
@@ -27,7 +27,7 @@ class SiteParser():
         self.web_session = requests.Session()
 
     def get_vacancy(self, name='', html='', url=''):
-        """ Must return Vacancy. """
+        """ Must return RawVacancy. """
         raise NotImplementedError
 
     def get_all_vacancies(self, session,
@@ -75,7 +75,7 @@ class SiteParserHH(SiteParser):
                         class_='l-content-2colums b-vacancy-container')
         if res:
             new_html += res.text
-        return Vacancy(name, new_html, url=url, site='hh.ru')
+        return RawVacancy(name, new_html, url=url, site='hh.ru')
 
     def get_vacancies_on_page(self, url, vacancies, session, maximum_vac):
         """ Download all vacancies from page and return link to next page. """
@@ -123,7 +123,7 @@ class SiteParserHH(SiteParser):
 
 class SiteParserSJ(SiteParser):
     """ Implementation of Head hunter parser. """
-    # Vacancy tag->class, which contains main body.
+    # RawVacancy tag->class, which contains main body.
     vacancy_body_tags = (('div', 'VacancyView_details'),
                          ('div', 'VacancyView_salary'),
                          ('div', 'VacancyView_location')
@@ -144,7 +144,7 @@ class SiteParserSJ(SiteParser):
                 name = res.text
             else:
                 name = 'cant parse'
-        return Vacancy(name, new_html, url=url, site='sj.ru')
+        return RawVacancy(name, new_html, url=url, site='sj.ru')
 
     def get_vacancies_on_page(self, url, vacancies, session, maximum_vac):
         """ Download all vacancies from page and return link to next page. """

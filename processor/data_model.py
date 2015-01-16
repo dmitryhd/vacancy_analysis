@@ -20,15 +20,16 @@ import config as cfg
 pickle.DEFAULT_PROTOCOL = 3
 BASE = declarative_base()
 
-class Vacancy(BASE):
+
+class RawVacancy(BASE):
     """ Simple unprocessed vacancy. Contains name and html page. """
     __tablename__ = 'vacancy'
     id = Column(sqlalchemy.types.Integer, primary_key=True)
-    name = Column(sqlalchemy.types.String(100))
+    name = Column(sqlalchemy.types.String(cfg.DB_MAX_STRING_LEN))
     html = Column(sqlalchemy.types.Text)
     url = Column(sqlalchemy.types.Text)
     date = Column(sqlalchemy.types.DateTime)
-    site = Column(sqlalchemy.types.String(100))
+    site = Column(sqlalchemy.types.String(cfg.DB_MAX_STRING_LEN))
 
     def __init__(self, name, html, url='NA', site='NA'):
         self.name = name
@@ -38,7 +39,7 @@ class Vacancy(BASE):
         self.site = site
 
     def __repr__(self):
-        return 'Vacancy: id={}, name={}, html={}'.format(self.id,
+        return 'RawVacancy: id={}, name={}, html={}'.format(self.id,
                                                          self.name,
                                                          len(self.html))
 
@@ -57,10 +58,16 @@ class ProcessedStatistics(BASE):
 
     def __init__(self, proc_vac, _time='now'):
         self.set_proc_vac(proc_vac)
-        if _time == 'now':
-            self.date = int(time.time())
+        self.date = int(time.time()) if _time == 'now' else _time
+
+    def __setattr__(self, var, value):
+        """ When setting PickleType variables wrap them in pickle. """
+        if type(self.__dict__[var]) == Column:
+            self.__dict__[var] = value
         else:
-            self.date = _time
+            self.__dict__[var] = value
+            print(var, type(self.__dict__[var]))
+        assert False
 
     def calculate_min_max_salary_by_tag(self, tags=cfg.TAGS):
         pvacs = self.get_proc_vac()
@@ -153,7 +160,6 @@ class ProcessedStatistics(BASE):
             return None
         return pickle.loads(self.mean_min_salary)
 
-
     def __repr__(self):
         return 'Statistics: {}'.format(self.date)
 
@@ -214,7 +220,7 @@ def open_db(db_name, mode='w'):
 def process_vacancies_from_db(session, tags):
     """ Get list of processed vacancies from database of raw vacancies."""
     proc_vacs = []
-    vacancies = session.query(Vacancy)
+    vacancies = session.query(RawVacancy)
     for vac in vacancies:
         proc_vacs.append(ProcessedVacancy(vac, tags))
     return proc_vacs

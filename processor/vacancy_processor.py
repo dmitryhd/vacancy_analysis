@@ -22,7 +22,7 @@ import re
 
 import site_parser as sp
 import config as cfg
-from data_model import BASE, Vacancy, ProcessedVacancy, ProcessedStatistics
+from data_model import BASE, RawVacancy, ProcessedVacancy, ProcessedStatistics
 from data_model import process_vacancies_from_db, open_db
 
 

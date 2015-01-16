@@ -49,11 +49,11 @@ class TestVacancy(DatabaseTestCase):
         """ Case for vacancy class. """
         vac_name = 'test_vac_name'
         vac_html = 'test_vac_html'
-        vac = dm.Vacancy(vac_name, vac_html)
+        vac = dm.RawVacancy(vac_name, vac_html)
         self.session.add(vac)
         self.session.commit()
         print(vac)
-        loaded_vac = self.session.query(dm.Vacancy).first()
+        loaded_vac = self.session.query(dm.RawVacancy).first()
         assert loaded_vac.name == vac_name
         assert loaded_vac.html == vac_html
 
@@ -65,7 +65,7 @@ class TestVacancy(DatabaseTestCase):
                      cfg.TagRepr('python', 'python', 'python'),
                     ]
         vacancy_text = 'needed c++ developer, omg, java so wow'
-        vac = dm.Vacancy('test vacancy', vacancy_text)
+        vac = dm.RawVacancy('test vacancy', vacancy_text)
         proc_vac = dm.ProcessedVacancy(vac, test_tags)
         assert proc_vac.name == 'test vacancy'
         assert proc_vac.tags[test_tags[0].name]

@@ -39,3 +39,4 @@ TAGS = [TagRepr('c++', 'c++', 'cpp'),
 MAXIM_NUMBER_OF_VACANCIES = 10000
 STAT_DB = '../exchange/stat.db'
 PRINT_PROGRESS = True
+DB_MAX_STRING_LEN = 100
