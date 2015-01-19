@@ -13,12 +13,13 @@ from sys import stdout
 from data_model import RawVacancy
 from config import SITE_URLS, MAXIM_NUMBER_OF_VACANCIES, PRINT_PROGRESS
 
+
 def site_parser_factory(site_name):
     """ Must return site parser proper implementation. """
     return PARSER_IMPL[site_name](site_name)
 
 
-class SiteParser():
+class SiteParser(object):
     """ Base class for parser. """
     vacancy_body_tags = []
     def __init__(self, name):

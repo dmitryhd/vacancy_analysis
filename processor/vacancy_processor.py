@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pylint: disable=E0001, R0921
 
 """ Main module to download html pages fro hh.ru, parse them and
     save to database.
@@ -12,43 +11,19 @@
 """
 
 import time
-from datetime import datetime
 import argparse
-import sqlalchemy
 import sys
 import os
-import tarfile
-import re
 
+import util
 import site_parser as sp
 import config as cfg
-from data_model import BASE, RawVacancy, ProcessedVacancy, ProcessedStatistics
-from data_model import process_vacancies_from_db, open_db
-
-
-def get_time_by_filename(fname):
-    seconds = re.search(r'(\d+)', fname)
-    if not seconds:
-        seconds = int(time.time())
-    else:
-        seconds = int(seconds.groups()[0])
-    return seconds
-
-
-def compress_database(db_name):
-    """ Create bz archive and delete sqlite database file. """
-    os.system('tar czf {} {}'.format(db_name + '.tgz', db_name))
-    os.remove(db_name)
-
-
-def uncompress_database(db_name):
-    """ Create bz archive and delete sqlite database file. """
-    os.system('tar xzf {} '.format(db_name))
-    os.remove(db_name)
-    return db_name.replace('.tgz', '')
+import data_model as dm
+from statistics import ProcessedStatistics
 
 
 def parse_args():
+    """ Process command line arguments. """
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--db_name", type=str,
                         default='data/vac.db',
@@ -76,24 +51,25 @@ def main():
     os.chdir(os.path.dirname(sys.argv[0]))
     args = parse_args()
 
+    # Decompress db if needed
     if args.compress and args.process:
-        args.db_name = uncompress_database(args.db_name)
-    raw_vac_db = open_db(args.db_name)
+        args.db_name = util.uncompress_database(args.db_name)
+    # Save raw vac to database
+    raw_vac_db = dm.open_db(args.db_name)
     if not args.process:
         site_parser = sp.site_parser_factory(site)
         site_parser.get_all_vacancies(raw_vac_db, args.num_vac)
     # Process vacs:
-    current_tags = cfg.TAGS
-    proc_vac_db = open_db(args.db_name)
-    processed_vacancies = process_vacancies_from_db(raw_vac_db, current_tags)
+    processed_vacancies = dm.process_vacancies_from_db(raw_vac_db, cfg.TAGS)
     # Save processed vacancies to statistics database.
-    stat_db = open_db(cfg.STAT_DB)
-    gather_time_sec = get_time_by_filename(args.db_name)
+    stat_db = dm.open_db(cfg.STAT_DB)
+    gather_time_sec = util.get_time_by_filename(args.db_name)
     proc_stat = ProcessedStatistics(processed_vacancies, gather_time_sec)
     proc_stat.calculate_all()
     stat_db.add(proc_stat)
     stat_db.commit()
 
+    # Compress db if needed
     if args.compress:
         compress_database(args.db_name)
 
