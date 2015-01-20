@@ -17,7 +17,7 @@ import os
 
 import util
 import site_parser as sp
-import config as cfg
+import processor_config as cfg
 import data_model as dm
 from statistics import ProcessedStatistics
 
@@ -71,7 +71,7 @@ def main():
 
     # Compress db if needed
     if args.compress:
-        compress_database(args.db_name)
+        util.compress_database(args.db_name)
 
 
 if __name__ == '__main__':

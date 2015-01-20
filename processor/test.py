@@ -8,7 +8,7 @@ import sys
 sys.path = [os.path.abspath(os.path.dirname(__file__))] + sys.path
 
 import util
-import config as cfg
+import processor_config as cfg
 cfg.PRINT_PROGRESS = False
 TEST_STAT_DB = 'data/test/test_stat.db'
 cfg.STAT_DB = TEST_STAT_DB
@@ -196,6 +196,7 @@ class TestSiteParser(DatabaseTestCase):
 class TestProcessor(unittest.TestCase):
     """ Call processor with arguments and test all utils functions. """
     COMPRESS_FILE = 'data/testfn.txt'
+    RAW_VAC_FILE = 'data/test/vac_1416631701.db'
 
     @classmethod
     def tearDownClass(cls):
@@ -222,11 +223,16 @@ class TestProcessor(unittest.TestCase):
         with open(self.COMPRESS_FILE) as test_fd:
             self.assertEqual(test_fd.read(), initial_text)
 
-    @staticmethod
-    def test_main():
+    def test_main(self):
         """ Call processor with arguments. See if any assert arises. """
-        raw_vac_file = 'data/test/vac_1416631701.db'
-        sys.argv = ['./vacancy_processor', '-p', '-d', raw_vac_file]
+        sys.argv = ['./vacancy_processor', '-p', '-d', self.RAW_VAC_FILE]
+        vp.main()
+
+    def test_main_compress(self):
+        """ Call processor with arguments and compress.
+            See if any assert arises.
+        """
+        sys.argv = ['./vacancy_processor', '-c', '-t', '-n', '2']
         vp.main()
 
     def test_get_time_by_fname(self):
@@ -236,4 +242,4 @@ class TestProcessor(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(warnings='ignore')

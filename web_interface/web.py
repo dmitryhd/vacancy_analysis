@@ -2,13 +2,15 @@
 # pylint: disable=invalid-name
 """ Just a web server in python + flask. Shows content of folder images. """
 
-from flask import request, Flask, render_template, send_from_directory, jsonify
 
 import os
 import sys
 sys.path.append('..')
-import config as cfg
+from flask import request, Flask, render_template, send_from_directory, jsonify
+
+import web_config as cfg
 import processor.data_model as dm
+from processor.statistics import ProcessedStatistics
 from utility import round_to_thousands, format_timestamp
 
 
@@ -20,7 +22,7 @@ app.debug = True
 def get_dates():
     """ Return list of all dates int format. """
     statistics_db = dm.open_db(stat_db, 'r')
-    statistics = statistics_db.query(dm.ProcessedStatistics)
+    statistics = statistics_db.query(ProcessedStatistics)
     dates = [statistic.date for statistic in statistics]
     dates.sort(reverse=True)
     return dates
@@ -36,7 +38,7 @@ def get_vac_num(stat):
     """ Get number of vacancies from statistics. """
     categories = [tag.name for tag in cfg.TAGS]
     stat_cat_val = zip(categories,
-                       [stat.get_tag_bins()[cat] for cat in categories])
+                       [stat.num_of_vacancies[cat] for cat in categories])
     stat_cat_val = list(stat_cat_val)
     stat_cat_val.sort(key=lambda cat_val: cat_val[1], reverse=True)  # by val
     categories = [cat_val[0] for cat_val in stat_cat_val]
@@ -48,8 +50,8 @@ def get_vac_salary(stat):
     """ Get mean min and max of vacancies from statistics. """
     categories = [tag.name for tag in cfg.TAGS]
     stat_cat_val = zip(categories,
-                       [stat.get_mean_max_salary()[cat] for cat in categories],
-                       [stat.get_mean_min_salary()[cat] for cat in categories])
+                       [stat.mean_max_salary[cat] for cat in categories],
+                       [stat.mean_min_salary[cat] for cat in categories])
     stat_cat_val = list(stat_cat_val)
     stat_cat_val.sort(key=lambda cat_val: cat_val[1], reverse=True)  # by val
     categories = [cat_val[0] for cat_val in stat_cat_val]
@@ -64,7 +66,7 @@ def get_date_statistics_json():
     date = request.args.get('date', 0, type=int)
     statistics_db = dm.open_db(stat_db, 'r')
     stat = statistics_db.query(
-        dm.ProcessedStatistics).filter_by(date=date).first()
+        ProcessedStatistics).filter_by(date=date).first()
     vac_num_categories, vacancy_number = get_vac_num(stat)
     sal_categories, mean_max_salary, mean_min_salary = get_vac_salary(stat)
     return jsonify(vac_num_categories=vac_num_categories,
@@ -79,13 +81,13 @@ def get_tag_statistics_json():
     """ Get history of vacancy mean salaries by dates. """
     tag_name = request.args.get('tag', "", type=str)
     statistics_db = dm.open_db(stat_db, 'r')
-    statistics = statistics_db.query(dm.ProcessedStatistics)
+    statistics = statistics_db.query(ProcessedStatistics)
     mean_max_salary = []
     mean_min_salary = []
     for stat in statistics:
-        max_salary = stat.get_mean_max_salary()[tag_name]
+        max_salary = stat.mean_max_salary[tag_name]
         mean_max_salary.append([stat.date * 1000, max_salary])
-        min_salary = stat.get_mean_min_salary()[tag_name]
+        min_salary = stat.mean_min_salary[tag_name]
         mean_min_salary.append([stat.date * 1000, min_salary])
     return jsonify(max_salary_history=mean_max_salary,
                    min_salary_history=mean_min_salary)
@@ -96,10 +98,10 @@ def get_tag_histogram_json():
     """ Creates histogram of maximum salary. """
     statistics_db = dm.open_db(stat_db, 'r')
     date = request.args.get('date', 0, type=int)
-    stat = statistics_db.query(dm.ProcessedStatistics).filter_by(
+    stat = statistics_db.query(ProcessedStatistics).filter_by(
         date=date).first()
     tag_name = request.args.get('tag', "", type=str)
-    max_salaries = stat.get_max_salary_by_tag(tag_name)
+    max_salaries = stat.max_salaries[tag_name]
     bottom_max_salary = min(max_salaries)
     bin_size = (max(max_salaries) - bottom_max_salary) / cfg.NUMBER_OF_BINS
     counts = [0] * cfg.NUMBER_OF_BINS

@@ -11,7 +11,7 @@ import requests
 from sys import stdout
 
 from data_model import RawVacancy
-from config import SITE_URLS, MAXIM_NUMBER_OF_VACANCIES, PRINT_PROGRESS
+from processor_config import SITE_URLS, MAXIM_NUMBER_OF_VACANCIES, PRINT_PROGRESS
 
 
 def site_parser_factory(site_name):

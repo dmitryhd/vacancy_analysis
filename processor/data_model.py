@@ -15,8 +15,11 @@ import sqlalchemy
 import sqlalchemy.ext.declarative
 from sqlalchemy.schema import Column
 from sqlalchemy.types import Integer, String, Text, PickleType, DateTime
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 
-import config as cfg
+import processor_config as cfg
 
 
 Base = sqlalchemy.ext.declarative.declarative_base()

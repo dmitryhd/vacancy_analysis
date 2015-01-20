@@ -3,24 +3,24 @@
 import os
 import sys
 sys.path = [os.path.abspath(os.path.dirname(__file__))] + sys.path
-
 import unittest
 import json
 
 import web
-import config as cfg
 import processor.data_model as dm
+import web_config as cfg
 
 cfg.PRINT_PROGRESS = False
 cfg.STAT_DB = '../exchange/test_stat.db'
-TEST_STAT_DB_DATE = 1420961760 # this date must be in STAT_DB
-TEST_STAT_DB_PARAMS = {'sal_categories': 'java',
-                       'mean_max_salary': 150000.0,
-                       'mean_min_salary': 70000.0,
+TEST_STAT_DB_DATE = 1421741081 # this date must be in STAT_DB
+TEST_STAT_DB_PARAMS = {'sal_categories': 'c#',
+                       'mean_max_salary': 120000.0,
+                       'mean_min_salary': 100000.0,
                       }
 
 class TestServer(unittest.TestCase):
     """ Basic test of main page view. """
+
     def setUp(self):
         """ Init test app """
         self.app = web.app.test_client()
@@ -40,29 +40,29 @@ class TestServer(unittest.TestCase):
     def test_get_dates(self):
         """ Trying to ask server about entries available in database. """
         dates = self.get_json('/_get_dates')['dates']
-        assert TEST_STAT_DB_DATE in dates, dates
+        self.assertTrue(TEST_STAT_DB_DATE in dates)
 
     def test_get_date_statistics(self):
         """ Trying to ask server about number of vacancies. """
         json_data = self.get_json('/_get_date_statistics'
                                   '?date=' + str(TEST_STAT_DB_DATE))
-        assert json_data['vacancy_number']
+        self.assertTrue(json_data['vacancy_number'])
         for parameter_name, expected_value in TEST_STAT_DB_PARAMS.items():
-            assert json_data[parameter_name][0] == expected_value, 'got: {} {}'.format(json_data[parameter_name][0], parameter_name)
+            print(parameter_name)
+            self.assertEqual(json_data[parameter_name][0], expected_value)
 
     def test_tag_statistics(self):
         """ Trying to ask server about specific tag statistics. """
         tag_stat = self.get_json('/_get_tag_statistics?tag=java')
-        assert tag_stat['max_salary_history']
-        assert tag_stat['min_salary_history']
+        self.assertTrue(tag_stat['max_salary_history'])
+        self.assertTrue(tag_stat['min_salary_history'])
 
     def test_tag_histogram(self):
         """ Trying to ask server about specific tag histogram. """
         tag_stat = self.get_json('/_get_tag_histogram?tag=java'
                                  '&date=' + str(TEST_STAT_DB_DATE))
-        assert tag_stat['bins']
-        assert tag_stat['counts']
-
+        self.assertTrue(tag_stat['bins'])
+        self.assertTrue(tag_stat['counts'])
 
     def test_index(self):
         """ Check if all elements are in main page. """
@@ -70,8 +70,7 @@ class TestServer(unittest.TestCase):
                     'vac_salary_container', 'Данные:', 'Теги:']
         index_html = self.get_html('/')
         for element in elements:
-            assert element in index_html, \
-                'no {} in {}'.format(element, index_html)
+            self.assertTrue(element in index_html)
 
     def test_tag(self):
         """ Check if all elements are in page with detailed tag statistics. """
@@ -80,17 +79,8 @@ class TestServer(unittest.TestCase):
                         'vac_salary_histogram']
             index_html = self.get_html('/tag/?tag={}'.format(tag.title))
             for element in elements:
-                assert element in index_html, \
-                    'no {} in {}'.format(element, index_html)
+                self.assertTrue(element in index_html)
 
-
-def main():
-    """ Safely run test. """
-    try:
-        unittest.main(warnings='ignore')
-    except SystemExit as inst:
-        if inst.args[0] is True: # raised by sys.exit(True) when tests failed
-            raise
 
 if __name__ == '__main__':
-    main()
+    unittest.main(warnings='ignore')

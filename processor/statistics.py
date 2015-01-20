@@ -9,7 +9,7 @@ from sqlalchemy.schema import Column
 from sqlalchemy.types import Integer, PickleType
 
 from data_model import Base
-import config as cfg
+import processor_config as cfg
 
 
 class ProcessedStatistics(Base):
