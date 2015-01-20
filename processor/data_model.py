@@ -40,9 +40,9 @@ class RawVacancy(Base):
         self.date = datetime.datetime.now()
 
     def __repr__(self):
-        return 'RawVacancy: id={}, name={}, html={}'.format(self.id,
-                                                            self.name,
-                                                            len(self.html))
+        return 'RawVacancy: id={}, name={}, html_len={}'.format(self.id,
+                                                                self.name,
+                                                                len(self.html))
 
 class ProcessedVacancy():
     """ Processed vacancy. Contains name, tags and salary."""

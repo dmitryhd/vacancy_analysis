@@ -17,15 +17,9 @@ import statistics as stat
 import vacancy_processor as vp
 import site_parser as sp
 
-TEST_VAC_FILES = ['data/test/test_vac01.html',
-                  'data/test/test_vac02.html',
-                  'data/test/test_vac03.html',
-                  'data/test/test_vac04.html',
-                 ]
 
 class DatabaseTestCase(unittest.TestCase):
-    """ Test case abstract class for any test case, which is using database.
-    """
+    """ Abstract class for any test case, which is using database. """
     TEST_DB = 'data/test/test.db'
 
     @classmethod
@@ -55,6 +49,7 @@ class TestBasicDataModel(DatabaseTestCase):
         loaded_vac = self.session.query(dm.RawVacancy).first()
         self.assertEqual(loaded_vac.name, vac_name)
         self.assertEqual(loaded_vac.html, vac_html)
+        self.assertEqual(str(loaded_vac), str(vac))
 
     def test_processed_vacancy_creation(self):
         """ Creating processed vacancy from raw vacancy. """
@@ -68,6 +63,7 @@ class TestBasicDataModel(DatabaseTestCase):
         self.assertTrue(proc_vac.tags[test_tags[0].name])
         self.assertTrue(proc_vac.tags[test_tags[1].name])
         self.assertFalse(proc_vac.tags[test_tags[2].name])
+        self.assertTrue('test vacancy' in str(proc_vac))
 
 
 class TestProcessedStatistics(unittest.TestCase):
@@ -124,6 +120,7 @@ class TestProcessedStatistics(unittest.TestCase):
         # Restore statistics from db
         new_proc_stat = statistics_db.query(stat.ProcessedStatistics).first()
         self.assertEqual(new_proc_stat, self.ref_proc_stat)
+        self.assertEqual(str(new_proc_stat), str(self.ref_proc_stat))
 
     def test_num_of_vacancies(self):
         """ Process statistics for number of vacancies. """
@@ -152,6 +149,8 @@ class TestProcessedStatistics(unittest.TestCase):
 class TestSiteParser(DatabaseTestCase):
     """ Test different sites. """
     MAX_VAC_NUM = 2
+    TEST_VAC_FILES = ['data/test/test_vac01.html', 'data/test/test_vac02.html',
+                      'data/test/test_vac03.html', 'data/test/test_vac04.html']
     
     def get_vacancies_from_site(self, site_name):
         """ Create valid site parser, download vacancies and return them. """
@@ -181,11 +180,8 @@ class TestSiteParser(DatabaseTestCase):
     def test_get_salary(self):
         """ Check, if we can get valid salaries from hh vac. """
         # TODO: same for sj
-        salaries = [(60000, 90000),
-                    (None, 40000),
-                    (70000, None),
-                    (None, None),]
-        result = zip(TEST_VAC_FILES, salaries)
+        salaries = [(60000, 90000), (None, 40000), (70000, None), (None, None)]
+        result = zip(self.TEST_VAC_FILES, salaries)
         parser = sp.site_parser_factory('hh.ru')
         for file_name, (min_sal_exp, max_sal_exp) in result:
             with open(file_name) as testfd:
@@ -198,37 +194,45 @@ class TestSiteParser(DatabaseTestCase):
 
 
 class TestProcessor(unittest.TestCase):
-    """ Compress and decompress cetrain file. """
+    """ Call processor with arguments and test all utils functions. """
+    COMPRESS_FILE = 'data/testfn.txt'
+
     @classmethod
     def tearDownClass(cls):
-        os.remove('data/testfn.txt')
-        os.remove(TEST_STAT_DB)
+        try:
+            os.remove(cls.COMPRESS_FILE)
+            os.remove(TEST_STAT_DB)
+        except FileNotFoundError:
+            pass
 
-    @staticmethod
-    def test_compress_decompress():
+    def test_compress_decompress(self):
         """ Compress file, then decompress. """
-        test_fn = 'data/testfn.txt'
+        # Create original file
         initial_text = 'abcdefg'
-        with open(test_fn, 'w') as test_fd:
+        with open(self.COMPRESS_FILE, 'w') as test_fd:
             test_fd.write(initial_text)
-            test_fd.close()
-        assert os.path.isfile(test_fn)
-        with open(test_fn) as test_fd:
-            assert test_fd.read() == initial_text
-        util.compress_database(test_fn)
-        assert not os.path.isfile(test_fn)
-        assert os.path.isfile(test_fn + '.tgz')
-        util.uncompress_database(test_fn + '.tgz')
-        assert not os.path.isfile(test_fn + '.tgz')
-        assert os.path.isfile(test_fn)
-        with open(test_fn) as test_fd:
-            assert test_fd.read() == initial_text
+        # Compress it
+        util.compress_database(self.COMPRESS_FILE)
+        self.assertFalse(os.path.isfile(self.COMPRESS_FILE))
+        self.assertTrue(os.path.isfile(self.COMPRESS_FILE + '.tgz'))
+        # Decompress it
+        util.uncompress_database(self.COMPRESS_FILE + '.tgz')
+        self.assertFalse(os.path.isfile(self.COMPRESS_FILE + '.tgz'))
+        self.assertTrue(os.path.isfile(self.COMPRESS_FILE))
+        with open(self.COMPRESS_FILE) as test_fd:
+            self.assertEqual(test_fd.read(), initial_text)
 
     @staticmethod
     def test_main():
+        """ Call processor with arguments. See if any assert arises. """
         raw_vac_file = 'data/test/vac_1416631701.db'
         sys.argv = ['./vacancy_processor', '-p', '-d', raw_vac_file]
         vp.main()
+
+    def test_get_time_by_fname(self):
+        """ Check get time. """
+        self.assertEqual(util.get_time_by_filename('xx_1234'), 1234)
+        self.assertTrue(util.get_time_by_filename('xx_'))
 
 
 if __name__ == '__main__':

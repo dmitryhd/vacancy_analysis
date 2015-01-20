@@ -5,6 +5,9 @@ import re
 import os
 
 def get_time_by_filename(fname):
+    """ Get time in seconds from given string. If it doesn't contain any digist
+        then - return current time.
+    """
     seconds = re.search(r'(\d+)', fname)
     if not seconds:
         seconds = int(time.time())
