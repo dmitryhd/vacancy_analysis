@@ -25,7 +25,3 @@ TAGS = [TagRepr('c++', 'c++', 'cpp'),
        ]
 
 TAG_NAMES = [tag.name for tag in TAGS]
-
-PORT = 9999
-NUMBER_OF_BINS = 20
-STAT_DB = '../common/stat.db'

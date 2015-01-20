@@ -11,59 +11,74 @@ import web_config as cfg
 import processor.data_model as dm
 from processor.statistics import ProcessedStatistics
 from common.utility import round_to_thousands, format_timestamp
+import common.tag_config as tag_cfg
 
 
 app = Flask('web_interface.web')
 app.debug = True
 
+class StatisticsDbInterface(object):
+    def __init__(self):
+        self.stat_db = dm.open_db(cfg.STAT_DB, 'r')
 
-def get_dates():
-    """ Return list of all dates in int format. """
-    statistics_db = dm.open_db(cfg.STAT_DB, 'r')
-    statistics = statistics_db.query(ProcessedStatistics)
-    dates = [statistic.date for statistic in statistics]
-    dates.sort(reverse=True)
-    return dates
+    def __get_statistics(self, date):
+        """ Return Processed statistics from specific date. """
+        return self.stat_db.query(ProcessedStatistics).filter_by(date=date).first()
 
-def get_vac_num(stat):
-    """ Get number of vacancies from statistics. """
-    categories = [tag.name for tag in cfg.TAGS]
-    stat_cat_val = zip(categories,
-                       [stat.num_of_vacancies[cat] for cat in categories])
-    stat_cat_val = list(stat_cat_val)
-    stat_cat_val.sort(key=lambda cat_val: cat_val[1], reverse=True)  # by val
-    categories = [cat_val[0] for cat_val in stat_cat_val]
-    values = [cat_val[1] for cat_val in stat_cat_val]
-    return categories, values
+    def get_dates(self):
+        """ Return list of all dates in int format. """
+        statistics = self.stat_db.query(ProcessedStatistics)
+        dates = [statistic.date for statistic in statistics]
+        dates.sort(reverse=True)
+        return dates
 
-def get_vac_salary(stat):
-    """ Get mean min and max of vacancies from statistics. """
-    categories = [tag.name for tag in cfg.TAGS]
-    stat_cat_val = zip(categories,
-                       [stat.mean_max_salary[cat] for cat in categories],
-                       [stat.mean_min_salary[cat] for cat in categories])
-    stat_cat_val = list(stat_cat_val)
-    stat_cat_val.sort(key=lambda cat_val: cat_val[1], reverse=True)  # by val
-    categories = [cat_val[0] for cat_val in stat_cat_val]
-    mean_max_salary = [cat_val[1] for cat_val in stat_cat_val]
-    mean_min_salary = [cat_val[2] for cat_val in stat_cat_val]
-    return categories, mean_max_salary, mean_min_salary
+    def get_timestamps_and_dates(self):
+        """ Return list of all dates in [int, datetime] format. """
+        return [[tstamp, format_timestamp(tstamp)] for tstamp in self.get_dates()]
+
+    def get_vac_num(self, date):
+        """ Get number of vacancies from statistics. """
+        stat = self.__get_statistics(date)
+        stat_cat_val = zip(tag_cfg.TAG_NAMES,
+                           [stat.num_of_vacancies[cat] for cat in tag_cfg.TAG_NAMES])
+        stat_cat_val = list(stat_cat_val)
+        stat_cat_val.sort(key=lambda cat_val: cat_val[1], reverse=True)  # by val
+        categories = [cat_val[0] for cat_val in stat_cat_val]
+        values = [cat_val[1] for cat_val in stat_cat_val]
+        return categories, values
+
+    def get_vac_salary(self, date):
+        """ Get mean min and max of vacancies from statistics. """
+        stat = self.__get_statistics(date)
+        stat_cat_val = zip(tag_cfg.TAG_NAMES,
+                           [stat.mean_max_salary[cat] for cat in tag_cfg.TAG_NAMES],
+                           [stat.mean_min_salary[cat] for cat in tag_cfg.TAG_NAMES])
+        stat_cat_val = list(stat_cat_val)
+        stat_cat_val.sort(key=lambda cat_val: cat_val[1], reverse=True)  # by val
+        categories = [cat_val[0] for cat_val in stat_cat_val]
+        mean_max_salary = [cat_val[1] for cat_val in stat_cat_val]
+        mean_min_salary = [cat_val[2] for cat_val in stat_cat_val]
+        return categories, mean_max_salary, mean_min_salary
+
+    def get_max_salaries(self, date, tag_name):
+        stat = self.__get_statistics(date)
+        return stat.max_salaries[tag_name]
+
 
 @app.route('/_get_dates')
 def get_dates_json():
     """ Serve list of all dates int format. """
-    return jsonify(dates=get_dates())
+    stat_if = StatisticsDbInterface()
+    return jsonify(dates=stat_if.get_dates())
 
 
 @app.route('/_get_date_statistics')
 def get_date_statistics_json():
     """ Get number of vacancies, mean_max and mean_min salary for overview. """
     date = request.args.get('date', 0, type=int)
-    statistics_db = dm.open_db(cfg.STAT_DB, 'r')
-    stat = statistics_db.query(
-        ProcessedStatistics).filter_by(date=date).first()
-    vac_num_categories, vacancy_number = get_vac_num(stat)
-    sal_categories, mean_max_salary, mean_min_salary = get_vac_salary(stat)
+    stat_interface = StatisticsDbInterface()
+    vac_num_categories, vacancy_number = stat_interface.get_vac_num(date)
+    sal_categories, mean_max_salary, mean_min_salary = stat_interface.get_vac_salary(date)
     return jsonify(vac_num_categories=vac_num_categories,
                    sal_categories=sal_categories,
                    vacancy_number=vacancy_number,
@@ -91,12 +106,9 @@ def get_tag_statistics_json():
 @app.route('/_get_tag_histogram')
 def get_tag_histogram_json():
     """ Creates histogram of maximum salary. """
-    statistics_db = dm.open_db(cfg.STAT_DB, 'r')
-    date = request.args.get('date', 0, type=int)
-    stat = statistics_db.query(ProcessedStatistics).filter_by(
-        date=date).first()
     tag_name = request.args.get('tag', "", type=str)
-    max_salaries = stat.max_salaries[tag_name]
+    date = request.args.get('date', 0, type=int)
+    max_salaries = StatisticsDbInterface().get_max_salaries(date, tag_name)
     bottom_max_salary = min(max_salaries)
     bin_size = (max(max_salaries) - bottom_max_salary) / cfg.NUMBER_OF_BINS
     counts = [0] * cfg.NUMBER_OF_BINS
@@ -112,25 +124,23 @@ def get_tag_histogram_json():
         bin_edge_top = bottom_max_salary + (bin_num + 1) * bin_size
         bins.append('от {} до {}'.format(round_to_thousands(bin_edge_bot),
                                        round_to_thousands(bin_edge_top)))
-    return jsonify(bins=bins,
-                   counts=counts)
+    return jsonify(bins=bins, counts=counts)
 
 @app.route('/')
 def index():
     """ Show general statisics. """
-    dates = [[timestamp, format_timestamp(timestamp)] for timestamp
-             in get_dates()]
-    tags = [tag.name for tag in cfg.TAGS]
-    return render_template('gallery.html', dates=dates, tags=tags)
+    stat_if = StatisticsDbInterface()
+    return render_template('gallery.html', dates=stat_if.get_timestamps_and_dates(),
+                           tags=tag_cfg.TAG_NAMES)
 
 
 @app.route('/tag/')
 def tag_view():
     """ Show statistics on specific tag. """
+    stat_if = StatisticsDbInterface()
     tag_name = request.args.get('tag', "python", type=str)
-    dates = [[timestamp, format_timestamp(timestamp)] for timestamp
-             in get_dates()]
-    return render_template('lang.html', dates=dates, tag_name=tag_name)
+    return render_template('lang.html', dates=stat_if.get_timestamps_and_dates(),
+                           tag_name=tag_name)
 
 
 if __name__ == '__main__':

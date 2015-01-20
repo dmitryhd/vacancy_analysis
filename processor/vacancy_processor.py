@@ -19,6 +19,7 @@ sys.path.append('..')
 import common.utility as util
 import site_parser as sp
 import processor_config as cfg
+import common.tag_config as tag_cfg
 import data_model as dm
 from processor.statistics import ProcessedStatistics
 
@@ -61,7 +62,7 @@ def main():
         site_parser = sp.site_parser_factory(site)
         site_parser.get_all_vacancies(raw_vac_db, args.num_vac)
     # Process vacs:
-    processed_vacancies = dm.process_vacancies_from_db(raw_vac_db, cfg.TAGS)
+    processed_vacancies = dm.process_vacancies_from_db(raw_vac_db, tag_cfg.TAGS)
     # Save processed vacancies to statistics database.
     stat_db = dm.open_db(cfg.STAT_DB)
     gather_time_sec = util.get_time_by_filename(args.db_name)

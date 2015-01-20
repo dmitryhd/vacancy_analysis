@@ -17,24 +17,6 @@ SITE_URLS = {'hh.ru': 'http://hh.ru/search/vacancy?source=&text=%D0%9F%D1%80'
                       '][keys]=%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0'
                       '%B8%D1%81%D1%82&search_hesh=961543413088896&main=1'}
 
-TagRepr = namedtuple('Tag', ['name', 'text', 'title'])
-
-TAGS = [TagRepr('c++', 'c++', 'cpp'),
-        TagRepr('java', 'java', 'java'),
-        TagRepr('perl', 'perl', 'perl'),
-        TagRepr('python', 'python', 'python'),
-        TagRepr('sap', 'sap', 'sap'),
-        TagRepr('bash', 'bash', 'bash'),
-        TagRepr('perl', 'perl', 'perl'),
-        TagRepr('ruby', 'ruby', 'ruby'),
-        TagRepr('javascript', 'javascript', 'javascript'),
-        TagRepr('php', 'php', 'php'),
-        TagRepr('1c', '1c', 'onec'),
-        TagRepr('c#', 'c#', 'csharp'),
-        # Databases...
-        # Os...
-        # Position...
-       ]
 
 MAXIM_NUMBER_OF_VACANCIES = 10000
 STAT_DB = '../exchange/stat.db'

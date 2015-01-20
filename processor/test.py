@@ -17,6 +17,7 @@ import data_model as dm
 import processor.statistics as stat
 import vacancy_processor as vp
 import site_parser as sp
+import common.tag_config as tag_cfg
 
 
 class DatabaseTestCase(unittest.TestCase):
@@ -54,9 +55,9 @@ class TestBasicDataModel(DatabaseTestCase):
 
     def test_processed_vacancy_creation(self):
         """ Creating processed vacancy from raw vacancy. """
-        test_tags = [cfg.TagRepr('c++', 'c++', 'cpp'),
-                     cfg.TagRepr('java', 'java', 'java'),
-                     cfg.TagRepr('python', 'python', 'python')]
+        test_tags = [tag_cfg.TagRepr('c++', 'c++', 'cpp'),
+                     tag_cfg.TagRepr('java', 'java', 'java'),
+                     tag_cfg.TagRepr('python', 'python', 'python')]
         vacancy_text = 'needed c++ developer, omg, java so wow'
         vac = dm.RawVacancy('test vacancy', vacancy_text)
         proc_vac = dm.ProcessedVacancy(vac, test_tags)
@@ -106,7 +107,7 @@ class TestProcessedStatistics(unittest.TestCase):
     def get_statistics(self):
         """ Create processed statistics entry from example database. """
         raw_vacancies_db = dm.open_db(self.TEST_INFO_DB, 'r')
-        proc_vacs = dm.process_vacancies_from_db(raw_vacancies_db, cfg.TAGS)
+        proc_vacs = dm.process_vacancies_from_db(raw_vacancies_db, tag_cfg.TAGS)
         ref_proc_stat = stat.ProcessedStatistics(proc_vacs[:self.MAX_VAC],
                                                  _time=self.REF_TIME)
         ref_proc_stat.calculate_all()
