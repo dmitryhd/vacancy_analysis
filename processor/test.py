@@ -2,18 +2,19 @@
 
 """ Unittest file for vacancy processor module. """
 
-import unittest
 import os
 import sys
-sys.path = [os.path.abspath(os.path.dirname(__file__))] + sys.path
+import unittest
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+sys.path.append('..')
 
-import util
+import common.utility as util
 import processor_config as cfg
 cfg.PRINT_PROGRESS = False
 TEST_STAT_DB = 'data/test/test_stat.db'
 cfg.STAT_DB = TEST_STAT_DB
 import data_model as dm
-import statistics as stat
+import processor.statistics as stat
 import vacancy_processor as vp
 import site_parser as sp
 

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-# pylint: disable=invalid-name
-""" Just a web server in python + flask. Shows content of folder images. """
 
+""" Web server in python + flask. """
 
 import os
 import sys
@@ -11,28 +10,20 @@ from flask import request, Flask, render_template, send_from_directory, jsonify
 import web_config as cfg
 import processor.data_model as dm
 from processor.statistics import ProcessedStatistics
-from utility import round_to_thousands, format_timestamp
+from common.utility import round_to_thousands, format_timestamp
 
 
-stat_db = cfg.STAT_DB
 app = Flask('web_interface.web')
 app.debug = True
 
 
 def get_dates():
-    """ Return list of all dates int format. """
-    statistics_db = dm.open_db(stat_db, 'r')
+    """ Return list of all dates in int format. """
+    statistics_db = dm.open_db(cfg.STAT_DB, 'r')
     statistics = statistics_db.query(ProcessedStatistics)
     dates = [statistic.date for statistic in statistics]
     dates.sort(reverse=True)
     return dates
-
-
-@app.route('/_get_dates')
-def get_dates_json():
-    """ Serve list of all dates int format. """
-    return jsonify(dates=get_dates())
-
 
 def get_vac_num(stat):
     """ Get number of vacancies from statistics. """
@@ -44,7 +35,6 @@ def get_vac_num(stat):
     categories = [cat_val[0] for cat_val in stat_cat_val]
     values = [cat_val[1] for cat_val in stat_cat_val]
     return categories, values
-
 
 def get_vac_salary(stat):
     """ Get mean min and max of vacancies from statistics. """
@@ -59,12 +49,17 @@ def get_vac_salary(stat):
     mean_min_salary = [cat_val[2] for cat_val in stat_cat_val]
     return categories, mean_max_salary, mean_min_salary
 
+@app.route('/_get_dates')
+def get_dates_json():
+    """ Serve list of all dates int format. """
+    return jsonify(dates=get_dates())
+
 
 @app.route('/_get_date_statistics')
 def get_date_statistics_json():
     """ Get number of vacancies, mean_max and mean_min salary for overview. """
     date = request.args.get('date', 0, type=int)
-    statistics_db = dm.open_db(stat_db, 'r')
+    statistics_db = dm.open_db(cfg.STAT_DB, 'r')
     stat = statistics_db.query(
         ProcessedStatistics).filter_by(date=date).first()
     vac_num_categories, vacancy_number = get_vac_num(stat)
@@ -80,7 +75,7 @@ def get_date_statistics_json():
 def get_tag_statistics_json():
     """ Get history of vacancy mean salaries by dates. """
     tag_name = request.args.get('tag', "", type=str)
-    statistics_db = dm.open_db(stat_db, 'r')
+    statistics_db = dm.open_db(cfg.STAT_DB, 'r')
     statistics = statistics_db.query(ProcessedStatistics)
     mean_max_salary = []
     mean_min_salary = []
@@ -96,7 +91,7 @@ def get_tag_statistics_json():
 @app.route('/_get_tag_histogram')
 def get_tag_histogram_json():
     """ Creates histogram of maximum salary. """
-    statistics_db = dm.open_db(stat_db, 'r')
+    statistics_db = dm.open_db(cfg.STAT_DB, 'r')
     date = request.args.get('date', 0, type=int)
     stat = statistics_db.query(ProcessedStatistics).filter_by(
         date=date).first()
@@ -120,13 +115,6 @@ def get_tag_histogram_json():
     return jsonify(bins=bins,
                    counts=counts)
 
-
-@app.route('/plots/<path:filename>')
-def serve_plots(filename):
-    """ Static function to serve png plots. """
-    return send_from_directory('./plots/', filename)
-
-
 @app.route('/')
 def index():
     """ Show general statisics. """
@@ -143,12 +131,6 @@ def tag_view():
     dates = [[timestamp, format_timestamp(timestamp)] for timestamp
              in get_dates()]
     return render_template('lang.html', dates=dates, tag_name=tag_name)
-
-
-def main():
-    """ Runs gallery. """
-    os.chdir(os.path.dirname(sys.argv[0]))
-    app.run(host='0.0.0.0', port=cfg.PORT)
 
 
 if __name__ == '__main__':

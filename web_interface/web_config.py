@@ -26,4 +26,4 @@ TAGS = [TagRepr('c++', 'c++', 'cpp'),
 
 PORT = 9999
 NUMBER_OF_BINS = 20
-STAT_DB = '../exchange/stat.db'
+STAT_DB = '../common/stat.db'

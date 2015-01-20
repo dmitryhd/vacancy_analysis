@@ -14,12 +14,13 @@ import time
 import argparse
 import sys
 import os
+sys.path.append('..')
 
-import util
+import common.utility as util
 import site_parser as sp
 import processor_config as cfg
 import data_model as dm
-from statistics import ProcessedStatistics
+from processor.statistics import ProcessedStatistics
 
 
 def parse_args():

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+""" Web server testing. """
+
 import os
 import sys
 sys.path = [os.path.abspath(os.path.dirname(__file__))] + sys.path
@@ -11,7 +13,7 @@ import processor.data_model as dm
 import web_config as cfg
 
 cfg.PRINT_PROGRESS = False
-cfg.STAT_DB = '../exchange/test_stat.db'
+cfg.STAT_DB = '../common/test_stat.db'
 TEST_STAT_DB_DATE = 1421741081 # this date must be in STAT_DB
 TEST_STAT_DB_PARAMS = {'sal_categories': 'c#',
                        'mean_max_salary': 120000.0,
