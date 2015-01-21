@@ -4,13 +4,15 @@
 
 import os
 import sys
-sys.path = [os.path.abspath(os.path.dirname(__file__))] + sys.path
 import unittest
 import json
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+sys.path.append('..')
 
 import web
 import processor.data_model as dm
 import web_config as cfg
+import common.tag_config as tag_cfg
 
 cfg.PRINT_PROGRESS = False
 cfg.STAT_DB = '../common/test_stat.db'
@@ -50,7 +52,6 @@ class TestServer(unittest.TestCase):
                                   '?date=' + str(TEST_STAT_DB_DATE))
         self.assertTrue(json_data['vacancy_number'])
         for parameter_name, expected_value in TEST_STAT_DB_PARAMS.items():
-            print(parameter_name)
             self.assertEqual(json_data[parameter_name][0], expected_value)
 
     def test_tag_statistics(self):
@@ -76,7 +77,7 @@ class TestServer(unittest.TestCase):
 
     def test_tag(self):
         """ Check if all elements are in page with detailed tag statistics. """
-        for tag in cfg.TAGS:
+        for tag in tag_cfg.TAGS:
             elements = ['Lang: {}'.format(tag.title), 'vac_salary_hist_container',
                         'vac_salary_histogram']
             index_html = self.get_html('/tag/?tag={}'.format(tag.title))
