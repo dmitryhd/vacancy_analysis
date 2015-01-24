@@ -5,24 +5,28 @@
 import os
 import sys
 import unittest
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
-sys.path.append('..')
+import json
 
-import common.utility as util
-import processor_config as cfg
-cfg.PRINT_PROGRESS = False
-TEST_STAT_DB = 'data/test/test_stat.db'
-cfg.STAT_DB = TEST_STAT_DB
-import data_model as dm
-import processor.statistics as stat
-import vacancy_processor as vp
-import site_parser as sp
-import common.tag_config as tag_cfg
+import vacancy_analysis.common.utility as util
+import vacancy_analysis.processor.processor_config as proc_cfg
+import vacancy_analysis.web_interface.web_config as web_cfg
+
+proc_cfg.PRINT_PROGRESS = False
+TEST_DATA_DIR = 'test_data/'
+TEST_STAT_DB_PROC = TEST_DATA_DIR + 'test_stat_proc.db'
+proc_cfg.STAT_DB = TEST_STAT_DB_PROC
+
+import vacancy_analysis.processor.data_model as dm
+import vacancy_analysis.processor.statistics as stat
+import vacancy_analysis.processor.vacancy_processor as vp
+import vacancy_analysis.processor.site_parser as sp
+import vacancy_analysis.common.tag_config as tag_cfg
+import vacancy_analysis.web_interface.web as web
 
 
 class DatabaseTestCase(unittest.TestCase):
     """ Abstract class for any test case, which is using database. """
-    TEST_DB = 'data/test/test.db'
+    TEST_DB = TEST_DATA_DIR + 'test.db'
 
     @classmethod
     def setUpClass(cls):
@@ -70,8 +74,8 @@ class TestBasicDataModel(DatabaseTestCase):
 
 class TestProcessedStatistics(unittest.TestCase):
     """ Save some processed data. """
-    TEST_STAT_DB = 'data/test/test_stat_new.db'
-    TEST_INFO_DB = 'data/test/test_stat_info.db'
+    TEST_STAT_DB = TEST_DATA_DIR + 'test_stat_new.db'
+    TEST_INFO_DB = TEST_DATA_DIR + 'test_stat_info.db'
     MAX_VAC = 10
     REF_TIME = 1000000000
     REF_NUMBER_OF_VACANCIES = {'c#': 2, 'php': 2, 'sap': 0, 'java': 4,
@@ -151,8 +155,10 @@ class TestProcessedStatistics(unittest.TestCase):
 class TestSiteParser(DatabaseTestCase):
     """ Test different sites. """
     MAX_VAC_NUM = 2
-    TEST_VAC_FILES = ['data/test/test_vac01.html', 'data/test/test_vac02.html',
-                      'data/test/test_vac03.html', 'data/test/test_vac04.html']
+    TEST_VAC_FILES = [TEST_DATA_DIR + 'test_vac01.html',
+                      TEST_DATA_DIR + 'test_vac02.html',
+                      TEST_DATA_DIR + 'test_vac03.html',
+                      TEST_DATA_DIR + 'test_vac04.html']
     
     def get_vacancies_from_site(self, site_name):
         """ Create valid site parser, download vacancies and return them. """
@@ -171,7 +177,7 @@ class TestSiteParser(DatabaseTestCase):
         """ Read test vacancy from html and check if output is right. """
         # TODO: same for hh
         parser = sp.site_parser_factory('sj.ru')
-        test_input = ['data/test/test_vac_sj_01.html']
+        test_input = [TEST_DATA_DIR + 'test_vac_sj_01.html']
         for file_name in test_input:
             with open(file_name) as testfd:
                 test_vac = parser.get_vacancy(html=testfd.read())
@@ -197,14 +203,14 @@ class TestSiteParser(DatabaseTestCase):
 
 class TestProcessor(unittest.TestCase):
     """ Call processor with arguments and test all utils functions. """
-    COMPRESS_FILE = 'data/testfn.txt'
-    RAW_VAC_FILE = 'data/test/vac_1416631701.db'
+    COMPRESS_FILE = TEST_DATA_DIR + 'testfn.txt'
+    RAW_VAC_FILE = TEST_DATA_DIR + 'vac_1416631701.db'
 
     @classmethod
     def tearDownClass(cls):
         try:
             os.remove(cls.COMPRESS_FILE)
-            os.remove(TEST_STAT_DB)
+            os.remove(TEST_STAT_DB_PROC)
         except FileNotFoundError:
             pass
 
@@ -241,6 +247,72 @@ class TestProcessor(unittest.TestCase):
         """ Check get time. """
         self.assertEqual(util.get_time_by_filename('xx_1234'), 1234)
         self.assertTrue(util.get_time_by_filename('xx_'))
+
+
+class TestServer(unittest.TestCase):
+    """ Basic test of main page view. """
+    TEST_STAT_DB_DATE = 1422081628  # this date must be in STAT_DB
+    TEST_STAT_DB_PARAMS = {'sal_categories': 'c#',
+                           'mean_max_salary': 145000.0,
+                           'mean_min_salary': 95000.0, }
+
+    def setUp(self):
+        """ Init test app """
+        web.app.config['DB_URI'] = TEST_DATA_DIR + 'test_stat_web.db'
+
+        self.app = web.app.test_client()
+
+    def get_html(self, url):
+        """ Get utf8 string, containig html code of url. """
+        return self.app.get(url).data.decode('utf8')
+
+    def get_json(self, url):
+        """ Get utf8 string, containig json code of url. """
+        data_text = self.get_html(url)
+        return json.loads(data_text)
+
+    def test_get_dates(self):
+        """ Trying to ask server about entries available in database. """
+        dates = self.get_json('/_get_dates')['dates']
+        self.assertTrue(self.TEST_STAT_DB_DATE in dates)
+
+    def test_get_date_statistics(self):
+        """ Trying to ask server about number of vacancies. """
+        json_data = self.get_json('/_get_date_statistics'
+                                  '?date=' + str(self.TEST_STAT_DB_DATE))
+        self.assertTrue(json_data['vacancy_number'])
+        for parameter_name, expected_value in self.TEST_STAT_DB_PARAMS.items():
+            self.assertEqual(json_data[parameter_name][0], expected_value)
+
+    def test_tag_statistics(self):
+        """ Trying to ask server about specific tag statistics. """
+        tag_stat = self.get_json('/_get_tag_statistics?tag=java')
+        self.assertTrue(tag_stat['max_salary_history'])
+        self.assertTrue(tag_stat['min_salary_history'])
+
+    def test_tag_histogram(self):
+        """ Trying to ask server about specific tag histogram. """
+        tag_stat = self.get_json('/_get_tag_histogram?tag=java'
+                                 '&date=' + str(self.TEST_STAT_DB_DATE))
+        self.assertTrue(tag_stat['bins'])
+        self.assertTrue(tag_stat['counts'])
+
+    def test_index(self):
+        """ Check if all elements are in main page. """
+        elements = ['vac_number_container',
+                    'vac_salary_container', 'Данные:', 'Теги:']
+        index_html = self.get_html('/')
+        for element in elements:
+            self.assertTrue(element in index_html)
+
+    def test_tag(self):
+        """ Check if all elements are in page with detailed tag statistics. """
+        for tag in tag_cfg.TAGS:
+            elements = ['Lang: {}'.format(tag.title), 'vac_salary_hist_container',
+                        'vac_salary_histogram']
+            index_html = self.get_html('/tag/?tag={}'.format(tag.title))
+            for element in elements:
+                self.assertTrue(element in index_html)
 
 
 if __name__ == '__main__':

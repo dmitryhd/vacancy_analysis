@@ -5,4 +5,4 @@
 
 PORT = 9999
 NUMBER_OF_BINS = 20
-STAT_DB = '../common/stat.db'
+STAT_DB = '/opt/vacan/common/stat.db'

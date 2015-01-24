@@ -14,14 +14,13 @@ import time
 import argparse
 import sys
 import os
-sys.path.append('..')
 
-import common.utility as util
-import site_parser as sp
-import processor_config as cfg
-import common.tag_config as tag_cfg
-import data_model as dm
-from processor.statistics import ProcessedStatistics
+import vacancy_analysis.common.utility as util
+import vacancy_analysis.common.tag_config as tag_cfg
+import vacancy_analysis.processor.site_parser as sp
+import vacancy_analysis.processor.processor_config as cfg
+import vacancy_analysis.processor.data_model as dm
+from vacancy_analysis.processor.statistics import ProcessedStatistics
 
 
 def parse_args():
@@ -41,7 +40,7 @@ def parse_args():
                         default=cfg.MAXIM_NUMBER_OF_VACANCIES, type=int)
     args = parser.parse_args()
     if args.timestamp:
-        args.db_name = 'data/vac_{}.db'.format(int(time.time()))
+        args.db_name = '/opt/vacan/data/vac_{}.db'.format(int(time.time()))
     return args
 
 
@@ -50,13 +49,14 @@ def main():
         and plot.
     """
     site = 'hh.ru'
-    os.chdir(os.path.dirname(sys.argv[0]))
     args = parse_args()
 
     # Decompress db if needed
     if args.compress and args.process:
         args.db_name = util.uncompress_database(args.db_name)
     # Save raw vac to database
+    print(args.db_name)
+    print(os.getcwd())
     raw_vac_db = dm.open_db(args.db_name)
     if not args.process:
         site_parser = sp.site_parser_factory(site)
@@ -64,6 +64,7 @@ def main():
     # Process vacs:
     processed_vacancies = dm.process_vacancies_from_db(raw_vac_db, tag_cfg.TAGS)
     # Save processed vacancies to statistics database.
+    print(cfg.STAT_DB)
     stat_db = dm.open_db(cfg.STAT_DB)
     gather_time_sec = util.get_time_by_filename(args.db_name)
     proc_stat = ProcessedStatistics(processed_vacancies, gather_time_sec)

@@ -19,6 +19,6 @@ SITE_URLS = {'hh.ru': 'http://hh.ru/search/vacancy?source=&text=%D0%9F%D1%80'
 
 
 MAXIM_NUMBER_OF_VACANCIES = 10000
-STAT_DB = '../common/stat.db'
+STAT_DB = '/opt/vacan/common/stat.db'
 PRINT_PROGRESS = True
 DB_MAX_STRING_LEN = 100
