@@ -7,21 +7,21 @@ import sys
 import unittest
 import json
 
-import vacancy_analysis.common.utility as util
-import vacancy_analysis.processor.processor_config as proc_cfg
-import vacancy_analysis.web_interface.web_config as web_cfg
+import vacan.common.utility as util
+import vacan.common.processor_config as proc_cfg
+import vacan.common.web_config as web_cfg
 
 proc_cfg.PRINT_PROGRESS = False
 TEST_DATA_DIR = 'test_data/'
 TEST_STAT_DB_PROC = TEST_DATA_DIR + 'test_stat_proc.db'
 proc_cfg.STAT_DB = TEST_STAT_DB_PROC
 
-import vacancy_analysis.processor.data_model as dm
-import vacancy_analysis.processor.statistics as stat
-import vacancy_analysis.processor.vacancy_processor as vp
-import vacancy_analysis.processor.site_parser as sp
-import vacancy_analysis.common.tag_config as tag_cfg
-import vacancy_analysis.web_interface.web as web
+import vacan.processor.data_model as dm
+import vacan.processor.statistics as stat
+import vacan.processor.vacancy_processor as vp
+import vacan.processor.site_parser as sp
+import vacan.common.tag_config as tag_cfg
+import vacan.web_interface.web as web
 
 
 class DatabaseTestCase(unittest.TestCase):
@@ -240,7 +240,7 @@ class TestProcessor(unittest.TestCase):
         """ Call processor with arguments and compress.
             See if any assert arises.
         """
-        sys.argv = ['./vacancy_processor', '-c', '-t', '-n', '2']
+        sys.argv = ['./vacancy_processor', '-c', '-n', '2']
         vp.main()
 
     def test_get_time_by_fname(self):

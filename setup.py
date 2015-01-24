@@ -96,9 +96,8 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'vacan_main=vacancy_analysis:main',
-            'vacan_web=vacancy_analysis:start_web_server',
-            'vacan_proc=vacancy_analysis:start_processor',
+            'vacan_web=vacan:start_web_server',
+            'vacan_proc=vacan:start_processor',
         ],
     },
 )

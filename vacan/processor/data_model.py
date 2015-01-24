@@ -16,7 +16,7 @@ import sqlalchemy.ext.declarative
 from sqlalchemy.schema import Column
 from sqlalchemy.types import Integer, String, Text, PickleType, DateTime
 
-import vacancy_analysis.processor.processor_config as cfg
+import vacan.common.processor_config as cfg
 
 
 Base = sqlalchemy.ext.declarative.declarative_base()

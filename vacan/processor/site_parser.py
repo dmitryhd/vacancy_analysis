@@ -10,8 +10,8 @@ import bs4
 import requests
 from sys import stdout
 
-from vacancy_analysis.processor.data_model import RawVacancy
-from vacancy_analysis.processor.processor_config import SITE_URLS, MAXIM_NUMBER_OF_VACANCIES, PRINT_PROGRESS
+from vacan.processor.data_model import RawVacancy
+from vacan.common.processor_config import SITE_URLS, MAXIM_NUMBER_OF_VACANCIES, PRINT_PROGRESS
 
 
 def site_parser_factory(site_name):

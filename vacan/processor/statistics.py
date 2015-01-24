@@ -8,9 +8,9 @@
 from sqlalchemy.schema import Column
 from sqlalchemy.types import Integer, PickleType
 
-from vacancy_analysis.processor.data_model import Base
-import vacancy_analysis.processor.processor_config as cfg
-import vacancy_analysis.common.tag_config as tag_cfg
+from vacan.processor.data_model import Base
+import vacan.common.processor_config as cfg
+import vacan.common.tag_config as tag_cfg
 
 
 class ProcessedStatistics(Base):

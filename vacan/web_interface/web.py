@@ -3,15 +3,13 @@
 """ Web server in python + flask. """
 
 import os
-import sys
-sys.path.append('..')
 from flask import request, Flask, render_template, jsonify, g
 
-import vacancy_analysis.web_interface.web_config as cfg
-from vacancy_analysis.processor.data_model import open_db
-from vacancy_analysis.processor.statistics import ProcessedStatistics
-from vacancy_analysis.common.utility import format_timestamp, create_histogram
-import vacancy_analysis.common.tag_config as tag_cfg
+import vacan.common.web_config as cfg
+from vacan.processor.data_model import open_db
+from vacan.processor.statistics import ProcessedStatistics
+from vacan.common.utility import format_timestamp, create_histogram
+import vacan.common.tag_config as tag_cfg
 
 
 app = Flask(__name__)
@@ -79,10 +77,12 @@ class StatisticsDbInterface(object):
 def before_request():
     g.db = StatisticsDbInterface(app.config['DB_URI'])
     
+
 @app.route('/_get_dates')
 def get_dates_json():
     """ Serve list of all dates int format. """
     return jsonify(dates=g.db.get_dates())
+
 
 @app.route('/_get_date_statistics')
 def get_date_statistics_json():
@@ -92,6 +92,7 @@ def get_date_statistics_json():
     data.update(g.db.get_vac_num(date))
     data.update(g.db.get_vac_salary(date))
     return jsonify(**data)
+
 
 @app.route('/_get_tag_statistics')
 def get_tag_statistics_json():
@@ -107,6 +108,7 @@ def get_tag_statistics_json():
     return jsonify(max_salary_history=mean_max_salary,
                    min_salary_history=mean_min_salary)
 
+
 @app.route('/_get_tag_histogram')
 def get_tag_histogram_json():
     """ Creates histogram of maximum salary. """
@@ -116,11 +118,13 @@ def get_tag_histogram_json():
     labels, counts = create_histogram(max_salaries, cfg.NUMBER_OF_BINS)
     return jsonify(bins=labels, counts=counts)
 
+
 @app.route('/')
 def index():
     """ Show general statisics. """
     return render_template('gallery.html', dates=g.db.get_timestamps_and_dates(),
                            tags=tag_cfg.TAG_NAMES)
+
 
 @app.route('/tag/')
 def tag_view():
@@ -128,6 +132,7 @@ def tag_view():
     tag_name = request.args.get('tag', "python", type=str)
     return render_template('lang.html', dates=g.db.get_timestamps_and_dates(),
                            tag_name=tag_name)
+
 
 def start_server():
     app.run(host='0.0.0.0', port=cfg.PORT)

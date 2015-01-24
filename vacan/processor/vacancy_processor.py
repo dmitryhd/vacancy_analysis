@@ -15,31 +15,29 @@ import argparse
 import sys
 import os
 
-import vacancy_analysis.common.utility as util
-import vacancy_analysis.common.tag_config as tag_cfg
-import vacancy_analysis.processor.site_parser as sp
-import vacancy_analysis.processor.processor_config as cfg
-import vacancy_analysis.processor.data_model as dm
-from vacancy_analysis.processor.statistics import ProcessedStatistics
+import vacan.common.utility as util
+import vacan.common.tag_config as tag_cfg
+import vacan.common.processor_config as cfg
+import vacan.processor.site_parser as sp
+import vacan.processor.data_model as dm
+from vacan.processor.statistics import ProcessedStatistics
 
 
 def parse_args():
     """ Process command line arguments. """
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--db_name", type=str,
-                        default='data/vac.db',
+                        default='',
                         help="database name")
     parser.add_argument("-c", "--compress",
                         help="do compression",
-                        action="store_true")
-    parser.add_argument("-t", "--timestamp", help="add timestamp to database",
                         action="store_true")
     parser.add_argument("-p", "--process", help="run process on given db",
                         action="store_true")
     parser.add_argument("-n", "--num_vac", help="none",
                         default=cfg.MAXIM_NUMBER_OF_VACANCIES, type=int)
     args = parser.parse_args()
-    if args.timestamp:
+    if not args.db_name:
         args.db_name = '/opt/vacan/data/vac_{}.db'.format(int(time.time()))
     return args
 
@@ -55,8 +53,6 @@ def main():
     if args.compress and args.process:
         args.db_name = util.uncompress_database(args.db_name)
     # Save raw vac to database
-    print(args.db_name)
-    print(os.getcwd())
     raw_vac_db = dm.open_db(args.db_name)
     if not args.process:
         site_parser = sp.site_parser_factory(site)
@@ -64,7 +60,6 @@ def main():
     # Process vacs:
     processed_vacancies = dm.process_vacancies_from_db(raw_vac_db, tag_cfg.TAGS)
     # Save processed vacancies to statistics database.
-    print(cfg.STAT_DB)
     stat_db = dm.open_db(cfg.STAT_DB)
     gather_time_sec = util.get_time_by_filename(args.db_name)
     proc_stat = ProcessedStatistics(processed_vacancies, gather_time_sec)
