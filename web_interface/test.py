@@ -16,10 +16,10 @@ import common.tag_config as tag_cfg
 
 cfg.PRINT_PROGRESS = False
 cfg.STAT_DB = '../common/test_stat.db'
-TEST_STAT_DB_DATE = 1421741081 # this date must be in STAT_DB
+TEST_STAT_DB_DATE = 1422081628 # this date must be in STAT_DB
 TEST_STAT_DB_PARAMS = {'sal_categories': 'c#',
-                       'mean_max_salary': 120000.0,
-                       'mean_min_salary': 100000.0,
+                       'mean_max_salary': 145000.0,
+                       'mean_min_salary': 95000.0,
                       }
 
 class TestServer(unittest.TestCase):

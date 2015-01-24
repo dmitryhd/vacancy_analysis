@@ -1,10 +1,8 @@
-*.db
 *.txt
 *.tgz
 .RData
 .Rhistory
 __pycache__
-*.csv
-*.png
 data/tmp/*
 .coverage
+common/stat.db
