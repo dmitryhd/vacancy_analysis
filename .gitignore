@@ -1,8 +1,45 @@
-*.txt
 *.tgz
-.RData
-.Rhistory
-__pycache__
-data/tmp/*
+vacancy_analysis/common/stat.db
+
+# Backup files
+*.~
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# C extensions
+*.so
+
+# Distribution / packaging
+bin/
+build/
+develop-eggs/
+dist/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+.tox/
 .coverage
-common/stat.db
+.cache
+nosetests.xml
+coverage.xml
+
+# Translations
+*.mo
+
+# Sphinx documentation
+docs/_build/
