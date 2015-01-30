@@ -14,7 +14,7 @@ import vacan.common.tag_config as tag_cfg
 
 app = Flask(__name__)
 app.config['DB_URI'] = cfg.STAT_DB
-app.debug = True
+#app.debug = True
 
 
 class StatisticsDbInterface(object):
