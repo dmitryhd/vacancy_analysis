@@ -63,6 +63,7 @@ class SiteParser(object):
 
 class SiteParserHH(SiteParser):
     """ Implementation of Head hunter parser. """
+    # TODO: parametrize this
     VACANCY_LINK_TAG = 'search-result-item__head'
 
     def get_vacancy(self, name='', html='', url=''):
