@@ -53,6 +53,7 @@ def main():
     if args.compress and args.process:
         args.db_name = util.uncompress_database(args.db_name)
     # Save raw vac to database
+    print(args.db_name)
     raw_vac_db = dm.open_db(args.db_name)
     if not args.process:
         site_parser = sp.site_parser_factory(site)

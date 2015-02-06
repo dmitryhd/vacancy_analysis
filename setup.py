@@ -52,6 +52,7 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=['flask', 'BeautifulSoup4', 'sqlalchemy', 'requests'],
+    # TODO: sudo mkdir /opt/vacan/data/; chmod a+rw /opt/vacan/data/
 
     # List additional groups of dependencies here (e.g. development
     # dependencies).
