@@ -6,25 +6,38 @@
 """
 
 import json
+import sqlalchemy.types as types
 from sqlalchemy.schema import Column
-from sqlalchemy.types import Integer, PickleType
 
 from vacan.processor.data_model import Base
 import vacan.common.processor_config as cfg
 import vacan.common.tag_config as tag_cfg
 
 
+class JsonType(types.TypeDecorator):    
+    impl = types.Unicode
+    def process_bind_param(self, value, dialect):
+        if value :
+            return json.dumps(value)
+        else:
+            return {}
+    def process_result_value(self, value, dialect):
+        if value:
+            return json.loads(value)
+        else:
+            return {}
+
 
 class ProcessedStatistics(Base):
     """ Table entry for vacancy statistics for certain time. """
     __tablename__ = 'statistics'
-    id = Column(Integer, primary_key=True)
-    date = Column(Integer)
-    num_of_vacancies = Column(PickleType)
-    min_salaries = Column(PickleType)
-    max_salaries = Column(PickleType)
-    mean_min_salary = Column(PickleType)
-    mean_max_salary = Column(PickleType)
+    id = Column(types.Integer, primary_key=True)
+    date = Column(types.Integer)
+    num_of_vacancies = Column(JsonType)
+    min_salaries = Column(JsonType)
+    max_salaries = Column(JsonType)
+    mean_min_salary = Column(JsonType)
+    mean_max_salary = Column(JsonType)
 
     def __init__(self, proc_vac, _time='now'):
         self.proc_vac = proc_vac
@@ -32,23 +45,26 @@ class ProcessedStatistics(Base):
 
     def calculate_num_of_vacancies(self, tags=tag_cfg.TAGS):
         """ Calculate statistics for number of vacancies. """
-        self.num_of_vacancies = {tag.name: 0 for tag in tags}
+        num_of_vacancies = {tag.name: 0 for tag in tags}
         for pvac in self.proc_vac:
             for tag_name, tag_val in pvac.tags.items():
-                self.num_of_vacancies[tag_name] += tag_val
+                num_of_vacancies[tag_name] += tag_val
+        self.num_of_vacancies = num_of_vacancies
 
 
     def calculate_min_max_salaries(self, tags=tag_cfg.TAGS):
         """ Calculate statistics for minimun and maximum salaries. """
-        self.max_salaries = {}
-        self.min_salaries = {}
+        max_salaries = {}
+        min_salaries = {}
         for tag in tags:
-            self.max_salaries[tag.name] = [pvac.max_salary for pvac in
+            max_salaries[tag.name] = [pvac.max_salary for pvac in
                                            self.proc_vac if pvac.max_salary and
                                            pvac.tags[tag.name] == True]
-            self.min_salaries[tag.name] = [pvac.min_salary for pvac in
+            min_salaries[tag.name] = [pvac.min_salary for pvac in
                                            self.proc_vac if pvac.min_salary and
                                            pvac.tags[tag.name] == True]
+        self.max_salaries = max_salaries
+        self.min_salaries = min_salaries
 
     def calculate_mean_min_max_salary(self, tags=tag_cfg.TAGS):
         """ Calculate statistics for minimum and maximum salaries. """
