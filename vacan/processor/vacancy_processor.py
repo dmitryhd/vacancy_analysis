@@ -66,6 +66,7 @@ def main():
     proc_stat = ProcessedStatistics(processed_vacancies, gather_time_sec)
     proc_stat.calculate_all()
     stat_db.add(proc_stat)
+    print('Proc:', proc_stat)
     stat_db.commit()
 
     # Compress db if needed

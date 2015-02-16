@@ -25,6 +25,7 @@ class StatisticsDbInterface(object):
     def get_statistics(self, date):
         """ Return Processed statistics from specific date. """
         query = self.stat_db.query(ProcessedStatistics)
+        print('get statistics:', query.first())
         return query.filter_by(date=date).first()
 
     def get_all_statistics(self):
