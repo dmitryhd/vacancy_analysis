@@ -51,8 +51,15 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['flask', 'BeautifulSoup4', 'sqlalchemy', 'requests'],
+    install_requires=['flask', 'BeautifulSoup4', 'sqlalchemy', 'requests', 
+                      'mysql-connector-python'],
     # TODO: sudo mkdir /opt/vacan/data/; chmod a+rw /opt/vacan/data/
+    # TODO: yum -y install mariadb-server mariadb
+    # systemctl enable mariadb
+    # mysqladmin -u root password 'new-password'   
+    # in mysqlconsole: CREATE USER 'vacan'@'localhost' IDENTIFIED BY 'vacan';
+    # GRANT ALL PRIVILEGES ON vacan . * TO 'vacan'@'localhost';
+    # GRANT ALL PRIVILEGES ON vacan_t . * TO 'vacan'@'localhost';
 
     # List additional groups of dependencies here (e.g. development
     # dependencies).

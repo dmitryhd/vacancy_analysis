@@ -8,6 +8,7 @@
 import json
 import sqlalchemy.types as types
 from sqlalchemy.schema import Column
+from sqlalchemy.ext import mutable
 
 from vacan.processor.data_model import Base
 import vacan.common.processor_config as cfg
@@ -15,7 +16,7 @@ import vacan.common.tag_config as tag_cfg
 
 
 class JsonType(types.TypeDecorator):    
-    impl = types.Unicode
+    impl = types.VARCHAR
     def process_bind_param(self, value, dialect):
         if value :
             return json.dumps(value)
@@ -27,17 +28,18 @@ class JsonType(types.TypeDecorator):
         else:
             return {}
 
+mutable.MutableDict.associate_with(JsonType)
 
 class ProcessedStatistics(Base):
     """ Table entry for vacancy statistics for certain time. """
-    __tablename__ = 'statistics'
+    __tablename__ = cfg.DB_STATISTICS_TABLE
     id = Column(types.Integer, primary_key=True)
     date = Column(types.Integer)
-    num_of_vacancies = Column(JsonType)
-    min_salaries = Column(JsonType)
-    max_salaries = Column(JsonType)
-    mean_min_salary = Column(JsonType)
-    mean_max_salary = Column(JsonType)
+    num_of_vacancies = Column(JsonType(1000))
+    min_salaries = Column(JsonType(1000))
+    max_salaries = Column(JsonType(1000))
+    mean_min_salary = Column(JsonType(1000))
+    mean_max_salary = Column(JsonType(1000))
 
     def __init__(self, proc_vac, _time='now'):
         self.proc_vac = proc_vac

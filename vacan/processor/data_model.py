@@ -9,12 +9,10 @@ import bs4
 import datetime
 import time
 import re
-import pickle
-pickle.DEFAULT_PROTOCOL = 3
 import sqlalchemy
 import sqlalchemy.ext.declarative
 from sqlalchemy.schema import Column
-from sqlalchemy.types import Integer, String, Text, PickleType, DateTime
+from sqlalchemy.types import Integer, String, Text, DateTime
 
 import vacan.common.processor_config as cfg
 
@@ -24,7 +22,7 @@ Base = sqlalchemy.ext.declarative.declarative_base()
 
 class RawVacancy(Base):
     """ Simple unprocessed vacancy. Contains name and html page. """
-    __tablename__ = 'vacancy'
+    __tablename__ = cfg.DB_VACANCIES_TABLE 
     id = Column(Integer, primary_key=True)
     name = Column(String(cfg.DB_MAX_STRING_LEN))
     html = Column(Text)
@@ -84,10 +82,22 @@ class ProcessedVacancy():
         out += '\ntags:' + str(self.tags)
         return out
 
+def create_musql_db(db_name):
+    engine = sqlalchemy.create_engine(cfg.DB_PREFIX, echo=False) # connect to server
+    try:
+        engine.execute("CREATE DATABASE IF NOT EXISTS {};".format(db_name)) 
+    except sqlalchemy.exc.DatabaseError:
+        pass
+    engine.execute("USE " + db_name)
+    return engine
+
 
 def open_db(db_name, mode='w'):
     """ Return sqlalchemy session. Modes of operation: Read, Write [r, w]. """
-    engine = sqlalchemy.create_engine('sqlite:///' + db_name, echo=False)
+    if cfg.DB_ENGINE == 'sqlite':
+        engine = sqlalchemy.create_engine(cfg.DB_PREFIX + db_name, echo=False)
+    else:
+        engine = create_musql_db(db_name)
     if mode != 'r':
         Base.metadata.create_all(engine)
     return sqlalchemy.orm.sessionmaker(bind=engine)()

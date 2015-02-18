@@ -22,3 +22,17 @@ MAXIM_NUMBER_OF_VACANCIES = 10000
 STAT_DB = '/opt/vacan/common/stat.db'
 PRINT_PROGRESS = True
 DB_MAX_STRING_LEN = 100
+DB_ENGINE = 'mysql'
+
+MYSQL_USER = 'vacan'
+MYSQL_PASSWD = 'vacan'
+DB_PREFIXES = {'sqlite': 'sqlite:///',
+               'mysql': 'mysql+mysqlconnector://{}:{}@localhost/'.format(
+                    MYSQL_USER, MYSQL_PASSWD)}
+
+DB_PREFIX = DB_PREFIXES[DB_ENGINE]
+
+DB_NAME = 'vacan'
+DB_NAME_TEST = 'vacan_t'
+DB_VACANCIES_TABLE = 'vacancies'
+DB_STATISTICS_TABLE = 'statistics'

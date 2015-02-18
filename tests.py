@@ -14,6 +14,7 @@ import vacan.common.web_config as web_cfg
 proc_cfg.PRINT_PROGRESS = False
 TEST_DATA_DIR = 'test_data/'
 TEST_STAT_DB_PROC = TEST_DATA_DIR + 'test_stat_proc.db'
+
 proc_cfg.STAT_DB = TEST_STAT_DB_PROC
 
 import vacan.processor.data_model as dm
@@ -31,14 +32,21 @@ class DatabaseTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """ Prepare db. """
-        cls.session = dm.open_db(cls.TEST_DB, 'w')
+        if proc_cfg.DB_ENGINE == 'sqlite':
+            cls.vacancy_session = dm.open_db(cls.TEST_DB, 'w')
+        elif proc_cfg.DB_ENGINE == 'mysql':
+            cls.vacancy_session = dm.open_db(proc_cfg.DB_NAME_TEST, 'w')
 
     @classmethod
     def tearDownClass(cls):
         """ Delete db and tmp files. """
-        try:
-            os.remove(cls.TEST_DB)
-        except FileNotFoundError:
+        if proc_cfg.DB_ENGINE == 'sqlite':
+            try:
+                os.remove(cls.TEST_DB)
+            except FileNotFoundError:
+                pass
+        elif proc_cfg.DB_ENGINE == 'mysql':
+            # TODO: clear session
             pass
 
 
@@ -50,9 +58,9 @@ class TestBasicDataModel(DatabaseTestCase):
         vac_name = 'test_vac_name'
         vac_html = 'test_vac_html'
         vac = dm.RawVacancy(vac_name, vac_html)
-        self.session.add(vac)
-        self.session.commit()
-        loaded_vac = self.session.query(dm.RawVacancy).first()
+        self.vacancy_session.add(vac)
+        self.vacancy_session.commit()
+        loaded_vac = self.vacancy_session.query(dm.RawVacancy).first()
         self.assertEqual(loaded_vac.name, vac_name)
         self.assertEqual(loaded_vac.html, vac_html)
         self.assertEqual(str(loaded_vac), str(vac))
@@ -148,6 +156,7 @@ class TestProcessedStatistics(unittest.TestCase):
                          self.REF_MEAN_MAX_SALARIES)
 
     def test_date(self):
+        """ Check if right date is present in test database. """
         self.assertEqual(self.ref_proc_stat.date, self.REF_TIME)
 
         
@@ -163,7 +172,7 @@ class TestSiteParser(DatabaseTestCase):
     def get_vacancies_from_site(self, site_name):
         """ Create valid site parser, download vacancies and return them. """
         sparser = sp.site_parser_factory(site_name)
-        return sparser.get_all_vacancies(self.session, self.MAX_VAC_NUM)
+        return sparser.get_all_vacancies(self.vacancy_session, self.MAX_VAC_NUM)
         
     def test_site_parser_hh(self):
         """  Download data from hh.ru. """
