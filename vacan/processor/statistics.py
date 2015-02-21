@@ -28,7 +28,9 @@ class JsonType(types.TypeDecorator):
         else:
             return {}
 
+
 mutable.MutableDict.associate_with(JsonType)
+
 
 class ProcessedStatistics(Base):
     """ Table entry for vacancy statistics for certain time. """
@@ -95,9 +97,10 @@ class ProcessedStatistics(Base):
         self.calculate_mean_min_max_salary()
 
     def __repr__(self):
-        return 'Statistics: {}, num_vac: {}, {} {}, \n proc vac'.format(self.date,
+        return 'Statistics: {}\n\tnum_vac: {}\n\tmin_sal: {}\n\tmax_sal: {}\n\tmean_min: {}'.format(self.date,
                                                     self.num_of_vacancies,
                                                     self.min_salaries,
-                                                    self.max_salaries)
+                                                    self.max_salaries,
+                                                    self.mean_min_salary)
                                                     
 

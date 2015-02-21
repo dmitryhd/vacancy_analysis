@@ -6,17 +6,11 @@ import os
 import sys
 import unittest
 import json
+import sqlalchemy
 
 import vacan.common.utility as util
 import vacan.common.processor_config as proc_cfg
 import vacan.common.web_config as web_cfg
-
-proc_cfg.PRINT_PROGRESS = False
-TEST_DATA_DIR = 'test_data/'
-TEST_STAT_DB_PROC = TEST_DATA_DIR + 'test_stat_proc.db'
-
-proc_cfg.STAT_DB = TEST_STAT_DB_PROC
-
 import vacan.processor.data_model as dm
 import vacan.processor.statistics as stat
 import vacan.processor.vacancy_processor as vp
@@ -25,29 +19,56 @@ import vacan.common.tag_config as tag_cfg
 import vacan.web_interface.web as web
 
 
+TEST_DATA_DIR = 'test_data/'
+REF_TIME = 10000000
+REF_NUMBER_OF_VACANCIES = {'c#': 0, 'php': 0, 'sap': 0, 'java': 1,
+                           'c++': 3, 'ruby': 0, 'perl': 0, 'bash': 0,
+                           'javascript': 0, '1c': 0, 'python': 1}
+REF_MIN_SALARIES = {'bash': [], 'javascript': [],
+                    'c#': [], 'php': [], 'perl': [], 
+                    'ruby': [], 'c++': [10000, 11000, 9000], 'python': [15000], 
+                    'java': [10000], 'sap': [], '1c': []}
+REF_MAX_SALARIES = {'c#': [], 'java': [15000], 
+                    'ruby': [], 'sap': [], 'perl': [], 
+                    'python': [], 'bash': [], 
+                    'javascript': [], 'c++': [15000, 16000, 14000], '1c': [], 
+                    'php': []} 
+REF_MEAN_MIN_SALARIES = {'python': 15000, 'sap': 0, 'ruby': 0, 'php': 0,
+                         '1c': 0, 'perl': 0, 'c++': 10000,
+                         'javascript': 0, 'bash': 0,
+                         'java': 10000, 'c#': 0}
+REF_MEAN_MAX_SALARIES = {'python': 0, 'sap': 0, 'ruby': 0, 'php': 0,
+                         '1c': 0, 'perl': 0, 'c++': 15000,
+                         'javascript': 0, 'bash': 0,
+                         'java': 15000, 'c#': 0}
+
+
+def create_fictive_database(db_name):
+    raw_vac_session = dm.open_db(db_name, 'w')
+    raw_vacs = [dm.RawVacancy('1', '<td class="l-content-colum-1 b-v-info-content">java c++ от 10 000 до 15 000 </td>'),
+                dm.RawVacancy('2', '<td class="l-content-colum-1 b-v-info-content">c++ от 11 000 до 16 000 </td>'),
+                dm.RawVacancy('3', '<td class="l-content-colum-1 b-v-info-content">c++ от 9 000 до 14 000 </td>'),
+                dm.RawVacancy('4', '<td class="l-content-colum-1 b-v-info-content">python от 15 000 </td>')]
+    raw_vac_session.add_all(raw_vacs)
+    raw_vac_session.commit()
+    proc_vacs = dm.process_vacancies_from_db(raw_vac_session, tag_cfg.TAGS)
+    ref_proc_stat = stat.ProcessedStatistics(proc_vacs, _time=REF_TIME)
+    ref_proc_stat.calculate_all()
+    raw_vac_session.add(ref_proc_stat)
+    raw_vac_session.commit()
+    return raw_vac_session, ref_proc_stat
+
+
 class DatabaseTestCase(unittest.TestCase):
     """ Abstract class for any test case, which is using database. """
-    TEST_DB = TEST_DATA_DIR + 'test.db'
-
     @classmethod
     def setUpClass(cls):
         """ Prepare db. """
-        if proc_cfg.DB_ENGINE == 'sqlite':
-            cls.vacancy_session = dm.open_db(cls.TEST_DB, 'w')
-        elif proc_cfg.DB_ENGINE == 'mysql':
-            cls.vacancy_session = dm.open_db(proc_cfg.DB_NAME_TEST, 'w')
+        cls.vacancy_session = dm.open_db(proc_cfg.DB_NAME_TEST, 'w')
 
     @classmethod
     def tearDownClass(cls):
-        """ Delete db and tmp files. """
-        if proc_cfg.DB_ENGINE == 'sqlite':
-            try:
-                os.remove(cls.TEST_DB)
-            except FileNotFoundError:
-                pass
-        elif proc_cfg.DB_ENGINE == 'mysql':
-            # TODO: clear session
-            pass
+        cls.vacancy_session.close()
 
 
 class TestBasicDataModel(DatabaseTestCase):
@@ -56,7 +77,7 @@ class TestBasicDataModel(DatabaseTestCase):
     def test_raw_vacancy_serialization(self):
         """ Writing raw vacancy in db and load it. """
         vac_name = 'test_vac_name'
-        vac_html = 'test_vac_html'
+        vac_html = 'test_vac_html от чч'
         vac = dm.RawVacancy(vac_name, vac_html)
         self.vacancy_session.add(vac)
         self.vacancy_session.commit()
@@ -82,83 +103,48 @@ class TestBasicDataModel(DatabaseTestCase):
 
 class TestProcessedStatistics(unittest.TestCase):
     """ Save some processed data. """
-    TEST_STAT_DB = TEST_DATA_DIR + 'test_stat_new.db'
-    TEST_INFO_DB = TEST_DATA_DIR + 'test_stat_info.db'
-    MAX_VAC = 10
-    REF_TIME = 1000000000
-    REF_NUMBER_OF_VACANCIES = {'c#': 2, 'php': 2, 'sap': 0, 'java': 4,
-                               'c++': 0, 'ruby': 1, 'perl': 0, 'bash': 1,
-                               'javascript': 3, '1c': 0, 'python': 1}
-    REF_MIN_SALARIES = {'bash': [100000], 'javascript': [40000, 55000],
-                        'c#': [60000, 90000], 'php': [40000], 'perl': [], 
-                        'ruby': [], 'c++': [], 'python': [], 
-                        'java': [100000, 40000, 55000], 'sap': [], '1c': []}
-    REF_MAX_SALARIES = {'c#': [95000, 90000], 'java': [70000, 3500], 
-                        'ruby': [3500], 'sap': [], 'perl': [], 
-                        'python': [3500], 'bash': [], 
-                        'javascript': [70000, 3500], 'c++': [], '1c': [], 
-                        'php': [70000, 3500]} 
-    REF_MEAN_MIN_SALARIES = {'python': 0, 'sap': 0, 'ruby': 0, 'php': 40000.0,
-                             '1c': 0, 'perl': 0, 'c++': 0,
-                             'javascript': 47500.0, 'bash': 100000.0,
-                             'java': 65000.0, 'c#': 75000.0}
-    REF_MEAN_MAX_SALARIES = {'c#': 92500.0, 'python': 3500.0, '1c': 0,
-                             'javascript': 36750.0, 'c++': 0, 'ruby': 3500.0,
-                             'sap': 0, 'perl': 0, 'bash': 0, 'java': 36750.0,
-                             'php': 36750.0}
 
-    def setUp(self):
-        self.ref_proc_stat = self.get_statistics()
+    @classmethod
+    def setUpClass(cls):
+        cls.raw_vac_session, cls.ref_proc_stat = create_fictive_database(proc_cfg.DB_NAME_TEST_RAW)
 
-    def tearDown(self):
-        try:
-            os.remove(self.TEST_STAT_DB)
-        except FileNotFoundError:
-            pass
-
-    def get_statistics(self):
-        """ Create processed statistics entry from example database. """
-        raw_vacancies_db = dm.open_db(self.TEST_INFO_DB, 'r')
-        proc_vacs = dm.process_vacancies_from_db(raw_vacancies_db, tag_cfg.TAGS)
-        ref_proc_stat = stat.ProcessedStatistics(proc_vacs[:self.MAX_VAC],
-                                                 _time=self.REF_TIME)
-        ref_proc_stat.calculate_all()
-        return ref_proc_stat
+    @classmethod
+    def tearDownClass(cls):
+        cls.raw_vac_session.close()
+        dm.delete_mysql_db(proc_cfg.DB_NAME_TEST_RAW)
 
     def test_serialization(self):
         """ Save statistics to db, then load it. """
-        # Save statistics to db
-        statistics_db = dm.open_db(self.TEST_STAT_DB, 'w')
-        statistics_db.add(self.ref_proc_stat)
-        statistics_db.commit()
-        # Restore statistics from db
-        new_proc_stat = statistics_db.query(stat.ProcessedStatistics).first()
-        self.assertEqual(new_proc_stat, self.ref_proc_stat)
-        self.assertEqual(str(new_proc_stat), str(self.ref_proc_stat))
+        new_proc_stat = self.raw_vac_session.query(stat.ProcessedStatistics).first()
+        self.assertEqual(new_proc_stat.num_of_vacancies, self.ref_proc_stat.num_of_vacancies)
+        self.assertEqual(new_proc_stat.min_salaries, self.ref_proc_stat.min_salaries)
+        self.assertEqual(new_proc_stat.max_salaries, self.ref_proc_stat.max_salaries)
+        self.assertEqual(new_proc_stat.mean_min_salary, self.ref_proc_stat.mean_min_salary)
+        self.assertEqual(new_proc_stat.mean_max_salary, self.ref_proc_stat.mean_max_salary)
 
     def test_num_of_vacancies(self):
         """ Process statistics for number of vacancies. """
         self.assertEqual(self.ref_proc_stat.num_of_vacancies,
-                         self.REF_NUMBER_OF_VACANCIES)
+                         REF_NUMBER_OF_VACANCIES)
 
     def test_min_max_salaries(self):
         """ Process statistics for min and max salaries. """
         self.assertEqual(self.ref_proc_stat.min_salaries,
-                         self.REF_MIN_SALARIES)
+                         REF_MIN_SALARIES)
         self.assertEqual(self.ref_proc_stat.max_salaries,
-                         self.REF_MAX_SALARIES)
+                         REF_MAX_SALARIES)
 
     def test_mean_min_max_salaries(self):
         """ Process statistics for mean salaries. """
+        proc_vacs = dm.process_vacancies_from_db(self.raw_vac_session, tag_cfg.TAGS)
         self.assertEqual(self.ref_proc_stat.mean_min_salary,
-                         self.REF_MEAN_MIN_SALARIES)
+                         REF_MEAN_MIN_SALARIES)
         self.assertEqual(self.ref_proc_stat.mean_max_salary,
-                         self.REF_MEAN_MAX_SALARIES)
+                         REF_MEAN_MAX_SALARIES)
 
     def test_date(self):
         """ Check if right date is present in test database. """
-        self.assertEqual(self.ref_proc_stat.date, self.REF_TIME)
-
+        self.assertEqual(self.ref_proc_stat.date, REF_TIME)
         
 
 class TestSiteParser(DatabaseTestCase):
@@ -212,64 +198,28 @@ class TestSiteParser(DatabaseTestCase):
 
 class TestProcessor(unittest.TestCase):
     """ Call processor with arguments and test all utils functions. """
-    COMPRESS_FILE = TEST_DATA_DIR + 'testfn.txt'
-    RAW_VAC_FILE = TEST_DATA_DIR + 'vac_1416631701.db'
-
-    @classmethod
-    def tearDownClass(cls):
-        try:
-            os.remove(cls.COMPRESS_FILE)
-            os.remove(TEST_STAT_DB_PROC)
-        except FileNotFoundError:
-            pass
-
-    def test_compress_decompress(self):
-        """ Compress file, then decompress. """
-        # Create original file
-        initial_text = 'abcdefg'
-        with open(self.COMPRESS_FILE, 'w') as test_fd:
-            test_fd.write(initial_text)
-        # Compress it
-        util.compress_database(self.COMPRESS_FILE)
-        self.assertFalse(os.path.isfile(self.COMPRESS_FILE))
-        self.assertTrue(os.path.isfile(self.COMPRESS_FILE + '.tgz'))
-        # Decompress it
-        util.uncompress_database(self.COMPRESS_FILE + '.tgz')
-        self.assertFalse(os.path.isfile(self.COMPRESS_FILE + '.tgz'))
-        self.assertTrue(os.path.isfile(self.COMPRESS_FILE))
-        with open(self.COMPRESS_FILE) as test_fd:
-            self.assertEqual(test_fd.read(), initial_text)
 
     def test_main(self):
-        """ Call processor with arguments. See if any assert arises. """
-        sys.argv = ['./vacancy_processor', '-p', '-d', self.RAW_VAC_FILE]
-        vp.main()
-
-    def test_main_compress(self):
-        """ Call processor with arguments and compress.
+        """ Call processor with argument
             See if any assert arises.
         """
-        sys.argv = ['./vacancy_processor', '-c', '-n', '2']
+        sys.argv = ['./vacancy_processor', '-n', '2', '-d', proc_cfg.DB_NAME_TEST]
         vp.main()
-
-    def test_get_time_by_fname(self):
-        """ Check get time. """
-        self.assertEqual(util.get_time_by_filename('xx_1234'), 1234)
-        self.assertTrue(util.get_time_by_filename('xx_'))
 
 
 class TestServer(unittest.TestCase):
     """ Basic test of main page view. """
-    TEST_STAT_DB_DATE = 1424118354 # this date must be in STAT_DB
-    TEST_STAT_DB_PARAMS = {'sal_categories': 'java',
-                           'mean_max_salary': 136666.66666666666,
-                           'mean_min_salary': 84000.0}
+    TEST_STAT_DB_DATE = 10000000 # this date must be in STAT_DB
+    TEST_STAT_DB_PARAMS = {'sal_categories': 'c++',
+                           'mean_max_salary': 15000.0,
+                           'mean_min_salary': 10000.0}
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         """ Init test app """
-        web.app.config['DB_URI'] = TEST_DATA_DIR + 'test_stat_web.db'
-
-        self.app = web.app.test_client()
+        create_fictive_database(proc_cfg.DB_NAME_TEST_RAW)
+        web.app.config['DB_URI'] = proc_cfg.DB_NAME_TEST_RAW
+        cls.app = web.app.test_client()
 
     def get_html(self, url):
         """ Get utf8 string, containig html code of url. """

@@ -38,7 +38,7 @@ def parse_args():
                         default=cfg.MAXIM_NUMBER_OF_VACANCIES, type=int)
     args = parser.parse_args()
     if not args.db_name:
-        args.db_name = '/opt/vacan/data/vac_{}.db'.format(int(time.time()))
+        args.db_name = cfg.DB_NAME
     return args
 
 
@@ -50,8 +50,6 @@ def main():
     args = parse_args()
 
     # Decompress db if needed
-    if args.compress and args.process:
-        args.db_name = util.uncompress_database(args.db_name)
     # Save raw vac to database
     print(args.db_name)
     raw_vac_db = dm.open_db(args.db_name)
@@ -61,7 +59,7 @@ def main():
     # Process vacs:
     processed_vacancies = dm.process_vacancies_from_db(raw_vac_db, tag_cfg.TAGS)
     # Save processed vacancies to statistics database.
-    stat_db = dm.open_db(cfg.STAT_DB)
+    stat_db = dm.open_db(args.db_name)
     gather_time_sec = util.get_time_by_filename(args.db_name)
     proc_stat = ProcessedStatistics(processed_vacancies, gather_time_sec)
     proc_stat.calculate_all()

@@ -60,6 +60,13 @@ setup(
     # in mysqlconsole: CREATE USER 'vacan'@'localhost' IDENTIFIED BY 'vacan';
     # GRANT ALL PRIVILEGES ON vacan . * TO 'vacan'@'localhost';
     # GRANT ALL PRIVILEGES ON vacan_t . * TO 'vacan'@'localhost';
+    # GRANT ALL PRIVILEGES ON vacan_raw_t . * TO 'vacan'@'localhost';
+    # GRANT ALL PRIVILEGES ON vacan_t_tmp . * TO 'vacan'@'localhost';
+    # /etc/my.conf
+#[client]
+#default-character-set=utf8
+#[mysqld]
+#character-set-server = utf8
 
     # List additional groups of dependencies here (e.g. development
     # dependencies).

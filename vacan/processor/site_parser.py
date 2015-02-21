@@ -11,7 +11,7 @@ import requests
 from sys import stdout
 
 from vacan.processor.data_model import RawVacancy
-from vacan.common.processor_config import SITE_URLS, MAXIM_NUMBER_OF_VACANCIES, PRINT_PROGRESS
+from vacan.common.processor_config import SITE_URLS, MAXIM_NUMBER_OF_VACANCIES
 
 
 def site_parser_factory(site_name):
@@ -83,23 +83,19 @@ class SiteParserHH(SiteParser):
         """ Download all vacancies from page and return link to next page. """
         page = self.get_url(url)
         soup = bs4.BeautifulSoup(page)
-        if PRINT_PROGRESS:
-            print('\n')
         for vacancy in soup.find_all('div', class_=self.VACANCY_LINK_TAG):
-            name = vacancy.string
+            name = str(vacancy.string)
             if name is not None:
                 link = vacancy.find_all('a')[0].attrs["href"]
                 vacancy_html = self.get_url(link)
+                print(type(name))
+                print(type(vacancy_html))
                 new_vacancy = self.get_vacancy(name, vacancy_html, link)
                 vacancies.append(new_vacancy)
                 session.add(new_vacancy)
                 session.commit()
                 if len(vacancies) >= maximum_vac:
                     return None
-                if PRINT_PROGRESS:
-                    stdout.write("\rdownloaded {} vacancy".format(
-                        new_vacancy.id))
-                    stdout.flush()
         try:
             link = soup.find_all('a',
                                  class_='b-pager__next-text')[1].attrs["href"]
@@ -152,8 +148,6 @@ class SiteParserSJ(SiteParser):
         """ Download all vacancies from page and return link to next page. """
         page = self.get_url(url)
         soup = bs4.BeautifulSoup(page)
-        if PRINT_PROGRESS:
-            stdout.write('\n')
         for link_to_vac in soup.find_all('a', class_='vacancy-url'):
             link = link_to_vac.attrs["href"]
             vacancy_html = self.get_url(link)
@@ -163,9 +157,6 @@ class SiteParserSJ(SiteParser):
             session.commit()
             if len(vacancies) >= maximum_vac:
                 return None
-            if PRINT_PROGRESS:
-                stdout.write("\rdownloaded {} vacancy".format(new_vacancy.id))
-                stdout.flush()
         try:
             next_link_candidates = soup.find_all(
                 'a', class_='row_navigation pagination-link')

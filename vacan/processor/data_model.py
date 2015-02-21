@@ -12,7 +12,8 @@ import re
 import sqlalchemy
 import sqlalchemy.ext.declarative
 from sqlalchemy.schema import Column
-from sqlalchemy.types import Integer, String, Text, DateTime
+from sqlalchemy.types import Integer, String, DateTime
+from sqlalchemy.dialects.mysql import TEXT
 
 import vacan.common.processor_config as cfg
 
@@ -24,10 +25,10 @@ class RawVacancy(Base):
     """ Simple unprocessed vacancy. Contains name and html page. """
     __tablename__ = cfg.DB_VACANCIES_TABLE 
     id = Column(Integer, primary_key=True)
-    name = Column(String(cfg.DB_MAX_STRING_LEN))
-    html = Column(Text)
-    url = Column(Text)
-    site = Column(String(cfg.DB_MAX_STRING_LEN))
+    name = Column(TEXT)
+    html = Column(TEXT)
+    url = Column(TEXT)
+    site = Column(TEXT)
     date = Column(DateTime)
 
     def __init__(self, name, html, url='NA', site='NA'):
@@ -38,9 +39,9 @@ class RawVacancy(Base):
         self.date = datetime.datetime.now()
 
     def __repr__(self):
-        return 'RawVacancy: id={}, name={}, html_len={}'.format(self.id,
-                                                                self.name,
-                                                                len(self.html))
+        return 'RawVacancy: name={}, html_len={}, url={}'.format(
+            self.name, len(self.html), self.url)
+
 
 class ProcessedVacancy():
     """ Processed vacancy. Contains name, tags and salary."""
@@ -82,7 +83,8 @@ class ProcessedVacancy():
         out += '\ntags:' + str(self.tags)
         return out
 
-def create_musql_db(db_name):
+
+def create_mysql_db(db_name):
     engine = sqlalchemy.create_engine(cfg.DB_PREFIX, echo=False) # connect to server
     try:
         engine.execute("CREATE DATABASE IF NOT EXISTS {};".format(db_name)) 
@@ -92,12 +94,17 @@ def create_musql_db(db_name):
     return engine
 
 
+def delete_mysql_db(db_name):
+    engine = sqlalchemy.create_engine(cfg.DB_PREFIX, echo=False)
+    engine.execute('DROP DATABASE {};'.format(db_name))
+
+
 def open_db(db_name, mode='w'):
     """ Return sqlalchemy session. Modes of operation: Read, Write [r, w]. """
     if cfg.DB_ENGINE == 'sqlite':
         engine = sqlalchemy.create_engine(cfg.DB_PREFIX + db_name, echo=False)
     else:
-        engine = create_musql_db(db_name)
+        engine = create_mysql_db(db_name)
     if mode != 'r':
         Base.metadata.create_all(engine)
     return sqlalchemy.orm.sessionmaker(bind=engine)()

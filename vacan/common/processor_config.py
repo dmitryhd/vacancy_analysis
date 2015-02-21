@@ -17,10 +17,8 @@ SITE_URLS = {'hh.ru': 'http://hh.ru/search/vacancy?source=&text=%D0%9F%D1%80'
                       '][keys]=%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0'
                       '%B8%D1%81%D1%82&search_hesh=961543413088896&main=1'}
 
-
 MAXIM_NUMBER_OF_VACANCIES = 10000
-STAT_DB = '/opt/vacan/common/stat.db'
-PRINT_PROGRESS = True
+SQLITE_STATISTICS_DB = '/opt/vacan/common/stat.db'
 DB_MAX_STRING_LEN = 100
 DB_ENGINE = 'mysql'
 
@@ -34,5 +32,7 @@ DB_PREFIX = DB_PREFIXES[DB_ENGINE]
 
 DB_NAME = 'vacan'
 DB_NAME_TEST = 'vacan_t'
+DB_NAME_TEST_RAW = 'vacan_raw_t'
+DB_NAME_TEST_TMP = 'vacan_t_tmp'
 DB_VACANCIES_TABLE = 'vacancies'
 DB_STATISTICS_TABLE = 'statistics'
