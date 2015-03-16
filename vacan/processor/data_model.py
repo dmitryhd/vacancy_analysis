@@ -120,4 +120,30 @@ def process_vacancies_from_db(session, tags):
 
 
 class Migrator(object):
-    pass
+    def __init__(self, in_name):
+        pass
+
+    def untar_file(self, filename, actual):
+        """ Return file descriptor of unterred db. """
+        import os
+        os.system("tar xf " + filename)
+        os.system("mv opt/vacan/data/" + actual + " /tmp/")
+        os.system("rm -rf opt/")
+        return open("/tmp/" + actual, 'rb')
+
+    def get_raw_vacs(self, file_name):
+        from sqlalchemy import create_engine
+        engine = create_engine('sqlite:///' + file_name, echo=True)
+        from sqlalchemy.orm import sessionmaker
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        RawVacancy.__tablename__ = "vacancy"
+        res = session.query(RawVacancy)
+        print(res)
+        for vac in res:
+            print(vac)
+        
+        
+
+    def get_vacancies(self):
+        pass
