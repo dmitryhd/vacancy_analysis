@@ -207,6 +207,15 @@ class TestProcessor(unittest.TestCase):
         vp.main()
 
 
+class TestMigration(unittest.TestCase):
+    def test_migrate():
+        """ Check that given tar gz sqlite database of raw vacancions we can 
+            migrate it to given mysql database.
+        """
+        pass
+
+
+
 class TestServer(unittest.TestCase):
     """ Basic test of main page view. """
     TEST_STAT_DB_DATE = 10000000 # this date must be in STAT_DB

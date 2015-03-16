@@ -117,3 +117,7 @@ def process_vacancies_from_db(session, tags):
     for vac in vacancies:
         proc_vacs.append(ProcessedVacancy(vac, tags))
     return proc_vacs
+
+
+class Migrator(object):
+    pass

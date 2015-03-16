@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 
+""" Entry point of gatherer application. """
+
+
+import sys
+sys.path.append('..')
+sys.path.append('.')
 from vacan.processor import vacancy_processor
 
 if __name__ == '__main__':
