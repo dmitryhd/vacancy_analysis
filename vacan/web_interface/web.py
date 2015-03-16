@@ -74,10 +74,11 @@ class StatisticsDbInterface(object):
         stat = self.get_statistics(date)
         return stat.max_salaries[tag_name]
 
+
 @app.before_request
 def before_request():
     g.db = StatisticsDbInterface(app.config['DB_URI'])
-    
+
 
 @app.route('/_get_dates')
 def get_dates_json():

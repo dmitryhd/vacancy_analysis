@@ -13,9 +13,10 @@ How to use it:
 TODO
 ==========
 
-1. Replace picke with json.
+1. strange thigns in tests.
 2. Make one sql database for raw vacancies.
 3. Make migration script from old database scheme.
 4. Migrate to /run catalog.
 5. Rewrite site parser
 6. Collect from sj.ru.
+k

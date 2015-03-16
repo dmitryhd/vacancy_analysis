@@ -217,9 +217,15 @@ class TestServer(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """ Init test app """
-        create_fictive_database(proc_cfg.DB_NAME_TEST_RAW)
-        web.app.config['DB_URI'] = proc_cfg.DB_NAME_TEST_RAW
+        create_fictive_database(proc_cfg.DB_NAME_TEST_RAW_WEB)
+        web.app.config['DB_URI'] = proc_cfg.DB_NAME_TEST_RAW_WEB
         cls.app = web.app.test_client()
+
+    @classmethod
+    def tearDownClass(cls):
+        #dm.delete_mysql_db(proc_cfg.DB_NAME_TEST_RAW)
+        pass
+
 
     def get_html(self, url):
         """ Get utf8 string, containig html code of url. """
