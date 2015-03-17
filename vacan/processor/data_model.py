@@ -132,20 +132,32 @@ class Migrator(object):
         db_name = subprocess.check_output(["tar", "-tf", archive_name])
         db_name = os.path.basename(db_name.strip())
         db_name = db_name.decode('utf8')
-        print(db_name)
         os.system("mv opt/vacan/data/" + db_name + " /tmp/")
         os.system("rm -rf opt/")
         return "/tmp/" + db_name
 
     def get_raw_vacs(self, archive_name):
         db_name = self.untar_file(archive_name)
-        engine = sqlalchemy.create_engine('sqlite:///' + db_name, echo=True)
+        print('get vacs from: ', db_name)
+        engine = sqlalchemy.create_engine('sqlite:///' + db_name, echo=False)
         session = sqlalchemy.orm.sessionmaker(bind=engine)()
         res = session.query(RawVacancy)
+        session.close()
+        engine.dispose()
         return list(res)
 
     def get_vacancies(self, archive_dir):
         vacs = []
         for arch_name in glob.glob(archive_dir + '*.tgz'):
-            vacs.extend(self.get_raw_vacs(arch_name)) 
+            try:
+                vacs.extend(self.get_raw_vacs(arch_name)) 
+            except:
+                pass
         return vacs
+
+    def migrate(self, archive_dir, new_db_name):
+        session = open_db(new_db_name)
+        vacs = self.get_vacancies(archive_dir)
+        for vac in vacs:
+            session.merge(vac)
+        session.close()

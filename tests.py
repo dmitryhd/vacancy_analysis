@@ -210,7 +210,7 @@ class TestProcessor(unittest.TestCase):
 class TestMigration(unittest.TestCase):
     """ Testing migration from sqlite to mysql. """
 
-    def test_migrate(self):
+    def test_vacancies(self):
         """ Check that given tar gz sqlite database of raw vacancions we can 
             migrate it to given mysql database.
         """
@@ -229,7 +229,11 @@ class TestMigration(unittest.TestCase):
         vacs = migrator.get_raw_vacs('test_data/compr_raw_vac_ex.db.tgz')
         self.assertTrue(vacs)
         self.assertGreater(len(vacs), 5)
-
+    
+    def test_migrate(self):
+        migrator = dm.Migrator()
+        migrator.migrate('test_data/', 'vacan_test_migrate')
+        dm.delete_mysql_db('vacan_test_migrate')
 
 
 
