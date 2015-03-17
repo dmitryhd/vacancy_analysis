@@ -214,18 +214,21 @@ class TestMigration(unittest.TestCase):
         """ Check that given tar gz sqlite database of raw vacancions we can 
             migrate it to given mysql database.
         """
-        migrator = dm.Migrator('test_data/compr_raw_vac_ex.db.tgz')
-        self.assertTrue(migrator.get_vacancies())
+        migrator = dm.Migrator()
+        vacs = migrator.get_vacancies('test_data/')
+        self.assertTrue(vacs)
+        self.assertGreater(len(vacs), 30)
 
     def test_untar(self):
         migrator = dm.Migrator('test_data/compr_raw_vac_ex.db.tgz')
-        fd = migrator.untar_file('test_data/compr_raw_vac_ex.db.tgz', "vac_1426497962.db")
-        self.assertTrue(fd.read())
+        fname = migrator.untar_file('test_data/compr_raw_vac_ex.db.tgz')
+        self.assertEqual(fname, '/tmp/vac_1426497962.db')
 
-    def test_tmp(self):
-        migrator = dm.Migrator('test_data/compr_raw_vac_ex.db.tgz')
-        fd = migrator.untar_file('test_data/compr_raw_vac_ex.db.tgz', "vac_1426497962.db")
-        migrator.get_raw_vacs("/tmp/vac_1426497962.db")
+    def test_get_raw_vacs(self):
+        migrator = dm.Migrator()
+        vacs = migrator.get_raw_vacs('test_data/compr_raw_vac_ex.db.tgz')
+        self.assertTrue(vacs)
+        self.assertGreater(len(vacs), 5)
 
 
 

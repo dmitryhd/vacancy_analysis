@@ -9,8 +9,11 @@ import bs4
 import datetime
 import time
 import re
+import os
+import glob
 import sqlalchemy
 import sqlalchemy.ext.declarative
+import subprocess
 from sqlalchemy.schema import Column
 from sqlalchemy.types import Integer, String, DateTime
 from sqlalchemy.dialects.mysql import TEXT
@@ -120,30 +123,29 @@ def process_vacancies_from_db(session, tags):
 
 
 class Migrator(object):
-    def __init__(self, in_name):
+    def __init__(self, in_name=''):
         pass
 
-    def untar_file(self, filename, actual):
+    def untar_file(self, archive_name):
         """ Return file descriptor of unterred db. """
-        import os
-        os.system("tar xf " + filename)
-        os.system("mv opt/vacan/data/" + actual + " /tmp/")
+        os.system("tar xf " + archive_name)
+        db_name = subprocess.check_output(["tar", "-tf", archive_name])
+        db_name = os.path.basename(db_name.strip())
+        db_name = db_name.decode('utf8')
+        print(db_name)
+        os.system("mv opt/vacan/data/" + db_name + " /tmp/")
         os.system("rm -rf opt/")
-        return open("/tmp/" + actual, 'rb')
+        return "/tmp/" + db_name
 
-    def get_raw_vacs(self, file_name):
-        from sqlalchemy import create_engine
-        engine = create_engine('sqlite:///' + file_name, echo=True)
-        from sqlalchemy.orm import sessionmaker
-        Session = sessionmaker(bind=engine)
-        session = Session()
-        RawVacancy.__tablename__ = "vacancy"
+    def get_raw_vacs(self, archive_name):
+        db_name = self.untar_file(archive_name)
+        engine = sqlalchemy.create_engine('sqlite:///' + db_name, echo=True)
+        session = sqlalchemy.orm.sessionmaker(bind=engine)()
         res = session.query(RawVacancy)
-        print(res)
-        for vac in res:
-            print(vac)
-        
-        
+        return list(res)
 
-    def get_vacancies(self):
-        pass
+    def get_vacancies(self, archive_dir):
+        vacs = []
+        for arch_name in glob.glob(archive_dir + '*.tgz'):
+            vacs.extend(self.get_raw_vacs(arch_name)) 
+        return vacs
