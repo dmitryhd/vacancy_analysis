@@ -37,3 +37,4 @@ DB_NAME_TEST_RAW_WEB = 'vacan_raw_test_web'
 DB_NAME_TEST_TMP = 'vacan_t_tmp'
 DB_VACANCIES_TABLE = 'vacancy'
 DB_STATISTICS_TABLE = 'statistics'
+DB_STATISTICS_LEN = 115000

@@ -17,6 +17,7 @@ import vacan.processor.vacancy_processor as vp
 import vacan.processor.site_parser as sp
 import vacan.common.tag_config as tag_cfg
 import vacan.web_interface.web as web
+import vacan.processor.migrate as migr
 
 
 TEST_DATA_DIR = 'test_data/'
@@ -209,31 +210,39 @@ class TestProcessor(unittest.TestCase):
 
 class TestMigration(unittest.TestCase):
     """ Testing migration from sqlite to mysql. """
+    test_db = 'vacan_test_migrate'
 
-    def test_vacancies(self):
-        """ Check that given tar gz sqlite database of raw vacancions we can 
-            migrate it to given mysql database.
-        """
-        migrator = dm.Migrator()
-        vacs = migrator.get_vacancies('test_data/')
-        self.assertTrue(vacs)
-        self.assertGreater(len(vacs), 30)
+    @classmethod
+    def tearDownClass(cls):
+        #TODO: whatchout for this shit!
+        #dm.delete_mysql_db(cls.test_db)
+        pass
 
     def test_untar(self):
-        migrator = dm.Migrator('test_data/compr_raw_vac_ex.db.tgz')
+        migrator = migr.Migrator('test_data/compr_raw_vac_ex.db.tgz')
         fname = migrator.untar_file('test_data/compr_raw_vac_ex.db.tgz')
         self.assertEqual(fname, '/tmp/vac_1426497962.db')
 
     def test_get_raw_vacs(self):
-        migrator = dm.Migrator()
+        migrator = migr.Migrator()
         vacs = migrator.get_raw_vacs('test_data/compr_raw_vac_ex.db.tgz')
         self.assertTrue(vacs)
         self.assertGreater(len(vacs), 5)
     
     def test_migrate(self):
-        migrator = dm.Migrator()
-        migrator.migrate('test_data/', 'vacan_test_migrate')
-        dm.delete_mysql_db('vacan_test_migrate')
+        migrator = migr.Migrator()
+        migrator.migrate('test_data/', self.test_db)
+        session = dm.open_db(self.test_db)
+        migrated_vacs = session.query(dm.RawVacancy)
+        self.assertTrue(migrated_vacs)
+        self.assertGreater(len(list(migrated_vacs)), 5)
+        statistics = session.query(stat.ProcessedStatistics)
+        session.close()
+        self.assertTrue(statistics)
+        #for statistic in statistics:
+        #    print(statistic)
+        self.assertEqual(len(list(statistics)), 1)
+        
 
 
 

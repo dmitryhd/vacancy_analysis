@@ -9,11 +9,8 @@ import bs4
 import datetime
 import time
 import re
-import os
-import glob
 import sqlalchemy
 import sqlalchemy.ext.declarative
-import subprocess
 from sqlalchemy.schema import Column
 from sqlalchemy.types import Integer, String, DateTime
 from sqlalchemy.dialects.mysql import TEXT
@@ -102,62 +99,22 @@ def delete_mysql_db(db_name):
     engine.execute('DROP DATABASE {};'.format(db_name))
 
 
-def open_db(db_name, mode='w'):
+def open_db(db_name, mode='w', echo=False):
     """ Return sqlalchemy session. Modes of operation: Read, Write [r, w]. """
     if cfg.DB_ENGINE == 'sqlite':
-        engine = sqlalchemy.create_engine(cfg.DB_PREFIX + db_name, echo=False)
+        engine = sqlalchemy.create_engine(cfg.DB_PREFIX + db_name, echo=echo)
     else:
         engine = create_mysql_db(db_name)
     if mode != 'r':
         Base.metadata.create_all(engine)
     return sqlalchemy.orm.sessionmaker(bind=engine)()
 
+def process_vacancies(raw_vacs, tags):
+    return [ProcessedVacancy(vac, tags) for vac in raw_vacs]
+    
 
 def process_vacancies_from_db(session, tags):
     """ Get list of processed vacancies from database of raw vacancies."""
-    proc_vacs = []
-    vacancies = session.query(RawVacancy)
-    for vac in vacancies:
-        proc_vacs.append(ProcessedVacancy(vac, tags))
-    return proc_vacs
+    return processed_vacancies(list(session.query(RawVacancy)), tags)
 
 
-class Migrator(object):
-    def __init__(self, in_name=''):
-        pass
-
-    def untar_file(self, archive_name):
-        """ Return file descriptor of unterred db. """
-        os.system("tar xf " + archive_name)
-        db_name = subprocess.check_output(["tar", "-tf", archive_name])
-        db_name = os.path.basename(db_name.strip())
-        db_name = db_name.decode('utf8')
-        os.system("mv opt/vacan/data/" + db_name + " /tmp/")
-        os.system("rm -rf opt/")
-        return "/tmp/" + db_name
-
-    def get_raw_vacs(self, archive_name):
-        db_name = self.untar_file(archive_name)
-        print('get vacs from: ', db_name)
-        engine = sqlalchemy.create_engine('sqlite:///' + db_name, echo=False)
-        session = sqlalchemy.orm.sessionmaker(bind=engine)()
-        res = session.query(RawVacancy)
-        session.close()
-        engine.dispose()
-        return list(res)
-
-    def get_vacancies(self, archive_dir):
-        vacs = []
-        for arch_name in glob.glob(archive_dir + '*.tgz'):
-            try:
-                vacs.extend(self.get_raw_vacs(arch_name)) 
-            except:
-                pass
-        return vacs
-
-    def migrate(self, archive_dir, new_db_name):
-        session = open_db(new_db_name)
-        vacs = self.get_vacancies(archive_dir)
-        for vac in vacs:
-            session.merge(vac)
-        session.close()

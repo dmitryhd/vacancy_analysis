@@ -16,7 +16,7 @@ import vacan.common.tag_config as tag_cfg
 
 
 class JsonType(types.TypeDecorator):    
-    impl = types.VARCHAR
+    impl = types.TEXT
     def process_bind_param(self, value, dialect):
         if value :
             return json.dumps(value)
@@ -37,11 +37,11 @@ class ProcessedStatistics(Base):
     __tablename__ = cfg.DB_STATISTICS_TABLE
     id = Column(types.Integer, primary_key=True)
     date = Column(types.Integer)
-    num_of_vacancies = Column(JsonType(1000))
-    min_salaries = Column(JsonType(1000))
-    max_salaries = Column(JsonType(1000))
-    mean_min_salary = Column(JsonType(1000))
-    mean_max_salary = Column(JsonType(1000))
+    num_of_vacancies = Column(JsonType())
+    min_salaries =     Column(JsonType())
+    max_salaries =     Column(JsonType())
+    mean_min_salary =  Column(JsonType())
+    mean_max_salary =  Column(JsonType())
 
     def __init__(self, proc_vac, _time='now'):
         self.proc_vac = proc_vac
