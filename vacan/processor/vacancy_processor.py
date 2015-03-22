@@ -21,6 +21,7 @@ import vacan.common.processor_config as cfg
 import vacan.processor.site_parser as sp
 import vacan.processor.data_model as dm
 from vacan.processor.statistics import ProcessedStatistics
+import vacan.processor.statistics as stat
 
 
 def parse_args():
@@ -53,19 +54,16 @@ def main():
     # Save raw vac to database
     print(args.db_name)
     raw_vac_db = dm.open_db(args.db_name)
+    if args.process:
+        print('Reprocessing vacancies')
+        stat.reprocess_vacancies(args.db_name)
+        return
     if not args.process:
         site_parser = sp.site_parser_factory(site)
         site_parser.get_all_vacancies(raw_vac_db, args.num_vac)
-    # Process vacs:
-    processed_vacancies = dm.process_vacancies_from_db(raw_vac_db, tag_cfg.TAGS)
     # Save processed vacancies to statistics database.
-    stat_db = dm.open_db(args.db_name)
-    gather_time_sec = util.get_time_by_filename(args.db_name)
-    proc_stat = ProcessedStatistics(processed_vacancies, gather_time_sec)
-    proc_stat.calculate_all()
-    stat_db.add(proc_stat)
-    print('Proc:', proc_stat)
-    stat_db.commit()
+        proc_stat = ProcessedStatistics(processed_vacancies, gather_time_sec)
+        proc_stat.calculate_all()
 
     # Compress db if needed
     if args.compress:

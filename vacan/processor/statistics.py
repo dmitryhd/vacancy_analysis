@@ -13,6 +13,8 @@ from sqlalchemy.ext import mutable
 from vacan.processor.data_model import Base
 import vacan.common.processor_config as cfg
 import vacan.common.tag_config as tag_cfg
+import vacan.processor.data_model as dm
+import vacan.common.utility as util
 
 
 class JsonType(types.TypeDecorator):    
@@ -104,3 +106,38 @@ class ProcessedStatistics(Base):
                                                     self.mean_min_salary)
                                                     
 
+def reprocess_vacancies(db_name):
+    session = dm.open_db(db_name)
+    delete_statistics(session)
+    dates = get_collection_dates(session)
+    print('Reprocessing: total dates: ', len(dates))
+    for cnt, date in enumerate(dates):
+        print('processing date: ', cnt + 1, '/', len(dates), date)
+        process_from_date(session, date)
+
+
+def delete_statistics(session):
+    print('Deleting old statistics')
+    for proc_stat in session.query(ProcessedStatistics):
+        print('Delete stat: ', proc_stat.date)
+        session.delete(proc_stat)
+    session.commit()
+    print('Deleting old statistics ... finished.')
+
+
+def get_collection_dates(session):
+    print('Get collection days ... ')
+    dates = set()
+    for raw_vac in session.query(dm.RawVacancy):
+        print('Raw vac from date: ', raw_vac.date)
+        dates.add(raw_vac.date)
+    return dates
+
+
+def process_from_date(session, date):
+    raw_vacs = list(session.query(dm.RawVacancy).filter(dm.RawVacancy.date == date))    
+    processed_vacancies = dm.process_vacancies(raw_vacs, tag_cfg.TAGS)
+    proc_stat = ProcessedStatistics(processed_vacancies, util.date_to_int(date))
+    proc_stat.calculate_all()
+    session.add(proc_stat)
+    session.commit()

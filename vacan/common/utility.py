@@ -7,6 +7,12 @@ import re
 import os
 from datetime import datetime
 
+def date_to_int(date):
+    return int((date - datetime(1970,1,1)).total_seconds())
+
+def int_to_date(timestamp):
+    return datetime.fromtimestamp(timestamp)
+
 
 def round_to_thousands(num):
     """ Convert interger to kilos. """

@@ -24,7 +24,7 @@ Base = sqlalchemy.ext.declarative.declarative_base()
 class RawVacancy(Base):
     """ Simple unprocessed vacancy. Contains name and html page. """
     __tablename__ = cfg.DB_VACANCIES_TABLE 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(TEXT)
     html = Column(TEXT)
     url = Column(TEXT)
@@ -108,6 +108,7 @@ def open_db(db_name, mode='w', echo=False):
     if mode != 'r':
         Base.metadata.create_all(engine)
     return sqlalchemy.orm.sessionmaker(bind=engine)()
+
 
 def process_vacancies(raw_vacs, tags):
     return [ProcessedVacancy(vac, tags) for vac in raw_vacs]

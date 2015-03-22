@@ -12,7 +12,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name = 'vacancy_analysis',
-    version = '0.3.0',
+    version = '0.4.0rc',
     description = 'Web crawler and data analizer with web interface.'
                   'Currently used to gather information about programmer '
                   'vacancies.',

@@ -19,13 +19,11 @@ app.config['DB_URI'] = cfg.DB_NAME
 
 class StatisticsDbInterface(object):
     def __init__(self, db_uri):
-        print('created db interface:', db_uri)
         self.stat_db = open_db(db_uri, 'r')
 
     def get_statistics(self, date):
         """ Return Processed statistics from specific date. """
         query = self.stat_db.query(ProcessedStatistics)
-        print('get statistics:', query.first())
         return query.filter_by(date=date).first()
 
     def get_all_statistics(self):
