@@ -84,6 +84,28 @@ class ProcessedVacancy():
         return out
 
 
+class DatabaseManager(object):
+    def __init__(self, db_name, mode='r'):
+        self.db_name = db_name
+        engine = create_mysql_db(db_name)
+        engine.dispose()
+        self.engine = sqlalchemy.create_engine(cfg.DB_PREFIX + db_name)
+        self.sessionmaker = sqlalchemy.orm.sessionmaker(bind=self.engine)
+        if mode == 'w':
+            Base.metadata.create_all(self.engine)
+    
+    def __enter__(self):
+        return self.sessionmaker()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.engine.dispose()
+
+    def get_session(self):
+        return self.sessionmaker()
+
+    def dispose(self):
+        self.engine.dispose()
+
 def create_mysql_db(db_name):
     engine = sqlalchemy.create_engine(cfg.DB_PREFIX, echo=False) # connect to server
     try:
@@ -116,6 +138,6 @@ def process_vacancies(raw_vacs, tags):
 
 def process_vacancies_from_db(session, tags):
     """ Get list of processed vacancies from database of raw vacancies."""
-    return processed_vacancies(list(session.query(RawVacancy)), tags)
+    return process_vacancies(list(session.query(RawVacancy)), tags)
 
 

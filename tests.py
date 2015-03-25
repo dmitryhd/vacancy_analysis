@@ -22,30 +22,17 @@ import vacan.processor.migrate as migr
 
 TEST_DATA_DIR = 'test_data/'
 REF_TIME = 10000000
-REF_NUMBER_OF_VACANCIES = {'c#': 0, 'php': 0, 'sap': 0, 'java': 1,
-                           'c++': 3, 'ruby': 0, 'perl': 0, 'bash': 0,
-                           'javascript': 0, '1c': 0, 'python': 1}
-REF_MIN_SALARIES = {'bash': [], 'javascript': [],
-                    'c#': [], 'php': [], 'perl': [], 
-                    'ruby': [], 'c++': [10000, 11000, 9000], 'python': [15000], 
-                    'java': [10000], 'sap': [], '1c': []}
-REF_MAX_SALARIES = {'c#': [], 'java': [15000], 
-                    'ruby': [], 'sap': [], 'perl': [], 
-                    'python': [], 'bash': [], 
-                    'javascript': [], 'c++': [15000, 16000, 14000], '1c': [], 
-                    'php': []} 
-REF_MEAN_MIN_SALARIES = {'python': 15000, 'sap': 0, 'ruby': 0, 'php': 0,
-                         '1c': 0, 'perl': 0, 'c++': 10000,
-                         'javascript': 0, 'bash': 0,
-                         'java': 10000, 'c#': 0}
-REF_MEAN_MAX_SALARIES = {'python': 0, 'sap': 0, 'ruby': 0, 'php': 0,
-                         '1c': 0, 'perl': 0, 'c++': 15000,
-                         'javascript': 0, 'bash': 0,
-                         'java': 15000, 'c#': 0}
+REF_NUMBER_OF_VACANCIES = {'java': 1, 'c++': 3, 'python': 1}
+REF_MIN_SALARIES = {'c++': [10000, 11000, 9000], 'java': [10000], }
+REF_MAX_SALARIES = {'java': [15000], 'c++': [15000, 16000, 14000]} 
+# TODO: this is too straightforward
+REF_MEAN_MIN_SALARIES = {'c++': 10000.0, 'java': 10000.0, 'perl': 0}
+REF_MEAN_MAX_SALARIES = {'perl': 0, 'c++': 15000, 'java': 15000}
 
 
 def create_fictive_database(db_name):
-    raw_vac_session = dm.open_db(db_name, 'w')
+    db_manager = dm.DatabaseManager(db_name, 'w')
+    raw_vac_session = db_manager.get_session()
     raw_vacs = [dm.RawVacancy('1', '<td class="l-content-colum-1 b-v-info-content">java c++ от 10 000 до 15 000 </td>'),
                 dm.RawVacancy('2', '<td class="l-content-colum-1 b-v-info-content">c++ от 11 000 до 16 000 </td>'),
                 dm.RawVacancy('3', '<td class="l-content-colum-1 b-v-info-content">c++ от 9 000 до 14 000 </td>'),
@@ -57,7 +44,8 @@ def create_fictive_database(db_name):
     ref_proc_stat.calculate_all()
     raw_vac_session.add(ref_proc_stat)
     raw_vac_session.commit()
-    return raw_vac_session, ref_proc_stat
+    raw_vac_session.close()
+    return db_manager
 
 
 class DatabaseTestCase(unittest.TestCase):
@@ -76,7 +64,7 @@ class TestBasicDataModel(DatabaseTestCase):
     """ Test basic datamodel for raw vacancy. """
 
     def test_raw_vacancy_serialization(self):
-        """ Writing raw vacancy in db and load it. """
+        """ BasicDataModel: Writing raw vacancy in db and load it. """
         vac_name = 'test_vac_name'
         vac_html = 'test_vac_html от чч'
         vac = dm.RawVacancy(vac_name, vac_html)
@@ -88,7 +76,7 @@ class TestBasicDataModel(DatabaseTestCase):
         self.assertEqual(str(loaded_vac), str(vac))
 
     def test_processed_vacancy_creation(self):
-        """ Creating processed vacancy from raw vacancy. """
+        """ BasicDataModel: Creating processed vacancy from raw vacancy. """
         test_tags = [tag_cfg.TagRepr('c++', 'c++', 'cpp'),
                      tag_cfg.TagRepr('java', 'java', 'java'),
                      tag_cfg.TagRepr('python', 'python', 'python')]
@@ -107,45 +95,45 @@ class TestProcessedStatistics(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.raw_vac_session, cls.ref_proc_stat = create_fictive_database(proc_cfg.DB_NAME_TEST_RAW)
+        cls.vac_db = create_fictive_database(proc_cfg.DB_NAME_TEST_RAW)
 
     @classmethod
     def tearDownClass(cls):
-        cls.raw_vac_session.close()
+        cls.vac_db.dispose()
         dm.delete_mysql_db(proc_cfg.DB_NAME_TEST_RAW)
 
-    def test_serialization(self):
-        """ Save statistics to db, then load it. """
-        new_proc_stat = self.raw_vac_session.query(stat.ProcessedStatistics).first()
-        self.assertEqual(new_proc_stat.num_of_vacancies, self.ref_proc_stat.num_of_vacancies)
-        self.assertEqual(new_proc_stat.min_salaries, self.ref_proc_stat.min_salaries)
-        self.assertEqual(new_proc_stat.max_salaries, self.ref_proc_stat.max_salaries)
-        self.assertEqual(new_proc_stat.mean_min_salary, self.ref_proc_stat.mean_min_salary)
-        self.assertEqual(new_proc_stat.mean_max_salary, self.ref_proc_stat.mean_max_salary)
+    def setUp(self):
+        self.session = self.vac_db.get_session()
+        self.proc_stat = self.session.query(stat.ProcessedStatistics).first()
+
+    def tearDown(self):
+        self.session.close()
 
     def test_num_of_vacancies(self):
-        """ Process statistics for number of vacancies. """
-        self.assertEqual(self.ref_proc_stat.num_of_vacancies,
-                         REF_NUMBER_OF_VACANCIES)
+        """ ProcessedStatistics: Process statistics for number of vacancies. """
+        for tagname in REF_NUMBER_OF_VACANCIES:
+            self.assertEqual(self.proc_stat.num_of_vacancies[tagname],
+                             REF_NUMBER_OF_VACANCIES[tagname])
 
     def test_min_max_salaries(self):
-        """ Process statistics for min and max salaries. """
-        self.assertEqual(self.ref_proc_stat.min_salaries,
-                         REF_MIN_SALARIES)
-        self.assertEqual(self.ref_proc_stat.max_salaries,
-                         REF_MAX_SALARIES)
+        """ ProcessedStatistics: Process statistics for min and max salaries. """
+        for tagname in REF_MAX_SALARIES:
+            self.assertEqual(self.proc_stat.min_salaries[tagname],
+                             REF_MIN_SALARIES[tagname])
+            self.assertEqual(self.proc_stat.max_salaries[tagname],
+                             REF_MAX_SALARIES[tagname])
 
     def test_mean_min_max_salaries(self):
-        """ Process statistics for mean salaries. """
-        proc_vacs = dm.process_vacancies_from_db(self.raw_vac_session, tag_cfg.TAGS)
-        self.assertEqual(self.ref_proc_stat.mean_min_salary,
-                         REF_MEAN_MIN_SALARIES)
-        self.assertEqual(self.ref_proc_stat.mean_max_salary,
-                         REF_MEAN_MAX_SALARIES)
+        """ ProcessedStatistics: Process statistics for mean salaries. """
+        for tagname in REF_MEAN_MIN_SALARIES:
+            self.assertEqual(self.proc_stat.mean_min_salary[tagname],
+                             REF_MEAN_MIN_SALARIES[tagname])
+            self.assertEqual(self.proc_stat.mean_max_salary[tagname],
+                             REF_MEAN_MAX_SALARIES[tagname])
 
     def test_date(self):
-        """ Check if right date is present in test database. """
-        self.assertEqual(self.ref_proc_stat.date, REF_TIME)
+        """ ProcessedStatistics: Check if right date is present in test database. """
+        self.assertEqual(self.proc_stat.date, REF_TIME)
         
 
 class TestSiteParser(DatabaseTestCase):
@@ -214,39 +202,38 @@ class TestMigration(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        #TODO: whatchout for this shit!
-        #dm.delete_mysql_db(cls.test_db)
-        pass
+        dm.delete_mysql_db(cls.test_db)
 
     def test_untar(self):
-        migrator = migr.Migrator('test_data/compr_raw_vac_ex.db.tgz')
+        """ Migration: decompress sqlite archive. """
+        migrator = migr.Migrator()
         fname = migrator.untar_file('test_data/compr_raw_vac_ex.db.tgz')
         self.assertEqual(fname, '/tmp/vac_1426497962.db')
 
     def test_get_raw_vacs(self):
+        """ Migration: get raw vacs from compressed sqlite. """
         migrator = migr.Migrator()
         vacs = migrator.get_raw_vacs('test_data/compr_raw_vac_ex.db.tgz')
         self.assertTrue(vacs)
         self.assertGreater(len(vacs), 5)
     
     def test_migrate(self):
+        """ Migration: Migrate one collection set into mysql from sqlite. """
         migrator = migr.Migrator()
         migrator.migrate('test_data/', self.test_db)
-        session = dm.open_db(self.test_db)
+        db_manager = dm.DatabaseManager(self.test_db)
+        session = db_manager.get_session()
         migrated_vacs = session.query(dm.RawVacancy)
         self.assertTrue(migrated_vacs)
         self.assertGreater(len(list(migrated_vacs)), 5)
         statistics = session.query(stat.ProcessedStatistics)
-        session.close()
         self.assertTrue(statistics)
-        #for statistic in statistics:
-        #    print(statistic)
         self.assertEqual(len(list(statistics)), 1)
+        session.close()
+        db_manager.dispose()
         
 
-
-
-class TestServer(unittest.TestCase):
+class TestWeb(unittest.TestCase):
     """ Basic test of main page view. """
     TEST_STAT_DB_DATE = 10000000 # this date must be in STAT_DB
     TEST_STAT_DB_PARAMS = {'sal_categories': 'c++',
@@ -256,15 +243,15 @@ class TestServer(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """ Init test app """
-        create_fictive_database(proc_cfg.DB_NAME_TEST_RAW_WEB)
-        web.app.config['DB_URI'] = proc_cfg.DB_NAME_TEST_RAW_WEB
+        cls.test_db = create_fictive_database(proc_cfg.DB_NAME_TEST_RAW_WEB)
+        web.app.db_manager = cls.test_db
         cls.app = web.app.test_client()
 
     @classmethod
     def tearDownClass(cls):
-        #dm.delete_mysql_db(proc_cfg.DB_NAME_TEST_RAW)
-        pass
-
+        cls.test_db.dispose()
+        del cls.app
+        dm.delete_mysql_db(proc_cfg.DB_NAME_TEST_RAW_WEB)
 
     def get_html(self, url):
         """ Get utf8 string, containig html code of url. """

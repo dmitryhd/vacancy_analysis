@@ -1,8 +1,14 @@
+#!/usr/bin/env python3
+
+""" Database migration from sqlite to mysql helper class. 
+    Author: Dmitriy Khodakov <dmitryhd@gmail.com>
+    Date: 29.09.2014
+"""
 
 import os
 import glob
 import subprocess
-import sqlalchemy.ext.declarative
+import sqlalchemy
 
 import vacan.processor.statistics as stat
 import vacan.processor.data_model as dm
@@ -11,8 +17,7 @@ import vacan.common.tag_config as tag_cfg
 
 
 class Migrator(object):
-    def __init__(self, in_name=''):
-        pass
+    """ Database migration from sqlite to mysql helper class. """
 
     def untar_file(self, archive_name):
         """ Return file descriptor of unterred db. """
@@ -42,7 +47,8 @@ class Migrator(object):
         gather_time_sec = util.get_time_by_filename(archive_name)
         print('Get time: ', gather_time_sec)
         processed_vacancies = dm.process_vacancies(raw_vacs, tag_cfg.TAGS)
-        proc_stat = stat.ProcessedStatistics(processed_vacancies, gather_time_sec)
+        proc_stat = stat.ProcessedStatistics(processed_vacancies,
+                                             gather_time_sec)
         print('Get time date:',  util.int_to_date(gather_time_sec))
         for raw_vac in raw_vacs:
             raw_vac.date = util.int_to_date(gather_time_sec)
@@ -50,23 +56,14 @@ class Migrator(object):
         return proc_stat, raw_vacs
 
     def migrate(self, archive_dir, new_db_name):
-        session = dm.open_db(new_db_name, 'w', True)
-        for arch_name in glob.glob(archive_dir + '*.tgz'):
-            proc_stat, raw_vacs = self.process_chunk(arch_name)
-            print('Writing to new db:', len(raw_vacs), 'vacancies')
-            for raw_vac in raw_vacs:
-                try:
+        with dm.DatabaseManager(new_db_name, 'w') as session:
+            for arch_name in glob.glob(archive_dir + '*.tgz'):
+                proc_stat, raw_vacs = self.process_chunk(arch_name)
+                print('Writing to new db:', len(raw_vacs), 'vacancies')
+                for raw_vac in raw_vacs:
                     raw_vac.id += util.date_to_int(raw_vac.date)
                     session.merge(raw_vac)
                     session.commit()
-                except:
-                    print('error')
-                    pass
-            try:
                 session.add(proc_stat)
                 session.commit()
-            except:
-                print('error')
-                pass
-            #print('Ger vac from old_db:', vac)
-        session.close()
+            session.close()

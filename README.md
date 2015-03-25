@@ -5,27 +5,30 @@ Currently used to gather information about programmer vacancies.
 
 How to use it:
 
-2. Download statistics info to vacancy database: **./bin/vacan_proc.py**
-3. Run web interface: **./bin/vacan_web.py**
+2. Download statistics info to vacancy database: **./bin/vacan.proc**
+3. Run web interface: **./bin/vacan.web**
 4. Open http://localhost:9999 in your favorite browser and see results.
 
-Changelog
-==========
+# Changelog
 
-v0.4 - rc
-==========
+### v0.4 - rc
+Reprocessing added, some issues with duplicate entry, find bug in migration
 
 1. Databases
-    1. Migrated to one common db +
-    2. Automated migration +
-    3. Compression of database
-    4. Create reprocess function 
+    - [X] Migrated to one common db
+    - [X] Automated migration
+    - [ ] Compression of database
+    - [ ] Create reprocess function 
 2. Statistics
-    1. Added more language tags
-    2. Fix java vs javascript bug
+    - [ ] Added more language tags
+    - [ ] Fix java vs javascript bug
+3. Bugs:
+    - [X] Database locks a lot
+    - [X] Web test actually uses one database for ages, rewriting it
+    - [ ] No test separation
 
 
-v0.5 - rc
+### v0.5 - featured
 ==========
 
 1. Rewrite site parser

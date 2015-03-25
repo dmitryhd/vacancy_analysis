@@ -6,7 +6,6 @@ import os
 from flask import request, Flask, render_template, jsonify, g
 
 import vacan.common.web_config as cfg
-from vacan.processor.data_model import open_db
 from vacan.processor.statistics import ProcessedStatistics
 from vacan.common.utility import format_timestamp, create_histogram
 import vacan.common.tag_config as tag_cfg
@@ -18,8 +17,11 @@ app.config['DB_URI'] = cfg.DB_NAME
 
 
 class StatisticsDbInterface(object):
-    def __init__(self, db_uri):
-        self.stat_db = open_db(db_uri, 'r')
+    def __init__(self, db_manager):
+        self.stat_db = db_manager.get_session()
+
+    def __del__(self):
+        self.stat_db.close()
 
     def get_statistics(self, date):
         """ Return Processed statistics from specific date. """
@@ -45,6 +47,7 @@ class StatisticsDbInterface(object):
             Return dict with keys: 'labels' and 'values'
         """
         stat = self.get_statistics(date)
+        print(stat)
         stat_cat_val = zip(tag_cfg.TAG_NAMES,
                            [stat.num_of_vacancies[cat] for cat in tag_cfg.TAG_NAMES])
         stat_cat_val = list(stat_cat_val)
@@ -75,7 +78,7 @@ class StatisticsDbInterface(object):
 
 @app.before_request
 def before_request():
-    g.db = StatisticsDbInterface(app.config['DB_URI'])
+    g.db = StatisticsDbInterface(app.db_manager)
 
 
 @app.route('/_get_dates')
