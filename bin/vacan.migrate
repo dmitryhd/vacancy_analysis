@@ -1,0 +1,12 @@
+#!/usr/bin/env python3
+
+""" Entry point migration application. """
+
+import sys
+sys.path.append('..')
+sys.path.append('.')
+import vacan.processor.migrate as migrate
+
+if __name__ == '__main__':
+    migrator = migrate.Migrator()
+    migrator.migrate(sys.argv[1], sys.argv[2])
