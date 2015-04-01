@@ -9,11 +9,13 @@ import vacan.common.web_config as cfg
 from vacan.processor.statistics import ProcessedStatistics
 from vacan.common.utility import format_timestamp, create_histogram
 import vacan.common.tag_config as tag_cfg
+import  vacan.processor.data_model as data_model
 
 
 app = Flask(__name__)
 app.config['DB_URI'] = cfg.DB_NAME
-#app.debug = True
+app.debug = True
+app.db_manager = data_model.DatabaseManager(cfg.DB_NAME) 
 
 
 class StatisticsDbInterface(object):
@@ -47,7 +49,6 @@ class StatisticsDbInterface(object):
             Return dict with keys: 'labels' and 'values'
         """
         stat = self.get_statistics(date)
-        print(stat)
         stat_cat_val = zip(tag_cfg.TAG_NAMES,
                            [stat.num_of_vacancies[cat] for cat in tag_cfg.TAG_NAMES])
         stat_cat_val = list(stat_cat_val)
@@ -108,6 +109,8 @@ def get_tag_statistics_json():
         mean_max_salary.append([stat.date * 1000, max_salary])
         min_salary = stat.mean_min_salary[tag_name]
         mean_min_salary.append([stat.date * 1000, min_salary])
+    mean_max_salary.sort(key=lambda date_salary: date_salary[0])
+    mean_min_salary.sort(key=lambda date_salary: date_salary[0])
     return jsonify(max_salary_history=mean_max_salary,
                    min_salary_history=mean_min_salary)
 
@@ -138,7 +141,7 @@ def tag_view():
 
 
 def start_server():
-    app.run(host='0.0.0.0', port=cfg.PORT)
+    app.run(host='0.0.0.0', port=cfg.PORT, debug=True)
 
         
 if __name__ == '__main__':

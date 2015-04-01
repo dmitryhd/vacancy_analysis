@@ -8,11 +8,13 @@
 
 import bs4
 import requests
+import logging
 from sys import stdout
 
 from vacan.processor.data_model import RawVacancy
 from vacan.common.processor_config import SITE_URLS, MAXIM_NUMBER_OF_VACANCIES
 
+logging.getLogger("requests").setLevel(logging.WARNING)
 
 def site_parser_factory(site_name):
     """ Must return site parser proper implementation. """
@@ -26,6 +28,7 @@ class SiteParser(object):
         self.name = name
         self.base_url = SITE_URLS[name]
         self.web_session = requests.Session()
+        self.vacancy_counter = 0
 
     def get_vacancy(self, name='', html='', url=''):
         """ Must return RawVacancy. """
@@ -66,6 +69,7 @@ class SiteParserHH(SiteParser):
     # TODO: parametrize this
     VACANCY_LINK_TAG = 'search-result-item__head'
 
+
     def get_vacancy(self, name='', html='', url=''):
         """ Get base vacancy by name and html code of page. """
         new_html = ''
@@ -88,12 +92,13 @@ class SiteParserHH(SiteParser):
             if name is not None:
                 link = vacancy.find_all('a')[0].attrs["href"]
                 vacancy_html = self.get_url(link)
-                print(type(name))
-                print(type(vacancy_html))
                 new_vacancy = self.get_vacancy(name, vacancy_html, link)
                 vacancies.append(new_vacancy)
                 session.add(new_vacancy)
                 session.commit()
+                stdout.write("\rdownloaded: %d" % self.vacancy_counter)
+                stdout.flush()
+                self.vacancy_counter += 1
                 if len(vacancies) >= maximum_vac:
                     return None
         try:
@@ -107,6 +112,8 @@ class SiteParserHH(SiteParser):
     def get_all_vacancies(self, session,
                           maximum_vac=MAXIM_NUMBER_OF_VACANCIES):
         """ Must return list of Vacancies. """
+        # TODO: no save here!
+        self.vacancy_counter = 0
         vacancies = []
         next_link = self.base_url
         cnt = 0
@@ -116,6 +123,7 @@ class SiteParserHH(SiteParser):
             if next_link == None:
                 break
             cnt += 1
+        stdout.write("\n")
         return vacancies
 
 

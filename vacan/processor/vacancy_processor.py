@@ -7,13 +7,14 @@
     run: ./vacancy_processor.py -p -d <db_name>
 
     Author: Dmitriy Khodakov <dmitryhd@gmail.com>
-    Date: 29.09.2014
+    Date: 01.04.2015
 """
 
 import time
 import argparse
 import sys
 import os
+import logging
 
 import vacan.common.utility as util
 import vacan.common.tag_config as tag_cfg
@@ -22,6 +23,8 @@ import vacan.processor.site_parser as sp
 import vacan.processor.data_model as dm
 from vacan.processor.statistics import ProcessedStatistics
 import vacan.processor.statistics as stat
+
+logging.basicConfig(level=logging.DEBUG, format='%(message)s')
 
 
 def parse_args():
@@ -47,7 +50,28 @@ def main():
     """ Download vacancies from site then process them to statistics
         and plot.
     """
-    pass
+    args = parse_args()
+
+    logging.info('Download data from hh.ru ...')
+    sparser = sp.site_parser_factory('hh.ru')
+    db_manager = dm.DatabaseManager(cfg.DB_NAME)
+    logging.debug('Database initialized ...')
+    db_session = db_manager.get_session()
+    vacs = sparser.get_all_vacancies(db_session, args.num_vac)
+    logging.info('Download vacancies ' + str(len(vacs)) + ' ...')
+    proc_vacs = dm.process_vacancies(vacs, tag_cfg.TAGS)
+    logging.debug('Vacancies processed.')
+    proc_stat = stat.ProcessedStatistics(proc_vacs)
+    proc_stat.calculate_all()
+    db_session.add(proc_stat)
+    logging.debug('Statistics done.')
+    logging.info('Saved to database.')
+    db_session.commit()
+    logging.debug('Commit done.')
+    db_session.close()
+    
+
+    
 
 if __name__ == '__main__':
     main()
