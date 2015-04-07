@@ -7,7 +7,6 @@
     run: ./vacancy_processor.py -p -d <db_name>
 
     Author: Dmitriy Khodakov <dmitryhd@gmail.com>
-    Date: 01.04.2015
 """
 
 import time
