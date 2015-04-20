@@ -16,7 +16,10 @@ import vacan.common.tag_config as tcnf
 
 
 def form_metric(tags):
-    return [int(tags[tag]) for tag in sorted(tags.keys())]
+    vector = []
+    for tag in tcnf.TAGS:
+        vector.append(int(tags[tag.name]))
+    return vector
 
 
 def metric_to_str(metric):
@@ -24,11 +27,10 @@ def metric_to_str(metric):
 
 
 def form_csv_header():
-    header = '; '.join(sorted([tag.title for tag in tcnf.TAGS]))
-    header += 'max_sal; min_sal; '
+    header = '; '.join([tag.title for tag in tcnf.TAGS])
+    header += '; max_sal; min_sal; '
     return header
     
-
 
 def form_csv_string(proc_vac):
     vector = form_metric(proc_vac.tags)
@@ -37,6 +39,7 @@ def form_csv_string(proc_vac):
     csv += str(proc_vac.max_salary) + '; ' if proc_vac.max_salary else 'NA;'
     csv += str(proc_vac.min_salary) + '; ' if proc_vac.min_salary else 'NA;'
     return csv
+
 
 def form_human_readable_string(proc_vac):
     out = '{} {:7} {:7} {}'.format(metric_to_str(form_metric(proc_vac.tags)),
