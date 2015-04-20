@@ -106,6 +106,7 @@ class DatabaseManager(object):
     def dispose(self):
         self.engine.dispose()
 
+
 def create_mysql_db(db_name):
     engine = sqlalchemy.create_engine(cfg.DB_PREFIX, echo=False) # connect to server
     try:

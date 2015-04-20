@@ -35,6 +35,9 @@ TAGS = [TagRepr('c++', 'c++', 'cpp'),
         TagRepr('scala','scala','scala'),
         TagRepr('smalltalk','smalltalk','smalltalk'),
         TagRepr('swift','swift','swift'),
+        TagRepr('R','r','R'),
+        TagRepr('sql','sql','sql'),
+        TagRepr('VBA','vba','vba'),
         # Databases...
         # Os...
         # Position...
