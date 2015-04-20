@@ -1,0 +1,16 @@
+#!/usr/bin/env python3
+
+""" Entry point of gatherer application. """
+
+
+import sys
+sys.path.append('..')
+sys.path.append('.')
+from vacan.processor import analyzer
+import vacan.common.processor_config as cfg
+import vacan.processor.data_model as dm
+
+if __name__ == '__main__':
+    dbmanager = dm.DatabaseManager(cfg.DB_NAME)
+    analyzer.analyze(dbmanager)
+    

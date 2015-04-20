@@ -89,7 +89,8 @@ class DatabaseManager(object):
         self.db_name = db_name
         engine = create_mysql_db(db_name)
         engine.dispose()
-        self.engine = sqlalchemy.create_engine(cfg.DB_PREFIX + db_name)
+        conn_str = cfg.DB_PREFIX + db_name + '?charset=utf8'
+        self.engine = sqlalchemy.create_engine(conn_str)
         self.sessionmaker = sqlalchemy.orm.sessionmaker(bind=self.engine)
         if mode == 'w':
             Base.metadata.create_all(self.engine)
