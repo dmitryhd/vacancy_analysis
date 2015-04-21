@@ -25,10 +25,11 @@ make_categories <- function(vacan, bin.number) {
   vacan$min_sal[is.na(vacan$min_sal)] <- vacan$max_sal[is.na(vacan$min_sal)]
   vacan$max_sal[is.na(vacan$max_sal)] <- vacan$min_sal[is.na(vacan$max_sal)]
   vacan$mean_sal <- vacan$min_sal + (vacan$max_sal - vacan$min_sal)/2
-  norm_sal <- remove_outliers(vacan$mean_sal)
+  #norm_sal <- remove_outliers(vacan$mean_sal)
+  norm_sal <- vacan$mean_sal
   bin.size <- (max(norm_sal, na.rm=TRUE) - min(norm_sal, na.rm=TRUE) ) / bin.number
   print(bin.size)
-  vacan$category <- as.integer(norm_sal / bin.size)
+  vacan$category <- as.integer((norm_sal -  min(norm_sal, na.rm=TRUE))/ bin.size)
   #cl <- factor(vacan.category)
   #vacan[is.na(vacan$category)]$category <- 0
   vacan
@@ -123,11 +124,90 @@ get_weights <- function(vacan) {
   total_weights
 }
 
-print_classification_error(10, 1)
-print_classification_error(15, 1)
-print_classification_error(15, 2)
-print_classification_error(15, 4)
-print_classification_error(15, 6)
-print_classification_error(15, 8)
-print_classification_error(15, 10)
-print_classification_error(15, 20)
+jaccard_metric <- function(a, b) {
+  dist <- 1 - sum(a & b) / sum(a | b)
+  if(is.nan(dist)) {
+    dist <- 1
+  }
+  dist
+}
+
+get_dissimilarity_martix <- function(proc.vacan){
+  len <- dim(proc.vacan)[1]
+  mat <- matrix(, nrow = len, ncol = len)
+  for(column in 1:len){
+    mat[, column] <- rep(NA, len)
+  }
+  for(col in 1:len) {
+    for(row in 1:len) {
+      mat[row, col] <- jaccard_metric(proc.vacan[col,], proc.vacan[row,])
+    }
+    cat("\r", 'calc col:', col)
+  }
+  mat
+}
+
+get_vector <- function(x) {
+  y <- x
+  y$max_sal <- NULL
+  y$min_sal <- NULL
+  y$min_exp <- NULL
+  y$max_exp <- NULL
+  y$clust <- NULL
+  y$mean_sal <- NULL
+  y$category <- NULL
+  y
+}
+
+set_score <- function(x, w, min_exp_w, max_exp_w) {
+  scores <- c()
+  for (i in 1:dim(x)[1]){
+    y <- get_vector(x[i,])
+    score <- sum(y*w) + x[i,]$min_exp * min_exp_w + x[i,]$max_exp * max_exp_w
+    scores <- c(scores, score)
+  }
+  x$score <- scores
+  x
+}
+get_w <- function(cur_clust, money_weight) {
+  w <- rep(0, dim(cur_clust)[2] - 7)
+  for (cat in unique(cur_clust$category)) {
+    cur_cat <- cur_clust[cur_clust$category==cat,]
+    cur_cat <- get_vector(cur_cat)
+    cur_cat_weights <- colSums(cur_cat)
+    cur_cat_weights <- cur_cat_weights * (cat * money_weight)
+    #cat('category', cat)
+    #print(as.numeric(cur_cat_weights))
+    w <- w + cur_cat_weights
+  }
+  w
+}
+
+# CLUSTERIZATION
+small <- vacan[1:100,]
+diss_mat2 <- get_dissimilarity_martix(vacan_strip[1:100,])
+pamx <- pam(diss_mat2, k=5, diss=TRUE)
+plot(pamx)
+pamx$clustering
+
+str(small, list.len=120)
+dim(small[small$clust == 1,])
+
+# CLASSIFICATION BY MONEY
+# GETTING WEIGHTS
+# SCORING
+# REGRESSION
+get_clust_exp <- function(money_weight, min_exp_w, max_exp_w) {
+  cur_clust <- small[small$clust == 1,]
+  cur_clust <- make_categories(cur_clust, 5)
+  w <- get_w(cur_clust, money_weight)
+  print(as.numeric(w))
+  cur_clust <- set_score(cur_clust, w, min_exp_w, max_exp_w)
+  plot(cur_clust$score, cur_clust$mean_sal)
+  x<-lm(cur_clust$mean_sal~cur_clust$score)
+  print(x)
+  abline(x)
+}
+
+#get_clust_exp(1, 100, 200)
+get_clust_exp(1, 7, 40)
