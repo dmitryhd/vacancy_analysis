@@ -9,9 +9,13 @@ remove_outliers <- function(x, na.rm = TRUE, ...) {
 }
 
 load_dataset <- function() {
-  vacan <- read.csv("~/repos/vacancy_analysis/analysis_r/vacan.csv", sep=";", stringsAsFactors=FALSE)
-  vacan$max_sal <- as.numeric(vacan$max_sal)
-  vacan$min_sal <- as.numeric(vacan$min_sal)
+  vacan <- read.csv("~/repos/vacancy_analysis/analysis_r/vacan_exp.csv", sep=";", stringsAsFactors=FALSE)
+  vacan$max_sal <- suppressWarnings(as.numeric(vacan$max_sal))
+  vacan$min_sal <- suppressWarnings(as.numeric(vacan$min_sal))
+  vacan$max_exp <- suppressWarnings(as.numeric(vacan$max_exp))
+  vacan$min_exp <- suppressWarnings(as.numeric(vacan$min_exp))
+  vacan$min_exp[is.na(vacan$min_exp)] <- 0
+  vacan$max_exp[is.na(vacan$max_exp)] <- 0
   vacan$X <- NULL
   vacan
 }
@@ -67,7 +71,7 @@ strip_set <-function(set) {
 
 library(class)
 
-estimate_classification <- function(seed=1, given.k=1, bin.number=10) {
+estimate_classification <- function(w, seed=1, given.k=1, bin.number=10) {
   # data preparation
   vacan <- load_dataset()
   vacan <- make_categories(vacan, bin.number)
@@ -88,10 +92,35 @@ estimate_classification <- function(seed=1, given.k=1, bin.number=10) {
   errors
 }
 
-print_classification_error <- function(bin.number=10, k=1) {
-  err <- estimate_classification(seed=1, given.k=k, bin.number)
+print_classification_error <- function(w, bin.number=10, k=1) {
+  err <- estimate_classification(w, seed=1, given.k=k, bin.number)
   err_stat <- ecdf(err)
   plot(err_stat, main = paste0('Error, k=', k, ', bin=', bin.number))
+  cat('Classification error with parameters k = ', k, ' bin.number = ',
+      bin.number, ' is ', mean(err, rm.na=TRUE))
+}
+
+get_weights <- function(vacan) {
+  # TODO: optimize
+  vacan2 <-vacan
+  vacan2$max_sal <- NULL
+  vacan2$min_sal <- NULL
+  vacan2$mean_sal <- NULL
+  total_weights <- rep(0, dim(vacan2)[2]-1)
+  for (category in 1:10) {
+    weights <- rep(0, dim(vacan2)[2]-1)
+    r <- vacan2[vacan2$category == category, !(names(vacan2) %in% c("category"))]
+    r <- r[complete.cases(r), ]
+    for (i in 1:dim(r)[1]) {
+        weights <- weights + r[i,]
+    }
+    weights <- weights / dim(r)[1]
+    if (! is.na(category)) {
+      weights <- weights * category
+    }
+    total_weights <- total_weights + weights
+  }
+  total_weights
 }
 
 print_classification_error(10, 1)

@@ -49,8 +49,10 @@ class ProcessedVacancy():
         """ Generate processed vacancy from vacancy. """
         self.name = vacancy.name
         soup = bs4.BeautifulSoup(vacancy.html)
+        self.soup = soup
         text = soup.get_text()
         self.min_salary, self.max_salary = self.get_salary(soup)
+        self.min_exp, self.max_exp = self.get_exp(soup)
         text = text.lower()
         self.tags = {}
         for tag in tags:
@@ -77,6 +79,19 @@ class ProcessedVacancy():
                 max_salary = None
             return min_salary, max_salary
         return None, None
+
+    def get_exp(self, soup):
+        """ Get exp. """
+        res = soup.find('td', class_='l-content-colum-3 b-v-info-content')
+        if not res is None:
+            digits = re.search(r'(\d+).*(\d+)', res.text)
+            if digits:
+                return  int(digits.groups()[0]),  int(digits.groups()[1])
+        return None, None
+
+    def get_all_bullets(self):
+        """ TODO """
+        return self.soup.get_text().lower()
 
     def __repr__(self):
         out = '{} {} {}'.format(self.name, self.min_salary, self.max_salary)
