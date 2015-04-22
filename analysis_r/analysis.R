@@ -1,13 +1,15 @@
 
 load_dataset <- function() {
   vacan <- read.csv("~/repos/vacancy_analysis/analysis_r/vacan_exp.csv", sep=";", stringsAsFactors=FALSE)
-  vacan$max_sal <- suppressWarnings(as.numeric(vacan$max_sal))
-  vacan$min_sal <- suppressWarnings(as.numeric(vacan$min_sal))
-  vacan$max_exp <- suppressWarnings(as.numeric(vacan$max_exp))
-  vacan$min_exp <- suppressWarnings(as.numeric(vacan$min_exp))
+  vacan$X <- NULL
+  num_vars <- c('max_sal', 'min_sal', 'max_exp', 'min_exp')
+  for (field in num_vars) {
+    vacan[[field]] <- suppressWarnings(as.numeric(vacan[[field]]))
+  }
+  tmp <- vacan[!names(vacan) %in% num_vars]
+  vacan <- vacan[rowSums(tmp) != 0,]
   vacan$min_exp[is.na(vacan$min_exp)] <- 0
   vacan$max_exp[is.na(vacan$max_exp)] <- 0
-  vacan$X <- NULL
   vacan
 }
 
@@ -22,14 +24,6 @@ make_categories <- function(vacan, bin.number) {
   vacan
 }
 
-print_classification_error <- function(w, bin.number=10, k=1) {
-  err <- estimate_classification(w, seed=1, given.k=k, bin.number)
-  err_stat <- ecdf(err)
-  plot(err_stat, main = paste0('Error, k=', k, ', bin=', bin.number))
-  cat('Classification error with parameters k = ', k, ' bin.number = ',
-      bin.number, ' is ', mean(err, rm.na=TRUE))
-}
-
 jaccard_metric <- function(a, b) {
   dist <- 1 - sum(a & b) / sum(a | b)
   if(is.nan(dist)) {
@@ -41,16 +35,28 @@ jaccard_metric <- function(a, b) {
 get_dissimilarity_martix <- function(proc.vacan) {
   # TODO: too long use library(bit)
   len <- dim(proc.vacan)[1]
+  bitmap <- list()
+  for (i in 1:len) {
+    bitmap[[i]] <- as.bit(as.integer(proc.vacan[i,]))
+  }
   mat <- matrix(, nrow = len, ncol = len)
   for(column in 1:len){
     mat[, column] <- rep(NA, len)
   }
-  for(col in 1:len) {
-    for(row in 1:len) {
-      mat[row, col] <- jaccard_metric(proc.vacan[col,], proc.vacan[row,])
+  for(row in 1:len) {
+    for(col in row:len) {
+      mat[row, col] <- jaccard_metric(bitmap[[col]], bitmap[[row]])
     }
-    cat("\r", 'calc col:', col)
+    cat("\r", 'calc row:', row)
   }
+  for(row in 1:len) {
+    for(col in 1:len-row) {
+      if(col == 0) {next}
+      mat[col, row] <- mat[row, col]
+    }
+    cat("\r", 'fill row:', row)
+  }
+  mat[is.na(mat)] <- 1
   mat
 }
 
@@ -107,17 +113,26 @@ perform_experiment <- function(money_weight, min_exp_w, max_exp_w, clust.num=1, 
   abline(x)
 }
 
+library(cluster)
+library(bit)
 # PREPARE DATA
-MAX.row <- 50
 vacan <- load_dataset()
 vacan_strip <- get_vector(vacan)
-diss_mat <- get_dissimilarity_martix(vacan_strip[1:MAX.row,])
-
+MAX.row <- 2000
+train <- vacan_strip[1:MAX.row,]
+train.full <- vacan[1:MAX.row,]
+diss_mat <- get_dissimilarity_martix(train)
 
 # CLUSTERIZATION
-library(class)
 pamx <- pam(diss_mat, k=5, diss=TRUE)
+train.full$clustering <- pamx$clustering
+
 #plot(pamx); pamx$clustering #str(small, list.len=120) #dim(small[small$clust == 1,])
 
 # CLASSIFICATION BY MONEY
 perform_experiment(1, 7, 40)
+
+proc.vacan[rowSums(proc.vacan) != 0,]
+setwd('repos/vacancy_analysis/analysis_r/')
+
+model <- lm(max_sal ~ . , data=cl1)
