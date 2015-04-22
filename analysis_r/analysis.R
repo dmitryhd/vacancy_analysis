@@ -111,13 +111,13 @@ perform_experiment <- function(money_weight, min_exp_w, max_exp_w, clust.num=1, 
 MAX.row <- 50
 vacan <- load_dataset()
 vacan_strip <- get_vector(vacan)
+small <- vacan[1:MAX.row,]
 diss_mat <- get_dissimilarity_martix(vacan_strip[1:MAX.row,])
-
-
 # CLUSTERIZATION
-library(class)
+library(cluster)
+
 pamx <- pam(diss_mat, k=5, diss=TRUE)
 #plot(pamx); pamx$clustering #str(small, list.len=120) #dim(small[small$clust == 1,])
-
+small$clust <- pamx$clustering
 # CLASSIFICATION BY MONEY
 perform_experiment(1, 7, 40)
