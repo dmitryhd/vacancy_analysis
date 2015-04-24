@@ -1,149 +1,136 @@
+# main analysis module
 
-load_dataset <- function() {
-  vacan <- read.csv("~/repos/vacancy_analysis/analysis_r/vacan_exp.csv", sep=";", stringsAsFactors=FALSE)
-  vacan$X <- NULL
-  num_vars <- c('max_sal', 'min_sal', 'max_exp', 'min_exp')
-  for (field in num_vars) {
-    vacan[[field]] <- suppressWarnings(as.numeric(vacan[[field]]))
-  }
-  tmp <- vacan[!names(vacan) %in% num_vars]
-  vacan <- vacan[rowSums(tmp) != 0,]
-  vacan$min_exp[is.na(vacan$min_exp)] <- 0
-  vacan$max_exp[is.na(vacan$max_exp)] <- 0
-  vacan
-}
-
-make_categories <- function(vacan, bin.number) {
-  # fill NAs in salary: if min NA, set to max, if max is NA, set to min
-  vacan$min_sal[is.na(vacan$min_sal)] <- vacan$max_sal[is.na(vacan$min_sal)]
-  vacan$max_sal[is.na(vacan$max_sal)] <- vacan$min_sal[is.na(vacan$max_sal)]
-  vacan$mean_sal <- vacan$min_sal + (vacan$max_sal - vacan$min_sal)/2
-  norm_sal <- vacan$mean_sal
-  bin.size <- (max(norm_sal, na.rm=TRUE) - min(norm_sal, na.rm=TRUE) ) / bin.number
-  vacan$category <- as.integer((norm_sal -  min(norm_sal, na.rm=TRUE))/ bin.size)
-  vacan
-}
-
-jaccard_metric <- function(a, b) {
-  dist <- 1 - sum(a & b) / sum(a | b)
-  if(is.nan(dist)) {
-    dist <- 1
-  }
-  dist
-}
-
-get_dissimilarity_martix <- function(proc.vacan) {
-  # TODO: too long use library(bit)
-  len <- dim(proc.vacan)[1]
-  bitmap <- list()
-  for (i in 1:len) {
-    bitmap[[i]] <- as.bit(as.integer(proc.vacan[i,]))
-  }
-  mat <- matrix(, nrow = len, ncol = len)
-  for(column in 1:len){
-    mat[, column] <- rep(NA, len)
-  }
-  for(row in 1:len) {
-    for(col in row:len) {
-      mat[row, col] <- jaccard_metric(bitmap[[col]], bitmap[[row]])
-    }
-    cat("\r", 'calc row:', row)
-  }
-  for(row in 1:len) {
-    for(col in 1:len-row) {
-      if(col == 0) {next}
-      mat[col, row] <- mat[row, col]
-    }
-    cat("\r", 'fill row:', row)
-  }
-  mat[is.na(mat)] <- 1
-  if
-  mat[]
-  mat
-}
-
-get_vector <- function(x) {
-  y <- x
-  y$max_sal <- NULL
-  y$min_sal <- NULL
-  y$min_exp <- NULL
-  y$max_exp <- NULL
-  y$clust <- NULL
-  y$mean_sal <- NULL
-  y$category <- NULL
-  y
-}
-
-set_score <- function(x, w, min_exp_w, max_exp_w) {
-  scores <- c()
-  for (i in 1:dim(x)[1]){
-    y <- get_vector(x[i,])
-    score <- sum(y*w) + x[i,]$min_exp * min_exp_w + x[i,]$max_exp * max_exp_w
-    scores <- c(scores, score)
-  }
-  x$score <- scores
-  x
-}
-
-get_w <- function(cur_clust, money_weight) {
-  w <- rep(0, dim(cur_clust)[2] - 7)
-  for (cat in unique(cur_clust$category)) {
-    cur_cat <- cur_clust[cur_clust$category==cat,]
-    cur_cat <- get_vector(cur_cat)
-    cur_cat_weights <- colSums(cur_cat)
-    cur_cat_weights <- cur_cat_weights * (cat * money_weight)
-    #cat('category', cat)
-    #print(as.numeric(cur_cat_weights))
-    w <- w + cur_cat_weights
-  }
-  w
-}
-
-perform_experiment <- function(money_weight, min_exp_w, max_exp_w, clust.num=1, category.num=5) {
-  # CLASSIFICATION BY MONEY
-  # GETTING WEIGHTS
-  # SCORING
-  # REGRESSION
-  cur_clust <- small[small$clust == clust.num,]
-  cur_clust <- make_categories(cur_clust, category.num)
-  w <- get_w(cur_clust, money_weight)
-  #print(as.numeric(w))
-  cur_clust <- set_score(cur_clust, w, min_exp_w, max_exp_w)
-  plot(cur_clust$score, cur_clust$mean_sal, main='expriment')
-  x<-lm(cur_clust$mean_sal~cur_clust$score)
-  #print(x)
-  abline(x)
-}
-
-library(cluster)
 library(bit)
+library(cluster)
+
+setwd('repos/vacancy_analysis/analysis_r/')
+
+not.skill.vars <- c('max_sal', 'min_sal', 'max_exp', 'min_exp')
+
+show.short <- function(set) {
+    str(set, list.len=120)
+}
+
+load.dataset <- function() {
+    # load vacancies csv file
+    vacan <- read.csv("~/repos/vacancy_analysis/analysis_r/vacan_exp.csv", sep=";", stringsAsFactors=FALSE)
+    vacan$X <- NULL
+
+    for (field in not.skill.vars) {
+        vacan[[field]] <- suppressWarnings(as.numeric(vacan[[field]]))
+    }
+    tmp <- vacan[!names(vacan) %in% not.skill.vars ]
+    vacan <- vacan[rowSums(tmp) != 0,]
+    vacan$min_exp[is.na(vacan$min_exp)] <- 0
+    vacan$max_exp[is.na(vacan$max_exp)] <- 0
+    vacan
+}
+
+calculate.mean.salary <- function(set) {
+    set$min_sal[is.na(set$min_sal)] <- set$max_sal[is.na(set$min_sal)]
+    set$max_sal[is.na(set$max_sal)] <- set$min_sal[is.na(set$max_sal)]
+    set$mean_sal <- set$min_sal + (set$max_sal - set$min_sal)/2
+    set
+}
+
+jaccard.metric <- function(a, b) {
+    x <- sum(a | b)
+    if (x == 0) {return(1)}
+    dist <- 1 - sum(a & b) / x
+    dist
+}
+
+dissimilarity.martix <- function(proc.vacan, metric) {
+    len <- dim(proc.vacan)[1]
+    bitmap <- list()
+    for (i in 1:len) {
+        bitmap[[i]] <- as.bit(as.integer(proc.vacan[i,]))
+    }
+    mat <- matrix(, nrow = len, ncol = len)
+    for(column in 1:len){
+        mat[, column] <- rep(NA, len)
+    }
+    for(row in 1:len) {
+        for(col in row:len) {
+            mat[row, col] <- metric(bitmap[[col]], bitmap[[row]])
+        }
+        cat("\r", 'calc row:', row)
+    }
+    for(row in 1:len) {
+        for(col in 1:len-row) {
+            if(col == 0) {next}
+            mat[col, row] <- mat[row, col]
+        }
+        cat("\r", 'fill row:', row)
+    }
+    mat[is.na(mat)] <- 1
+    for (i in 1:len) {
+        mat[i, i] <- 0
+    }
+    mat
+}
+
+get.vector <- function(x) {
+    y <- x
+    y$max_sal <- NULL
+    y$min_sal <- NULL
+    y$min_exp <- NULL
+    y$max_exp <- NULL
+    y$clust <- NULL
+    y$mean_sal <- NULL
+    y$category <- NULL
+    y
+}
+
 # PREPARE DATA
-vacan <- load_dataset()
-vacan_strip <- get_vector(vacan)
+vacan <- load.dataset()
+vacan.strip <- get.vector(vacan)
 
 MAX.row <- 2000
+cluster.number <- 5
 train <- vacan_strip[1:MAX.row,]
 train.full <- vacan[1:MAX.row,]
-diss_mat <- get_dissimilarity_martix(train)
-model <- lm(max_sal ~ . , data=cl1)
+diss.mat <- get_dissimilarity_martix(train, jaccard.metric)
 
 # CLUSTERIZATION
-library(cluster)
-pamx <- pam(diss_mat, k=5, diss=TRUE)
+pamx <- pam(diss_mat, k=cluster.number, diss=TRUE)
 train.full$clustering <- pamx$clustering
-cl1 <- train.full[train.full$clustering == 1,]
-model <- lm(max_sal ~ . , data=cl1)
 
+# Prepare data for inside cluster modelling
 
+prepare.for.modelling <- function(train.full, cluster.number) {
+    cl <- train.full[train.full$clustering == cluster.number,]
+    cl <- calculate.mean.salary(cl)
+    cl$R <- NULL
+    cl$max_sal <- NULL
+    cl$min_sal <- NULL
+    cl$clustering <- NULL
+    x<-names(cl)[colMeans(cl) >= 0.05]
+    x <- x[!is.na(x)]
+    cl.data <- cl[x]
+    cl.data
+}
 
-#plot(pamx); pamx$clustering #str(small, list.len=120) #dim(small[small$clust == 1,])
-#small$clust <- pamx$clustering
-# CLASSIFICATION BY MONEY
-#perform_experiment(1, 7, 40)
+linear.model <- function(x) {
+    fit <- lm(mean_sal ~ . , data=x)
+    pvals <- summary(fit)$coefficients[,4]
+    important.features <- names(pvals[pvals < 0.05])
+    vdata <- x[c(important.features[-1], 'mean_sal')]
+    #fit <- lm(mean_sal ~ . , data=data.vdata)
+    fit <- lm(mean_sal ~ . , data=vdata)
+    fit$residuals
+}
 
-#proc.vacan[rowSums(proc.vacan) != 0,]
-setwd('repos/vacancy_analysis/analysis_r/')
-model <- lm(max_sal ~ . , data=cl1)
+errs <- c()
+for (cl.num in 1:cluster.number) {
+    data <- prepare.for.modelling(train.full, cl.num)
+    errs <- c(errs, linear.model(data))
+    #boxplot(errors, horizontal = TRUE, main=paste('Residuals, cluster', cl.num))
+}
+boxplot(errs, horizontal = TRUE, main='Residuals')
+abline(v=(seq(-200000,500000,10000)), col="lightgray", lty="dotted")
+
+#abline(h=(seq(0,100,25)), col="lightgray", lty="dotted")
 
 model <- lm(max_sal ~ min_exp + max_exp + python, data=cl1)
 coef <- coefficients(model)
