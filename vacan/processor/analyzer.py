@@ -140,5 +140,4 @@ def analyze_tags(dbmanager):
             new_cnt.update({word: cnt[word]})
     cnt = new_cnt
     print(cnt)
-    import pdb; pdb.set_trace()
         
