@@ -144,3 +144,11 @@ model <- lm(max_sal ~ . , data=cl1)
 #proc.vacan[rowSums(proc.vacan) != 0,]
 setwd('repos/vacancy_analysis/analysis_r/')
 model <- lm(max_sal ~ . , data=cl1)
+
+model <- lm(max_sal ~ min_exp + max_exp + python, data=cl1)
+coef <- coefficients(model)
+row <- cl1[1,]
+row <- row[c('min_exp','max_exp','python')]
+row <- c(1, as.numeric(row))
+sal <- row %*% coef
+abs(sal - cl1[1,]$max_sal)
