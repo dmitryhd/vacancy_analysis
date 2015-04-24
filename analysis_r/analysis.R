@@ -57,6 +57,8 @@ get_dissimilarity_martix <- function(proc.vacan) {
     cat("\r", 'fill row:', row)
   }
   mat[is.na(mat)] <- 1
+  if
+  mat[]
   mat
 }
 
@@ -105,11 +107,11 @@ perform_experiment <- function(money_weight, min_exp_w, max_exp_w, clust.num=1, 
   cur_clust <- small[small$clust == clust.num,]
   cur_clust <- make_categories(cur_clust, category.num)
   w <- get_w(cur_clust, money_weight)
-  print(as.numeric(w))
+  #print(as.numeric(w))
   cur_clust <- set_score(cur_clust, w, min_exp_w, max_exp_w)
   plot(cur_clust$score, cur_clust$mean_sal, main='expriment')
   x<-lm(cur_clust$mean_sal~cur_clust$score)
-  print(x)
+  #print(x)
   abline(x)
 }
 
@@ -123,17 +125,22 @@ MAX.row <- 2000
 train <- vacan_strip[1:MAX.row,]
 train.full <- vacan[1:MAX.row,]
 diss_mat <- get_dissimilarity_martix(train)
+model <- lm(max_sal ~ . , data=cl1)
 
 # CLUSTERIZATION
+library(cluster)
 pamx <- pam(diss_mat, k=5, diss=TRUE)
 train.full$clustering <- pamx$clustering
+cl1 <- train.full[train.full$clustering == 1,]
+model <- lm(max_sal ~ . , data=cl1)
+
+
 
 #plot(pamx); pamx$clustering #str(small, list.len=120) #dim(small[small$clust == 1,])
-small$clust <- pamx$clustering
+#small$clust <- pamx$clustering
 # CLASSIFICATION BY MONEY
-perform_experiment(1, 7, 40)
+#perform_experiment(1, 7, 40)
 
-proc.vacan[rowSums(proc.vacan) != 0,]
+#proc.vacan[rowSums(proc.vacan) != 0,]
 setwd('repos/vacancy_analysis/analysis_r/')
-
 model <- lm(max_sal ~ . , data=cl1)
