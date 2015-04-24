@@ -88,6 +88,9 @@ vacan.strip <- get.vector(vacan)
 
 MAX.row <- 2000
 cluster.number <- 5
+min.feature.occurences <- 0.05
+max.feature.pval <- 0.05
+
 train <- vacan_strip[1:MAX.row,]
 train.full <- vacan[1:MAX.row,]
 diss.mat <- get_dissimilarity_martix(train, jaccard.metric)
@@ -105,7 +108,7 @@ prepare.for.modelling <- function(train.full, cluster.number) {
     cl$max_sal <- NULL
     cl$min_sal <- NULL
     cl$clustering <- NULL
-    x<-names(cl)[colMeans(cl) >= 0.05]
+    x<-names(cl)[colMeans(cl) >= min.feature.occurences]
     x <- x[!is.na(x)]
     cl.data <- cl[x]
     cl.data
@@ -114,7 +117,7 @@ prepare.for.modelling <- function(train.full, cluster.number) {
 linear.model <- function(x) {
     fit <- lm(mean_sal ~ . , data=x)
     pvals <- summary(fit)$coefficients[,4]
-    important.features <- names(pvals[pvals < 0.05])
+    important.features <- names(pvals[pvals < max.feature.pval])
     vdata <- x[c(important.features[-1], 'mean_sal')]
     #fit <- lm(mean_sal ~ . , data=data.vdata)
     fit <- lm(mean_sal ~ . , data=vdata)
@@ -125,17 +128,6 @@ errs <- c()
 for (cl.num in 1:cluster.number) {
     data <- prepare.for.modelling(train.full, cl.num)
     errs <- c(errs, linear.model(data))
-    #boxplot(errors, horizontal = TRUE, main=paste('Residuals, cluster', cl.num))
 }
 boxplot(errs, horizontal = TRUE, main='Residuals')
 abline(v=(seq(-200000,500000,10000)), col="lightgray", lty="dotted")
-
-#abline(h=(seq(0,100,25)), col="lightgray", lty="dotted")
-
-model <- lm(max_sal ~ min_exp + max_exp + python, data=cl1)
-coef <- coefficients(model)
-row <- cl1[1,]
-row <- row[c('min_exp','max_exp','python')]
-row <- c(1, as.numeric(row))
-sal <- row %*% coef
-abs(sal - cl1[1,]$max_sal)
