@@ -8,7 +8,7 @@ library(bit)
 library(cluster)
 
 not.skill.vars <- c('max_sal', 'min_sal', 'max_exp', 'min_exp')
-added.vars <- c('clust', 'mean_sal', 'category')
+added.vars <- c('clustering', 'mean_sal', 'category')
 
 show.short <- function(set) {
   str(set, list.len=120)
@@ -55,7 +55,7 @@ dissimilarity.martix <- function(proc.vacan, metric) {
     }
     cat("\r", 'calc row:', row)
   }
-  cat("\r", '                               ',) # clear srting
+  cat("\r", '                               ') # clear srting
   for(row in 1:len) {
     for(col in 1:len-row) {
       if(col == 0) {next}
@@ -78,7 +78,6 @@ calculate.mean.salary <- function(set) {
   set
 }
 
-
 prepare.for.modelling <- function(params, train.full, cluster.number) {
   # Prepare data for inside cluster modelling
   # return prapared, cleared data for given current cluster number
@@ -94,12 +93,12 @@ prepare.for.modelling <- function(params, train.full, cluster.number) {
   cl.data
 }
 
-
 linear.model <- function(params, x) {
   # fit linear model - return model
   fit <- lm(mean_sal ~ . , data=x)
   pvals <- summary(fit)$coefficients[,4]
   important.features <- names(pvals[pvals < params$max.feature.pval])
+  print(c(important.features[-1], 'mean_sal'))
   vdata <- x[c(important.features[-1], 'mean_sal')]
   fit <- lm(mean_sal ~ . , data=vdata)
   fit
@@ -120,6 +119,7 @@ clear.data <- function(x) {
   for (field in c(added.vars, not.skill.vars)) {
     x[field] <- NULL
   }
+  x$R <- NULL
   return(x)
 }
 
@@ -144,14 +144,16 @@ train.kmean.lm <- function(params, vacan) {
   else {
     diss.mat <- params$diss.mat
   }
+  print('diss matrix got')
   # CLUSTERIZATION
   pamx <- pam(diss.mat, k=params$k, diss=TRUE)
   train.full$clustering <- pamx$clustering    
+  print('clusterization done')
   # LM
   models <- train.lm(params, train.full)
-  return (list(cluster=pamx, models=models))
+  print('lm got')
+  return (list(cluster=pamx, models=models, train=train.full))
 }
-
 
 evaluate.train.kmean.lm <- function(lmodels) {
   # Evaluate residuals for train set
@@ -163,16 +165,78 @@ evaluate.train.kmean.lm <- function(lmodels) {
   return(residuals)
 }
 
-# Perform training and evaluationg
-params <- list(max.row=2000, k=5, min.feature.occurences=0.05,
-               max.feature.pval=0.05, cached.diss.mat=TRUE)
+perform.train <- function(train) {
+  params <- list(max.row=nrow(train), k=35, min.feature.occurences=0.05,
+                 max.feature.pval=0.05, cached.diss.mat=FALSE)
+  train.res <- train.kmean.lm(params, train)
+  train.res
+}
+
+get.nearest <- function(point, train) {
+  min.dist <- 2
+  nearest.index <- 0
+  for (i in 1:length(train)) {
+    dist <- jaccard.metric(point, train[[i]])
+    if (dist < min.dist) {
+      min.dist <- dist
+      nearest.index <- i
+    }
+  }
+  nearest.index
+}
+
+evaluate.test <- function(train.res, test) {
+  # SET CLUSTERS to test
+  pamx <- train.res$cluster
+  models <- train.res$models
+  train.bit <- list()
+  cleared.train <- clear.data(train.res$train)
+  for (i in 1:nrow(cleared.train)) {
+    train.bit[[i]] <- as.bit(as.integer(cleared.train[i,]))
+  }
+  clusters <- train.res$train$clustering
+  test.clusters <- c()
+  for (i in 1:nrow(test)) {
+    point <- as.bit(as.integer(clear.data(test[i,])))
+    nearest.index <- get.nearest(point, train.bit)
+    point.clust <- clusters[nearest.index]
+    test.clusters <- c(test.clusters, point.clust)
+  }
+  test$clustering <- test.clusters
+  test2 <- calculate.mean.salary(test)
+  
+  residuals <- c()
+  # evaluate model errors
+  for (i in 1:nrow(test2)) {
+    cur.clust <- test2[i,][,"clustering"]
+    coefs <- models[[cur.clust]]$coefficients
+    if (length(coefs) > 1) {
+      coefs <- coefs[names(coefs) != '(Intercept)']
+      point <- test2[names(coefs)][i,]
+      estimate <- sum(point * coefs) + models[[cur.clust]]$coefficients['(Intercept)']
+    }
+    if (length(coefs) == 1) {
+      estimate <- models[[cur.clust]]$coefficients['(Intercept)']
+    }
+    res <- as.numeric(test2[i,]$mean_sal - estimate)
+    residuals <- c(residuals, res)
+  }
+  residuals <- as.numeric(residuals)
+  residuals
+}
+
+# LOAD DATA
 vacan <- load.dataset()
-diss.mat <- get.diss.matrix(vacan, params$max.row)
-#train.res <- train.kmean.lm(params, vacan)
-params$diss.mat <- diss.mat
-train.res <- train.kmean.lm(params, vacan)  # this might save time
-residuals <- evaluate.train.kmean.lm(train.res[[2]])
+#diss.mat <- get.diss.matrix(vacan, params$max.row)
+
+#params <- list(max.row=2000, k=5, min.feature.occurences=0.05,
+#               max.feature.pval=0.05, cached.diss.mat=TRUE)
+#params$diss.mat <- diss.mat
+
+# Perform training and evaluationg
+#train.res <- train.kmean.lm(params, vacan)  # this might save time
+#residuals <- evaluate.train.kmean.lm(train.res[[2]])
 
 # Plot residuals
-boxplot(residuals, horizontal = TRUE, main='Residuals')
-abline(v=(seq(-200000,500000,10000)), col="lightgray", lty="dotted")
+#boxplot(residuals, horizontal = TRUE, main='Residuals')
+#abline(v=(seq(-200000,500000,10000)), col="lightgray", lty="dotted")
