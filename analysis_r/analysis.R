@@ -95,12 +95,12 @@ prepare.for.modelling <- function(params, train.full, cluster.number) {
 
 linear.model <- function(params, x) {
   # fit linear model - return model
-  #fit <- lm(mean_sal ~ . , data=x)
-  #pvals <- summary(fit)$coefficients[,4]
-  #important.features <- names(pvals[pvals < params$max.feature.pval])
-  #print(c(important.features[-1], 'mean_sal'))
-  #vdata <- x[c(important.features[-1], 'mean_sal')]
-  vdata <-x
+  fit <- lm(mean_sal ~ . , data=x)
+  pvals <- summary(fit)$coefficients[,4]
+  important.features <- names(pvals[pvals < params$max.feature.pval])
+  print(c(important.features[-1], 'mean_sal'))
+  vdata <- x[c(important.features[-1], 'mean_sal')]
+  #vdata <-x
   fit <- lm(mean_sal ~ . , data=vdata)
   fit
 }
@@ -140,7 +140,7 @@ train.kmean.lm <- function(params, vacan) {
   # Return [cluster, models]
   train.full <- vacan[1:params$max.row,]
   if (params$cached.diss.mat == FALSE) {
-    diss.mat <- get.diss.matrix(vacan, params$max.row)
+    diss.mat <- get.diss.matrix(train.full, params$max.row)
   }
   else {
     diss.mat <- params$diss.mat
