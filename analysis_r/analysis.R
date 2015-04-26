@@ -95,11 +95,12 @@ prepare.for.modelling <- function(params, train.full, cluster.number) {
 
 linear.model <- function(params, x) {
   # fit linear model - return model
-  fit <- lm(mean_sal ~ . , data=x)
-  pvals <- summary(fit)$coefficients[,4]
-  important.features <- names(pvals[pvals < params$max.feature.pval])
-  print(c(important.features[-1], 'mean_sal'))
-  vdata <- x[c(important.features[-1], 'mean_sal')]
+  #fit <- lm(mean_sal ~ . , data=x)
+  #pvals <- summary(fit)$coefficients[,4]
+  #important.features <- names(pvals[pvals < params$max.feature.pval])
+  #print(c(important.features[-1], 'mean_sal'))
+  #vdata <- x[c(important.features[-1], 'mean_sal')]
+  vdata <-x
   fit <- lm(mean_sal ~ . , data=vdata)
   fit
 }
@@ -166,7 +167,7 @@ evaluate.train.kmean.lm <- function(lmodels) {
 }
 
 perform.train <- function(train) {
-  params <- list(max.row=nrow(train), k=35, min.feature.occurences=0.05,
+  params <- list(max.row=nrow(train), k=5, min.feature.occurences=0.05,
                  max.feature.pval=0.05, cached.diss.mat=FALSE)
   train.res <- train.kmean.lm(params, train)
   train.res
