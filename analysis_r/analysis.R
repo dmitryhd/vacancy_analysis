@@ -145,14 +145,14 @@ train.kmean.lm <- function(params, vacan) {
   else {
     diss.mat <- params$diss.mat
   }
-  print('diss matrix got')
+  cat('===== diss matrix got\n')
   # CLUSTERIZATION
   pamx <- pam(diss.mat, k=params$k, diss=TRUE)
   train.full$clustering <- pamx$clustering    
-  print('clusterization done')
+  cat('===== clusterization done\n')
   # LM
   models <- train.lm(params, train.full)
-  print('lm got')
+  cat('===== lm done\n')
   return (list(cluster=pamx, models=models, train=train.full))
 }
 
@@ -165,9 +165,29 @@ evaluate.train.kmean.lm <- function(lmodels) {
   }
   return(residuals)
 }
+train.clust.lm.k1 <- function(train) {
+  params <- list(max.row=nrow(train), k=1, min.feature.occurences=0.05,
+                 max.feature.pval=0.05, cached.diss.mat=FALSE)
+  train.res <- train.kmean.lm(params, train)
+  train.res
+}
 
-perform.train <- function(train) {
+train.clust.lm.k5 <- function(train) {
   params <- list(max.row=nrow(train), k=5, min.feature.occurences=0.05,
+                 max.feature.pval=0.05, cached.diss.mat=FALSE)
+  train.res <- train.kmean.lm(params, train)
+  train.res
+}
+
+train.clust.lm.k15 <- function(train) {
+  params <- list(max.row=nrow(train), k=15, min.feature.occurences=0.05,
+                 max.feature.pval=0.05, cached.diss.mat=FALSE)
+  train.res <- train.kmean.lm(params, train)
+  train.res
+}
+
+train.clust.lm.k35 <- function(train) {
+  params <- list(max.row=nrow(train), k=35, min.feature.occurences=0.05,
                  max.feature.pval=0.05, cached.diss.mat=FALSE)
   train.res <- train.kmean.lm(params, train)
   train.res
