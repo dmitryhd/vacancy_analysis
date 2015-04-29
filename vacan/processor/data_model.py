@@ -124,7 +124,8 @@ class DatabaseManager(object):
 
 
 def create_mysql_db(db_name):
-    engine = sqlalchemy.create_engine(cfg.DB_PREFIX, echo=False) # connect to server
+    engine = sqlalchemy.create_engine(cfg.DB_PREFIX, echo=False)
+    # connect to server
     try:
         engine.execute("CREATE DATABASE IF NOT EXISTS {};".format(db_name)) 
     except sqlalchemy.exc.DatabaseError:
