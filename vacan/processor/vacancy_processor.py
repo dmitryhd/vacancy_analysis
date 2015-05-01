@@ -58,7 +58,7 @@ def main():
     db_session = db_manager.get_session()
     vacs = sparser.get_all_vacancies(db_session, args.num_vac)
     logging.info('Download vacancies ' + str(len(vacs)) + ' ...')
-    proc_vacs = dm.process_vacancies(vacs, tag_cfg.TAGS)
+    proc_vacs = dm.process_vacancies(vacs, tag_cfg.SKILLS)
     logging.debug('Vacancies processed.')
     proc_stat = stat.ProcessedStatistics(proc_vacs)
     proc_stat.calculate_all()

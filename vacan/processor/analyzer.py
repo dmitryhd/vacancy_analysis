@@ -17,7 +17,7 @@ import vacan.common.tag_config as tcnf
 
 def form_metric(tags):
     vector = []
-    for tag in tcnf.TAGS:
+    for tag in tcnf.SKILLS:
         vector.append(int(tags[tag.name]))
     return vector
 
@@ -27,7 +27,7 @@ def metric_to_str(metric):
 
 
 def form_csv_header():
-    header = '; '.join([tag.title for tag in tcnf.TAGS])
+    header = '; '.join([tag.title for tag in tcnf.SKILLS])
     header += '; max_sal; min_sal; max_exp; min_exp; '
     return header
     
@@ -62,7 +62,7 @@ def analyze(dbmanager):
         if raw_vacancy.url in urls:
             continue
         urls.add(raw_vacancy.url)
-        proc_vac = dm.ProcessedVacancy(raw_vacancy, tcnf.TAGS)
+        proc_vac = dm.ProcessedVacancy(raw_vacancy, tcnf.SKILLS)
         print(form_csv_string(proc_vac))
         processed_vacancies.append(proc_vac)
     #print('total:', len(processed_vacancies), len(raw_vacancies))
@@ -126,7 +126,7 @@ def analyze_tags(dbmanager):
         if raw_vacancy.url in urls:
             continue
         urls.add(raw_vacancy.url)
-        proc_vac = dm.ProcessedVacancy(raw_vacancy, tcnf.TAGS)
+        proc_vac = dm.ProcessedVacancy(raw_vacancy, tcnf.SKILLS)
         cur_bullets = proc_vac.get_all_bullets()
         cur_words = re.findall(r'([a-z]{3,})', cur_bullets) # only latin
         cnt.update(cur_words)

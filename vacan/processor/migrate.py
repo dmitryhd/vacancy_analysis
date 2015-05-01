@@ -46,7 +46,7 @@ class Migrator(object):
         raw_vacs = self.get_raw_vacs(archive_name)
         gather_time_sec = util.get_time_by_filename(archive_name)
         print('Get time: ', gather_time_sec)
-        processed_vacancies = dm.process_vacancies(raw_vacs, tag_cfg.TAGS)
+        processed_vacancies = dm.process_vacancies(raw_vacs, tag_cfg.SKILLS)
         proc_stat = stat.ProcessedStatistics(processed_vacancies,
                                              gather_time_sec)
         print('Get time date:',  util.int_to_date(gather_time_sec))

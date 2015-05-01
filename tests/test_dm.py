@@ -26,9 +26,9 @@ class TestBasicDataModel(unittest.TestCase):
 
     def test_processed_vacancy_creation(self):
         """ BasicDataModel: Creating processed vacancy from raw vacancy. """
-        test_tags = [tag_cfg.TagRepr('c++', 'c++', 'cpp'),
-                     tag_cfg.TagRepr('java', 'java', 'java'),
-                     tag_cfg.TagRepr('python', 'python', 'python')]
+        test_tags = [tag_cfg.Skill('c++', 'c++', 'cpp'),
+                     tag_cfg.Skill('java', 'java', 'java'),
+                     tag_cfg.Skill('python', 'python', 'python')]
         vacancy_text = 'needed c++ developer, omg, java so wow'
         vac = dm.RawVacancy('test vacancy', vacancy_text)
         proc_vac = dm.ProcessedVacancy(vac, test_tags)

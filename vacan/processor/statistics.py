@@ -50,7 +50,7 @@ class ProcessedStatistics(Base):
         self.proc_vac = proc_vac
         self.date = int(time.time()) if _time == 'now' else _time
 
-    def calculate_num_of_vacancies(self, tags=tag_cfg.TAGS):
+    def calculate_num_of_vacancies(self, tags=tag_cfg.SKILLS):
         """ Calculate statistics for number of vacancies. """
         num_of_vacancies = {tag.name: 0 for tag in tags}
         for pvac in self.proc_vac:
@@ -59,7 +59,7 @@ class ProcessedStatistics(Base):
         self.num_of_vacancies = num_of_vacancies
 
 
-    def calculate_min_max_salaries(self, tags=tag_cfg.TAGS):
+    def calculate_min_max_salaries(self, tags=tag_cfg.SKILLS):
         """ Calculate statistics for minimun and maximum salaries. """
         max_salaries = {}
         min_salaries = {}
@@ -73,7 +73,7 @@ class ProcessedStatistics(Base):
         self.max_salaries = max_salaries
         self.min_salaries = min_salaries
 
-    def calculate_mean_min_max_salary(self, tags=tag_cfg.TAGS):
+    def calculate_mean_min_max_salary(self, tags=tag_cfg.SKILLS):
         """ Calculate statistics for minimum and maximum salaries. """
         def get_mean_salary(self, tags, salary_param_name):
             salary_by_tag = {tag.name: [0, 0] for tag in tags}  # [counter, salary]
@@ -137,7 +137,7 @@ def get_collection_dates(session):
 
 def process_from_date(session, date):
     raw_vacs = list(session.query(dm.RawVacancy).filter(dm.RawVacancy.date == date))    
-    processed_vacancies = dm.process_vacancies(raw_vacs, tag_cfg.TAGS)
+    processed_vacancies = dm.process_vacancies(raw_vacs, tag_cfg.SKILLS)
     proc_stat = ProcessedStatistics(processed_vacancies, util.date_to_int(date))
     proc_stat.calculate_all()
     session.add(proc_stat)

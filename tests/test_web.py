@@ -77,7 +77,7 @@ class TestWeb(unittest.TestCase):
 
     def test_tag(self):
         """ Web: Check if all elements are in page with detailed tag statistics. """
-        for tag in tag_cfg.TAGS:
+        for tag in tag_cfg.SKILLS:
             elements = ['Lang: {}'.format(tag.title),
                         'vac_salary_hist_container',
                         'vac_salary_histogram']

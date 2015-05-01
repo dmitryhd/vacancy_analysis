@@ -29,7 +29,7 @@ def create_fictive_database(db_name):
                 dm.RawVacancy('4', '<td class="l-content-colum-1 b-v-info-content">python от 15 000 </td>')]
     raw_vac_session.add_all(raw_vacs)
     raw_vac_session.commit()
-    proc_vacs = dm.process_vacancies_from_db(raw_vac_session, tag_cfg.TAGS)
+    proc_vacs = dm.process_vacancies_from_db(raw_vac_session, tag_cfg.SKILLS)
     ref_proc_stat = stat.ProcessedStatistics(proc_vacs, _time=REF_TIME)
     ref_proc_stat.calculate_all()
     raw_vac_session.add(ref_proc_stat)
