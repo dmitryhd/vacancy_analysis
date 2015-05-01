@@ -5,9 +5,9 @@
 import os
 from flask import request, Flask, render_template, jsonify, g
 
-import vacan.common.web_config as cfg
+import vacan.config as cfg
 from vacan.processor.statistics import ProcessedStatistics
-from vacan.common.utility import format_timestamp, create_histogram
+from vacan.utility import format_timestamp, create_histogram
 import vacan.common.tag_config as tag_cfg
 import  vacan.processor.data_model as data_model
 

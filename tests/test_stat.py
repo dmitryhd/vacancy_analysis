@@ -6,7 +6,7 @@ import unittest
 from tests import *
 
 import vacan.processor.data_model as dm
-import vacan.common.processor_config as proc_cfg
+import vacan.config as cfg
 import vacan.processor.statistics as stat
 
 
@@ -15,12 +15,12 @@ class TestProcessedStatistics(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.vac_db = create_fictive_database(proc_cfg.DB_NAME_TEST_RAW)
+        cls.vac_db = create_fictive_database(cfg.DB_NAME_TEST_RAW)
 
     @classmethod
     def tearDownClass(cls):
         cls.vac_db.dispose()
-        dm.delete_mysql_db(proc_cfg.DB_NAME_TEST_RAW)
+        dm.delete_mysql_db(cfg.DB_NAME_TEST_RAW)
 
     def setUp(self):
         self.session = self.vac_db.get_session()

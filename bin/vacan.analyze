@@ -7,7 +7,7 @@ import sys
 sys.path.append('..')
 sys.path.append('.')
 from vacan.processor import analyzer
-import vacan.common.processor_config as cfg
+import vacan.config as cfg
 import vacan.processor.data_model as dm
 
 if __name__ == '__main__':

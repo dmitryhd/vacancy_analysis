@@ -8,7 +8,7 @@ import json
 from tests import create_fictive_database
 import vacan.web_interface.web as web
 import vacan.processor.data_model as dm
-import vacan.common.processor_config as proc_cfg
+import vacan.config as cfg
 import vacan.common.tag_config as tag_cfg
 
 
@@ -22,7 +22,7 @@ class TestWeb(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """ Init test app """
-        cls.test_db = create_fictive_database(proc_cfg.DB_NAME_TEST_RAW_WEB)
+        cls.test_db = create_fictive_database(cfg.DB_NAME_TEST_RAW_WEB)
         web.app.db_manager = cls.test_db
         cls.app = web.app.test_client()
 
@@ -30,7 +30,7 @@ class TestWeb(unittest.TestCase):
     def tearDownClass(cls):
         cls.test_db.dispose()
         del cls.app
-        dm.delete_mysql_db(proc_cfg.DB_NAME_TEST_RAW_WEB)
+        dm.delete_mysql_db(cfg.DB_NAME_TEST_RAW_WEB)
 
     def get_html(self, url):
         """ Get utf8 string, containig html code of url. """

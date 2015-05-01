@@ -12,7 +12,7 @@ import sqlalchemy
 
 import vacan.processor.statistics as stat
 import vacan.processor.data_model as dm
-import vacan.common.utility as util
+import vacan.utility as util
 import vacan.common.tag_config as tag_cfg
 
 

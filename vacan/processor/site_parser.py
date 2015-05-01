@@ -12,7 +12,7 @@ import logging
 from sys import stdout
 
 from vacan.processor.data_model import RawVacancy
-from vacan.common.processor_config import SITE_URLS, MAXIM_NUMBER_OF_VACANCIES
+from vacan.config import SITE_URLS, MAXIM_NUMBER_OF_VACANCIES
 
 logging.getLogger("requests").setLevel(logging.WARNING)
 

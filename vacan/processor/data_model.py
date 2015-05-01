@@ -15,7 +15,7 @@ from sqlalchemy.schema import Column
 from sqlalchemy.types import Integer, String, DateTime
 from sqlalchemy.dialects.mysql import TEXT
 
-import vacan.common.processor_config as cfg
+import vacan.config as cfg
 
 
 Base = sqlalchemy.ext.declarative.declarative_base()

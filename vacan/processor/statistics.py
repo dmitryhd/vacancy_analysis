@@ -12,10 +12,10 @@ from sqlalchemy.schema import Column
 from sqlalchemy.ext import mutable
 
 from vacan.processor.data_model import Base
-import vacan.common.processor_config as cfg
+import vacan.config as cfg
 import vacan.common.tag_config as tag_cfg
 import vacan.processor.data_model as dm
-import vacan.common.utility as util
+import vacan.utility as util
 
 
 class JsonType(types.TypeDecorator):    

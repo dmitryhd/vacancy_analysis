@@ -4,7 +4,7 @@
 
 import unittest
 import vacan.processor.data_model as dm
-import vacan.common.processor_config as proc_cfg
+import vacan.config as cfg
 import vacan.common.tag_config as tag_cfg
 
 
@@ -15,7 +15,7 @@ class TestBasicDataModel(unittest.TestCase):
         """ BasicDataModel: Writing raw vacancy in db and load it. """
         vac_name = 'test_vac_name'
         vac_html = 'test_vac_html от чч'
-        session = dm.DatabaseManager(proc_cfg.DB_NAME_TEST, 'w').get_session()
+        session = dm.DatabaseManager(cfg.DB_NAME_TEST, 'w').get_session()
         vac = dm.RawVacancy(vac_name, vac_html)
         session.add(vac)
         session.commit()

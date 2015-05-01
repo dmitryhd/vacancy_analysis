@@ -6,7 +6,7 @@ import unittest
 from tests import *
 
 import vacan.processor.data_model as dm
-import vacan.common.processor_config as proc_cfg
+import vacan.config as cfg
 import vacan.processor.site_parser as sp
 
 
@@ -21,7 +21,7 @@ class TestSiteParser(unittest.TestCase):
     def get_vacancies_from_site(self, site_name):
         """ SiteParser: Create valid site parser, download vacancies. """
         sparser = sp.site_parser_factory(site_name)
-        db_man = dm.DatabaseManager(proc_cfg.DB_NAME_TEST)
+        db_man = dm.DatabaseManager(cfg.DB_NAME_TEST)
         return sparser.get_all_vacancies(db_man.get_session(),
                                          self.MAX_VAC_NUM)
         

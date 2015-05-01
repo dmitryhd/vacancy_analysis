@@ -15,9 +15,9 @@ import sys
 import os
 import logging
 
-import vacan.common.utility as util
+import vacan.utility as util
 import vacan.common.tag_config as tag_cfg
-import vacan.common.processor_config as cfg
+import vacan.config as cfg
 import vacan.processor.site_parser as sp
 import vacan.processor.data_model as dm
 from vacan.processor.statistics import ProcessedStatistics
