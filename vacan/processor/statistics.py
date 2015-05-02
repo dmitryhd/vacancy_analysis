@@ -13,7 +13,7 @@ from sqlalchemy.ext import mutable
 
 from vacan.processor.data_model import Base
 import vacan.config as cfg
-import vacan.common.tag_config as tag_cfg
+import vacan.skills as skills
 import vacan.processor.data_model as dm
 import vacan.utility as util
 
@@ -50,7 +50,7 @@ class ProcessedStatistics(Base):
         self.proc_vac = proc_vac
         self.date = int(time.time()) if _time == 'now' else _time
 
-    def calculate_num_of_vacancies(self, tags=tag_cfg.SKILLS):
+    def calculate_num_of_vacancies(self, tags=skills.SKILLS):
         """ Calculate statistics for number of vacancies. """
         num_of_vacancies = {tag.name: 0 for tag in tags}
         for pvac in self.proc_vac:
@@ -59,7 +59,7 @@ class ProcessedStatistics(Base):
         self.num_of_vacancies = num_of_vacancies
 
 
-    def calculate_min_max_salaries(self, tags=tag_cfg.SKILLS):
+    def calculate_min_max_salaries(self, tags=skills.SKILLS):
         """ Calculate statistics for minimun and maximum salaries. """
         max_salaries = {}
         min_salaries = {}
@@ -73,7 +73,7 @@ class ProcessedStatistics(Base):
         self.max_salaries = max_salaries
         self.min_salaries = min_salaries
 
-    def calculate_mean_min_max_salary(self, tags=tag_cfg.SKILLS):
+    def calculate_mean_min_max_salary(self, tags=skills.SKILLS):
         """ Calculate statistics for minimum and maximum salaries. """
         def get_mean_salary(self, tags, salary_param_name):
             salary_by_tag = {tag.name: [0, 0] for tag in tags}  # [counter, salary]
@@ -105,40 +105,4 @@ class ProcessedStatistics(Base):
                                                     self.min_salaries,
                                                     self.max_salaries,
                                                     self.mean_min_salary)
-                                                    
 
-def reprocess_vacancies(db_name):
-    session = dm.open_db(db_name)
-    delete_statistics(session)
-    dates = get_collection_dates(session)
-    print('Reprocessing: total dates: ', len(dates))
-    for cnt, date in enumerate(dates):
-        print('processing date: ', cnt + 1, '/', len(dates), date)
-        process_from_date(session, date)
-
-
-def delete_statistics(session):
-    print('Deleting old statistics')
-    for proc_stat in session.query(ProcessedStatistics):
-        print('Delete stat: ', proc_stat.date)
-        session.delete(proc_stat)
-    session.commit()
-    print('Deleting old statistics ... finished.')
-
-
-def get_collection_dates(session):
-    print('Get collection days ... ')
-    dates = set()
-    for raw_vac in session.query(dm.RawVacancy):
-        print('Raw vac from date: ', raw_vac.date)
-        dates.add(raw_vac.date)
-    return dates
-
-
-def process_from_date(session, date):
-    raw_vacs = list(session.query(dm.RawVacancy).filter(dm.RawVacancy.date == date))    
-    processed_vacancies = dm.process_vacancies(raw_vacs, tag_cfg.SKILLS)
-    proc_stat = ProcessedStatistics(processed_vacancies, util.date_to_int(date))
-    proc_stat.calculate_all()
-    session.add(proc_stat)
-    session.commit()

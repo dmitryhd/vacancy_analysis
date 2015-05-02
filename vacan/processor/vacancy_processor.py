@@ -16,7 +16,7 @@ import os
 import logging
 
 import vacan.utility as util
-import vacan.common.tag_config as tag_cfg
+import vacan.skills as skills
 import vacan.config as cfg
 import vacan.processor.site_parser as sp
 import vacan.processor.data_model as dm
@@ -58,7 +58,7 @@ def main():
     db_session = db_manager.get_session()
     vacs = sparser.get_all_vacancies(db_session, args.num_vac)
     logging.info('Download vacancies ' + str(len(vacs)) + ' ...')
-    proc_vacs = dm.process_vacancies(vacs, tag_cfg.SKILLS)
+    proc_vacs = dm.process_vacancies(vacs, skills.SKILLS)
     logging.debug('Vacancies processed.')
     proc_stat = stat.ProcessedStatistics(proc_vacs)
     proc_stat.calculate_all()
@@ -68,8 +68,6 @@ def main():
     db_session.commit()
     logging.debug('Commit done.')
     db_session.close()
-    
-
     
 
 if __name__ == '__main__':

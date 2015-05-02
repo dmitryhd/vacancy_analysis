@@ -5,15 +5,13 @@
     Date: 29.09.2014
 """
 
-import bs4
 import datetime
-import time
 import re
-import sqlalchemy
+import bs4
 import sqlalchemy.ext.declarative
-from sqlalchemy.schema import Column
-from sqlalchemy.types import Integer, String, DateTime
 from sqlalchemy.dialects.mysql import TEXT
+from sqlalchemy.schema import Column
+from sqlalchemy.types import Integer, DateTime
 
 import vacan.config as cfg
 
@@ -100,10 +98,11 @@ class ProcessedVacancy():
 
 
 class DatabaseManager(object):
+    """ Handle database connections. """
     def __init__(self, db_name, mode='r'):
         self.db_name = db_name
-        engine = create_mysql_db(db_name)
-        engine.dispose()
+        if mode == 'w':
+            engine = self.create_mysql_db()
         conn_str = cfg.DB_PREFIX + db_name + '?charset=utf8'
         self.engine = sqlalchemy.create_engine(conn_str)
         self.sessionmaker = sqlalchemy.orm.sessionmaker(bind=self.engine)
@@ -122,31 +121,20 @@ class DatabaseManager(object):
     def dispose(self):
         self.engine.dispose()
 
-
-def create_mysql_db(db_name):
-    engine = sqlalchemy.create_engine(cfg.DB_PREFIX, echo=False) # connect to server
-    try:
-        engine.execute("CREATE DATABASE IF NOT EXISTS {};".format(db_name)) 
-    except sqlalchemy.exc.DatabaseError:
-        pass
-    engine.execute("USE " + db_name)
-    return engine
+    def create_mysql_db(self):
+        """ Create database if not exists. Returns nothing """
+        engine = sqlalchemy.create_engine(cfg.DB_PREFIX, echo=False)
+        try:
+            engine.execute("CREATE DATABASE IF NOT EXISTS {};".format(
+                self.db_name)) 
+        except sqlalchemy.exc.DatabaseError:
+            pass
+        engine.dispose()
 
 
 def delete_mysql_db(db_name):
     engine = sqlalchemy.create_engine(cfg.DB_PREFIX, echo=False)
     engine.execute('DROP DATABASE {};'.format(db_name))
-
-
-def open_db(db_name, mode='w', echo=False):
-    """ Return sqlalchemy session. Modes of operation: Read, Write [r, w]. """
-    if cfg.DB_ENGINE == 'sqlite':
-        engine = sqlalchemy.create_engine(cfg.DB_PREFIX + db_name, echo=echo)
-    else:
-        engine = create_mysql_db(db_name)
-    if mode != 'r':
-        Base.metadata.create_all(engine)
-    return sqlalchemy.orm.sessionmaker(bind=engine)()
 
 
 def process_vacancies(raw_vacs, tags):

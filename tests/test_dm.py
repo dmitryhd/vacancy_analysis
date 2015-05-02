@@ -5,7 +5,7 @@
 import unittest
 import vacan.processor.data_model as dm
 import vacan.config as cfg
-import vacan.common.tag_config as tag_cfg
+import vacan.skills as skills
 
 
 class TestBasicDataModel(unittest.TestCase):
@@ -26,9 +26,9 @@ class TestBasicDataModel(unittest.TestCase):
 
     def test_processed_vacancy_creation(self):
         """ BasicDataModel: Creating processed vacancy from raw vacancy. """
-        test_tags = [tag_cfg.Skill('c++', 'c++', 'cpp'),
-                     tag_cfg.Skill('java', 'java', 'java'),
-                     tag_cfg.Skill('python', 'python', 'python')]
+        test_tags = [skills.Skill('c++', 'c++', 'cpp'),
+                     skills.Skill('java', 'java', 'java'),
+                     skills.Skill('python', 'python', 'python')]
         vacancy_text = 'needed c++ developer, omg, java so wow'
         vac = dm.RawVacancy('test vacancy', vacancy_text)
         proc_vac = dm.ProcessedVacancy(vac, test_tags)

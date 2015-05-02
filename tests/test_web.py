@@ -9,7 +9,7 @@ from tests import create_fictive_database
 import vacan.web_interface.web as web
 import vacan.processor.data_model as dm
 import vacan.config as cfg
-import vacan.common.tag_config as tag_cfg
+import vacan.skills as skills
 
 
 class TestWeb(unittest.TestCase):
@@ -77,7 +77,7 @@ class TestWeb(unittest.TestCase):
 
     def test_tag(self):
         """ Web: Check if all elements are in page with detailed tag statistics. """
-        for tag in tag_cfg.SKILLS:
+        for tag in skills.SKILLS:
             elements = ['Lang: {}'.format(tag.title),
                         'vac_salary_hist_container',
                         'vac_salary_histogram']

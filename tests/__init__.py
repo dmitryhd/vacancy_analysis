@@ -4,7 +4,7 @@
 
 import vacan.processor.statistics as stat
 import vacan.processor.data_model as dm
-import vacan.common.tag_config as tag_cfg
+import vacan.skills as skills
 
 
 REF_TIME = 10000000
@@ -29,7 +29,7 @@ def create_fictive_database(db_name):
                 dm.RawVacancy('4', '<td class="l-content-colum-1 b-v-info-content">python от 15 000 </td>')]
     raw_vac_session.add_all(raw_vacs)
     raw_vac_session.commit()
-    proc_vacs = dm.process_vacancies_from_db(raw_vac_session, tag_cfg.SKILLS)
+    proc_vacs = dm.process_vacancies_from_db(raw_vac_session, skills.SKILLS)
     ref_proc_stat = stat.ProcessedStatistics(proc_vacs, _time=REF_TIME)
     ref_proc_stat.calculate_all()
     raw_vac_session.add(ref_proc_stat)

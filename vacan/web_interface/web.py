@@ -8,7 +8,7 @@ from flask import request, Flask, render_template, jsonify, g
 import vacan.config as cfg
 from vacan.processor.statistics import ProcessedStatistics
 from vacan.utility import format_timestamp, create_histogram
-import vacan.common.tag_config as tag_cfg
+import vacan.skills as skills
 import  vacan.processor.data_model as data_model
 
 
@@ -49,8 +49,8 @@ class StatisticsDbInterface(object):
             Return dict with keys: 'labels' and 'values'
         """
         stat = self.get_statistics(date)
-        stat_cat_val = zip(tag_cfg.TAG_NAMES,
-                           [stat.num_of_vacancies[cat] for cat in tag_cfg.TAG_NAMES])
+        stat_cat_val = zip(skills.TAG_NAMES,
+                           [stat.num_of_vacancies[cat] for cat in skills.TAG_NAMES])
         stat_cat_val = list(stat_cat_val)
         stat_cat_val.sort(key=lambda cat_val: cat_val[1], reverse=True)  # by val
         labels_values = {}
@@ -61,9 +61,9 @@ class StatisticsDbInterface(object):
     def get_vac_salary(self, date):
         """ Get mean min and max of vacancies from statistics. """
         stat = self.get_statistics(date)
-        stat_cat_val = zip(tag_cfg.TAG_NAMES,
-                           [stat.mean_max_salary[cat] for cat in tag_cfg.TAG_NAMES],
-                           [stat.mean_min_salary[cat] for cat in tag_cfg.TAG_NAMES])
+        stat_cat_val = zip(skills.TAG_NAMES,
+                           [stat.mean_max_salary[cat] for cat in skills.TAG_NAMES],
+                           [stat.mean_min_salary[cat] for cat in skills.TAG_NAMES])
         stat_cat_val = list(stat_cat_val)
         stat_cat_val.sort(key=lambda cat_val: cat_val[1], reverse=True)  # by val
         data = {}
@@ -129,7 +129,7 @@ def get_tag_histogram_json():
 def index():
     """ Show general statisics. """
     return render_template('gallery.html', dates=g.db.get_timestamps_and_dates(),
-                           tags=tag_cfg.TAG_NAMES)
+                           tags=skills.TAG_NAMES)
 
 
 @app.route('/tag/')
