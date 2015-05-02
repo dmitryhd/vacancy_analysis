@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
 """ Unittest file for testing of Site parser. """
-
 import unittest
 from tests import *
 
 import vacan.processor.data_model as dm
 import vacan.config as cfg
 import vacan.processor.site_parser as sp
+import vacan.processor.vacancy_processor
 
 
 class TestSiteParser(unittest.TestCase):
@@ -21,7 +21,7 @@ class TestSiteParser(unittest.TestCase):
     def get_vacancies_from_site(self, site_name):
         """ SiteParser: Create valid site parser, download vacancies. """
         sparser = sp.site_parser_factory(site_name)
-        db_man = dm.DatabaseManager(cfg.DB_NAME_TEST)
+        db_man = dm.DBEngine(cfg.DB_NAME_TEST)
         return sparser.get_all_vacancies(db_man.get_session(),
                                          self.MAX_VAC_NUM)
         
@@ -56,7 +56,7 @@ class TestSiteParser(unittest.TestCase):
                 test_vac = parser.get_vacancy('test_vac_name',
                                               testfd.read(),
                                               'nolink')
-                pvac = dm.ProcessedVacancy(test_vac, [])
+                pvac = vacan.processor.vacancy_processor.ProcessedVacancy(test_vac, [])
                 self.assertEqual(pvac.min_salary, min_sal_exp)
                 self.assertEqual(pvac.max_salary, max_sal_exp)
 

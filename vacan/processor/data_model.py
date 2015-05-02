@@ -4,7 +4,6 @@
     Author: Dmitriy Khodakov <dmitryhd@gmail.com>
     Date: 29.09.2014
 """
-
 import datetime
 import re
 import bs4
@@ -12,6 +11,8 @@ import sqlalchemy.ext.declarative
 from sqlalchemy.dialects.mysql import TEXT
 from sqlalchemy.schema import Column
 from sqlalchemy.types import Integer, DateTime
+from sqlalchemy.orm.session import Session
+from sqlalchemy_utils import functions as sqlfunctions
 
 import vacan.config as cfg
 
@@ -41,108 +42,66 @@ class RawVacancy(Base):
             self.name, len(self.html), self.url)
 
 
-class ProcessedVacancy():
-    """ Processed vacancy. Contains name, tags and salary."""
-    def __init__(self, vacancy, tags):
-        """ Generate processed vacancy from vacancy. """
-        self.name = vacancy.name
-        soup = bs4.BeautifulSoup(vacancy.html)
-        self.soup = soup
-        text = soup.get_text()
-        self.min_salary, self.max_salary = self.get_salary(soup)
-        self.min_exp, self.max_exp = self.get_exp(soup)
-        text = text.lower()
-        self.tags = {}
-        for tag in tags:
-            if tag.text in text:
-                self.tags[tag.name] = True
-            else:
-                self.tags[tag.name] = False
+class OpenClosedSession(Session):
+    """ This type of sessino can be used in with statement and it guarantees
+        that session will commit on exit or error.
+    """
+    def __enter__(self):
+        """ On enter in with """
+        return self
 
-    def get_salary(self, soup):
-        """ Get min and max salary from vacancy. """
-        # TODO: extract method
-        # TODO: extract data
-        res = soup.find('td', class_='l-content-colum-1 b-v-info-content')
-        if not res is None:
-            digits = re.search(r'от\s+(\d+)\s+(\d*)', res.text)
-            if digits:
-                min_salary = int(''.join(digits.groups()))
-            else:
-                min_salary = None
-            digits = re.search(r'до\s+(\d+)\s+(\d*)', res.text)
-            if digits:
-                max_salary = int(''.join(digits.groups()))
-            else:
-                max_salary = None
-            return min_salary, max_salary
-        return None, None
-
-    def get_exp(self, soup):
-        """ Get exp. """
-        res = soup.find('td', class_='l-content-colum-3 b-v-info-content')
-        if not res is None:
-            digits = re.search(r'(\d+).*(\d+)', res.text)
-            if digits:
-                return  int(digits.groups()[0]),  int(digits.groups()[1])
-        return None, None
-
-    def get_all_bullets(self):
-        """ TODO """
-        return self.soup.get_text().lower()
-
-    def __repr__(self):
-        out = '{} {} {}'.format(self.name, self.min_salary, self.max_salary)
-        out += '\ntags:' + str(self.tags)
-        return out
+    def __exit__(self, _type, value, traceback):
+        """ On exit of with """
+        self.commit()
 
 
-class DatabaseManager(object):
+class DBEngine(object):
     """ Handle database connections. """
-    def __init__(self, db_name, mode='r'):
+    def __init__(self, db_name, mode='r', dbtype='mysql'):
         self.db_name = db_name
-        if mode == 'w':
-            engine = self.create_mysql_db()
-        conn_str = cfg.DB_PREFIX + db_name + '?charset=utf8'
-        self.engine = sqlalchemy.create_engine(conn_str)
-        self.sessionmaker = sqlalchemy.orm.sessionmaker(bind=self.engine)
+        self.dbtype = dbtype
+        print(db_name, 'sdfvsdfv')
+        if mode == 'w' and dbtype == 'mysql':
+            self.create_db()
+        self.engine = sqlalchemy.create_engine(self.get_url())
+        self.sessionmaker = sqlalchemy.orm.scoped_session(
+            sqlalchemy.orm.sessionmaker(
+                bind=self.engine, class_=OpenClosedSession))
         if mode == 'w':
             Base.metadata.create_all(self.engine)
-    
-    def __enter__(self):
-        return self.sessionmaker()
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.engine.dispose()
 
     def get_session(self):
+        """ Return session object, thread safe, can be used in with statement.
+        """
         return self.sessionmaker()
 
     def dispose(self):
+        """ Close all connection to database. """
+        self.sessionmaker.close_all()
         self.engine.dispose()
 
-    def create_mysql_db(self):
-        """ Create database if not exists. Returns nothing """
-        engine = sqlalchemy.create_engine(cfg.DB_PREFIX, echo=False)
+    def create_db(self):
+        """ Create database by name if not exists. """
         try:
-            engine.execute("CREATE DATABASE IF NOT EXISTS {};".format(
-                self.db_name)) 
-        except sqlalchemy.exc.DatabaseError:
+            sqlfunctions.create_database(self.get_url())
+        except sqlalchemy.exc.ProgrammingError:  # Db exists
             pass
-        engine.dispose()
 
+    def drop_database(self):
+        """ Drop database is exists. """
+        self.dispose() 
+        if self.dbtype is not 'sqlite':
+            sqlfunctions.drop_database(self.get_url())
 
-def delete_mysql_db(db_name):
-    engine = sqlalchemy.create_engine(cfg.DB_PREFIX, echo=False)
-    engine.execute('DROP DATABASE {};'.format(db_name))
+    def get_url(self):
+        """ Form url for db_name. """
+        if self.dbtype == 'mysql':
+            return '{}/{}?charset=utf8'.format(cfg.DB_PREFIXES[self.dbtype],
+                                           self.db_name)
+        elif self.dbtype == 'sqlite':
+            url = '{}/'.format(cfg.DB_PREFIXES[self.dbtype])
+            print(url)
+            return url
 
-
-def process_vacancies(raw_vacs, tags):
-    return [ProcessedVacancy(vac, tags) for vac in raw_vacs]
-    
-
-def process_vacancies_from_db(session, tags):
-    """ Get list of processed vacancies from database of raw vacancies."""
-    return process_vacancies(list(session.query(RawVacancy)), tags)
 
 

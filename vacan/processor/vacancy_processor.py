@@ -2,18 +2,16 @@
 
 """ Main module to download html pages fro hh.ru, parse them and
     save to database.
-    run: ./vacancy_processor.py -t -c
-    Also can process database data to csv file for futher analysis.
-    run: ./vacancy_processor.py -p -d <db_name>
 
     Author: Dmitriy Khodakov <dmitryhd@gmail.com>
 """
-
 import time
 import argparse
 import sys
 import os
 import logging
+import re
+import bs4
 
 import vacan.utility as util
 import vacan.skills as skills
@@ -22,8 +20,75 @@ import vacan.processor.site_parser as sp
 import vacan.processor.data_model as dm
 from vacan.processor.statistics import ProcessedStatistics
 import vacan.processor.statistics as stat
+from vacan.processor.data_model import RawVacancy
+
 
 logging.basicConfig(level=logging.DEBUG, format='%(message)s')
+
+
+def process_vacancies_from_db(session, tags):
+    """ Get list of processed vacancies from database of raw vacancies."""
+    return process_vacancies(list(session.query(RawVacancy)), tags)
+
+
+def process_vacancies(raw_vacs, tags):
+    return [ProcessedVacancy(vac, tags) for vac in raw_vacs]
+
+
+class ProcessedVacancy():
+    """ Processed vacancy. Contains name, tags and salary."""
+    def __init__(self, vacancy, tags):
+        """ Generate processed vacancy from vacancy. """
+        self.name = vacancy.name
+        soup = bs4.BeautifulSoup(vacancy.html)
+        self.soup = soup
+        text = soup.get_text()
+        self.min_salary, self.max_salary = self.get_salary(soup)
+        self.min_exp, self.max_exp = self.get_exp(soup)
+        text = text.lower()
+        self.tags = {}
+        for tag in tags:
+            if tag.text in text:
+                self.tags[tag.name] = True
+            else:
+                self.tags[tag.name] = False
+
+    def get_salary(self, soup):
+        """ Get min and max salary from vacancy. """
+        # TODO: extract method
+        # TODO: extract data
+        res = soup.find('td', class_='l-content-colum-1 b-v-info-content')
+        if not res is None:
+            digits = re.search(r'от\s+(\d+)\s+(\d*)', res.text)
+            if digits:
+                min_salary = int(''.join(digits.groups()))
+            else:
+                min_salary = None
+            digits = re.search(r'до\s+(\d+)\s+(\d*)', res.text)
+            if digits:
+                max_salary = int(''.join(digits.groups()))
+            else:
+                max_salary = None
+            return min_salary, max_salary
+        return None, None
+
+    def get_exp(self, soup):
+        """ Get exp. """
+        res = soup.find('td', class_='l-content-colum-3 b-v-info-content')
+        if not res is None:
+            digits = re.search(r'(\d+).*(\d+)', res.text)
+            if digits:
+                return  int(digits.groups()[0]),  int(digits.groups()[1])
+        return None, None
+
+    def get_all_bullets(self):
+        """ TODO """
+        return self.soup.get_text().lower()
+
+    def __repr__(self):
+        out = '{} {} {}'.format(self.name, self.min_salary, self.max_salary)
+        out += '\ntags:' + str(self.tags)
+        return out
 
 
 def parse_args():
@@ -53,12 +118,12 @@ def main():
 
     logging.info('Download data from hh.ru ...')
     sparser = sp.site_parser_factory('hh.ru')
-    db_manager = dm.DatabaseManager(cfg.DB_NAME)
+    db_manager = dm.DBEngine(cfg.DB_NAME)
     logging.debug('Database initialized ...')
     db_session = db_manager.get_session()
     vacs = sparser.get_all_vacancies(db_session, args.num_vac)
     logging.info('Download vacancies ' + str(len(vacs)) + ' ...')
-    proc_vacs = dm.process_vacancies(vacs, skills.SKILLS)
+    proc_vacs = process_vacancies(vacs, skills.SKILLS)
     logging.debug('Vacancies processed.')
     proc_stat = stat.ProcessedStatistics(proc_vacs)
     proc_stat.calculate_all()

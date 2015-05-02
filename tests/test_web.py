@@ -30,7 +30,7 @@ class TestWeb(unittest.TestCase):
     def tearDownClass(cls):
         cls.test_db.dispose()
         del cls.app
-        dm.delete_mysql_db(cfg.DB_NAME_TEST_RAW_WEB)
+        cls.test_db.drop_database()
 
     def get_html(self, url):
         """ Get utf8 string, containig html code of url. """

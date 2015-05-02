@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 """ General test preparations and constants. """
-
 import vacan.processor.statistics as stat
 import vacan.processor.data_model as dm
 import vacan.skills as skills
+import vacan.processor.vacancy_processor
 
 
 REF_TIME = 10000000
@@ -21,7 +21,7 @@ def create_fictive_database(db_name):
     """ Return database manager pointing to newly created database with one
         certain statistics represented in constants above.
     """
-    db_manager = dm.DatabaseManager(db_name, 'w')
+    db_manager = dm.DBEngine(':memory:', 'w', 'sqlite')
     raw_vac_session = db_manager.get_session()
     raw_vacs = [dm.RawVacancy('1', '<td class="l-content-colum-1 b-v-info-content">java c++ от 10 000 до 15 000 </td>'),
                 dm.RawVacancy('2', '<td class="l-content-colum-1 b-v-info-content">c++ от 11 000 до 16 000 </td>'),
@@ -29,7 +29,7 @@ def create_fictive_database(db_name):
                 dm.RawVacancy('4', '<td class="l-content-colum-1 b-v-info-content">python от 15 000 </td>')]
     raw_vac_session.add_all(raw_vacs)
     raw_vac_session.commit()
-    proc_vacs = dm.process_vacancies_from_db(raw_vac_session, skills.SKILLS)
+    proc_vacs = vacan.processor.vacancy_processor.process_vacancies_from_db(raw_vac_session, skills.SKILLS)
     ref_proc_stat = stat.ProcessedStatistics(proc_vacs, _time=REF_TIME)
     ref_proc_stat.calculate_all()
     raw_vac_session.add(ref_proc_stat)

@@ -19,8 +19,7 @@ class TestProcessedStatistics(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.vac_db.dispose()
-        dm.delete_mysql_db(cfg.DB_NAME_TEST_RAW)
+        cls.vac_db.drop_database()
 
     def setUp(self):
         self.session = self.vac_db.get_session()

@@ -15,8 +15,12 @@ class TestMigration(unittest.TestCase):
     test_db = 'vacan_test_migrate'
 
     @classmethod
+    def setUpClass(cls):
+        cls.db_manager = dm.DBEngine(cls.test_db)
+
+    @classmethod
     def tearDownClass(cls):
-        dm.delete_mysql_db(cls.test_db)
+        cls.db_manager.drop_database()
 
     def test_untar(self):
         """ Migration: decompress sqlite archive. """
@@ -35,15 +39,10 @@ class TestMigration(unittest.TestCase):
         """ Migration: Migrate one collection set into mysql from sqlite. """
         migrator = migr.Migrator()
         migrator.migrate('test_data/', self.test_db)
-        db_manager = dm.DatabaseManager(self.test_db)
-        session = db_manager.get_session()
-        migrated_vacs = session.query(dm.RawVacancy)
-        self.assertTrue(migrated_vacs)
-        self.assertGreater(len(list(migrated_vacs)), 5)
-        statistics = session.query(stat.ProcessedStatistics)
-        self.assertTrue(statistics)
-        self.assertEqual(len(list(statistics)), 1)
-        session.close()
-        db_manager.dispose()
-        
-
+        with self.db_manager.get_session() as session:
+            migrated_vacs = session.query(dm.RawVacancy)
+            self.assertTrue(migrated_vacs)
+            self.assertGreater(len(list(migrated_vacs)), 5)
+            statistics = session.query(stat.ProcessedStatistics)
+            self.assertTrue(statistics)
+            self.assertEqual(len(list(statistics)), 1)

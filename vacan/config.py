@@ -10,8 +10,8 @@ MAXIM_NUMBER_OF_VACANCIES = 10000
 DB_ENGINE = 'mysql'
 MYSQL_USER = 'vacan'
 MYSQL_PASSWD = 'vacan'
-DB_PREFIXES = {'sqlite': 'sqlite:///',
-               'mysql': 'mysql+pymysql://{}:{}@localhost/'.format(
+DB_PREFIXES = {'sqlite': 'sqlite:/',
+               'mysql': 'mysql+pymysql://{}:{}@localhost'.format(
                     MYSQL_USER, MYSQL_PASSWD)}
 
 DB_PREFIX = DB_PREFIXES[DB_ENGINE]

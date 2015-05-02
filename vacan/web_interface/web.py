@@ -15,7 +15,7 @@ import  vacan.processor.data_model as data_model
 app = Flask(__name__)
 app.config['DB_URI'] = cfg.DB_NAME
 app.debug = True
-app.db_manager = data_model.DatabaseManager(cfg.DB_NAME) 
+app.db_manager = data_model.DBEngine(cfg.DB_NAME) 
 
 
 class StatisticsDbInterface(object):

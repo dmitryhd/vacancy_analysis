@@ -3,6 +3,13 @@
 """ Core analysis module for scientific article.
     Author: Dmitriy Khodakov <dmitryhd@gmail.com>
 """
+import re
+from collections import Counter
+
+import vacan.processor.data_model as dm
+import vacan.skills as skills
+import vacan.processor.vacancy_processor
+
 
 """ Plan for version sa0.1 (science article)
     - [X] setup tags
@@ -11,11 +18,7 @@
     - [X] make regression models Salary vs Metrics
 """
 
-import re
-from collections import Counter
 
-import vacan.processor.data_model as dm
-import vacan.skills as skills
 
 
 def analyze(dbmanager):
@@ -30,7 +33,7 @@ def analyze(dbmanager):
         if raw_vacancy.url in urls:
             continue
         urls.add(raw_vacancy.url)
-        proc_vac = dm.ProcessedVacancy(raw_vacancy, skills.SKILLS)
+        proc_vac = vacan.processor.vacancy_processor.ProcessedVacancy(raw_vacancy, skills.SKILLS)
         print(form_csv_string(proc_vac))
         processed_vacancies.append(proc_vac)
 
@@ -85,7 +88,7 @@ def analyze_tags(dbmanager):
         if raw_vacancy.url in urls:
             continue
         urls.add(raw_vacancy.url)
-        proc_vac = dm.ProcessedVacancy(raw_vacancy, skills.SKILLS)
+        proc_vac = vacan.processor.vacancy_processor.ProcessedVacancy(raw_vacancy, skills.SKILLS)
         cur_bullets = proc_vac.get_all_bullets()
         cur_words = re.findall(r'([a-z]{3,})', cur_bullets) # only latin
         cnt.update(cur_words)

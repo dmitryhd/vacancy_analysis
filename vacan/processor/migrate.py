@@ -4,7 +4,6 @@
     Author: Dmitriy Khodakov <dmitryhd@gmail.com>
     Date: 29.09.2014
 """
-
 import os
 import glob
 import subprocess
@@ -14,6 +13,7 @@ import vacan.processor.statistics as stat
 import vacan.processor.data_model as dm
 import vacan.utility as util
 import vacan.skills as skills
+import vacan.processor.vacancy_processor
 
 
 class Migrator(object):
@@ -46,7 +46,7 @@ class Migrator(object):
         raw_vacs = self.get_raw_vacs(archive_name)
         gather_time_sec = util.get_time_by_filename(archive_name)
         print('Get time: ', gather_time_sec)
-        processed_vacancies = dm.process_vacancies(raw_vacs, skills.SKILLS)
+        processed_vacancies = vacan.processor.vacancy_processor.process_vacancies(raw_vacs, skills.SKILLS)
         proc_stat = stat.ProcessedStatistics(processed_vacancies,
                                              gather_time_sec)
         print('Get time date:',  util.int_to_date(gather_time_sec))
@@ -56,7 +56,7 @@ class Migrator(object):
         return proc_stat, raw_vacs
 
     def migrate(self, archive_dir, new_db_name):
-        with dm.DatabaseManager(new_db_name, 'w') as session:
+        with dm.DBEngine(new_db_name, 'w').get_session() as session:
             for arch_name in glob.glob(archive_dir + '*.tgz'):
                 proc_stat, raw_vacs = self.process_chunk(arch_name)
                 print('Writing to new db:', len(raw_vacs), 'vacancies')
@@ -66,4 +66,3 @@ class Migrator(object):
                     session.commit()
                 session.add(proc_stat)
                 session.commit()
-            session.close()
