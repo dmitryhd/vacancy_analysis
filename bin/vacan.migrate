@@ -4,6 +4,7 @@
 
 import sys
 sys.path.append('..')
+sys.path.append('.')
 import vacan.processor.migrate as migrate
 import vacan.processor.data_model as dm
 

@@ -12,7 +12,6 @@ import  vacan.processor.data_model as data_model
 
 
 app = Flask(__name__)
-app.config['DB_URI'] = cfg.DB_NAME
 app.debug = True
 app.db_manager = data_model.DBEngine(cfg.DB_NAME)
 
@@ -142,8 +141,9 @@ def tag_view():
                            tag_name=tag_name)
 
 
-def start_server():
+def start_server(db_name=cfg.DB_NAME):
     """ Start server. """
+    app.db_manager = data_model.DBEngine(db_name)
     app.run(host='0.0.0.0', port=cfg.PORT, debug=True)
 
 

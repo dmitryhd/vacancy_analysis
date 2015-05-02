@@ -107,9 +107,9 @@ def download(site_name, db_name, num_vac):
     """ Download all offers from site and save up to num_vac to db_name. """
     logging.info('Download data from hh.ru ...')
     sparser = sp.site_parser_factory(site_name)
-    db_manager = dm.DBEngine(db_name)
+    db_manager = dm.DBEngine(db_name, mode='w')
     logging.debug('Database initialized ...')
-    with db_manager.get_session as db_session:
+    with db_manager.get_session() as db_session:
         vacs = sparser.get_all_vacancies(db_session, num_vac)
         logging.info('Download vacancies ' + str(len(vacs)) + ' ...')
         proc_vacs = process_vacancies(vacs, skills.SKILLS)

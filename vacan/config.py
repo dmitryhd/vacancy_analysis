@@ -8,8 +8,10 @@ NUMBER_OF_BINS = 20
 
 MAXIM_NUMBER_OF_VACANCIES = 10000
 DB_ENGINE = 'mysql'
-MYSQL_USER = 'vacan'
-MYSQL_PASSWD = 'vacan'
+#MYSQL_USER = 'vacan'
+#MYSQL_PASSWD = 'vacan'
+MYSQL_USER = 'root'
+MYSQL_PASSWD = '111111'
 DB_PREFIXES = {'sqlite': 'sqlite:/',
                'mysql': 'mysql+pymysql://{}:{}@localhost'.format(
                    MYSQL_USER, MYSQL_PASSWD)}

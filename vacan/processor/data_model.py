@@ -58,10 +58,12 @@ class DBEngine(object):
     def __init__(self, db_name, mode='r', dbtype='mysql'):
         self.db_name = db_name
         self.dbtype = dbtype
-        print(db_name, 'sdfvsdfv')
         if mode == 'w' and dbtype == 'mysql':
             self.create_db()
         self.engine = sqlalchemy.create_engine(self.get_url())
+        if (dbtype is not 'sqlite' and
+            not sqlfunctions.database_exists(self.engine.url)):
+            sqlfunctions.create_database(self.engine.url)
         self.sessionmaker = sqlalchemy.orm.scoped_session(
             sqlalchemy.orm.sessionmaker(
                 bind=self.engine, class_=OpenClosedSession))
