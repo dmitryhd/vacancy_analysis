@@ -4,13 +4,12 @@
 
 import time
 import re
-import os
 from datetime import datetime
 
 
 def date_to_int(date):
     """ Return int. """
-    return int((date - datetime(1970,1,1)).total_seconds())
+    return int((date - datetime(1970, 1, 1)).total_seconds())
 
 
 def int_to_date(timestamp):

@@ -2,7 +2,6 @@
 
 """ Web server in python + flask. """
 
-import os
 from flask import request, Flask, render_template, jsonify, g
 
 import vacan.config as cfg
@@ -15,10 +14,11 @@ import  vacan.processor.data_model as data_model
 app = Flask(__name__)
 app.config['DB_URI'] = cfg.DB_NAME
 app.debug = True
-app.db_manager = data_model.DBEngine(cfg.DB_NAME) 
+app.db_manager = data_model.DBEngine(cfg.DB_NAME)
 
 
-class StatisticsDbInterface(object):
+class WebDbConnector(object):
+    """ Interface used by web to database. """
     def __init__(self, db_manager):
         self.stat_db = db_manager.get_session()
 
@@ -70,16 +70,18 @@ class StatisticsDbInterface(object):
         data['sal_categories'] = [cat_val[0] for cat_val in stat_cat_val]
         data['mean_max_salary'] = [cat_val[1] for cat_val in stat_cat_val]
         data['mean_min_salary'] = [cat_val[2] for cat_val in stat_cat_val]
-        return data 
+        return data
 
     def get_max_salaries(self, date, tag_name):
+        """ Return list of max salaries. """
         stat = self.get_statistics(date)
         return stat.max_salaries[tag_name]
 
 
 @app.before_request
 def before_request():
-    g.db = StatisticsDbInterface(app.db_manager)
+    """ Connect to db before each request. """
+    g.db = WebDbConnector(app.db_manager)
 
 
 @app.route('/_get_dates')
@@ -141,8 +143,9 @@ def tag_view():
 
 
 def start_server():
+    """ Start server. """
     app.run(host='0.0.0.0', port=cfg.PORT, debug=True)
 
-        
+
 if __name__ == '__main__':
     start_server()

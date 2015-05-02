@@ -5,20 +5,15 @@
 
     Author: Dmitriy Khodakov <dmitryhd@gmail.com>
 """
-import time
 import argparse
-import sys
-import os
 import logging
 import re
 import bs4
 
-import vacan.utility as util
 import vacan.skills as skills
 import vacan.config as cfg
 import vacan.processor.site_parser as sp
 import vacan.processor.data_model as dm
-from vacan.processor.statistics import ProcessedStatistics
 import vacan.processor.statistics as stat
 from vacan.processor.data_model import RawVacancy
 
@@ -32,6 +27,7 @@ def process_vacancies_from_db(session, tags):
 
 
 def process_vacancies(raw_vacs, tags):
+    """ Return list of processed vacancies from list of raw. """
     return [ProcessedVacancy(vac, tags) for vac in raw_vacs]
 
 
@@ -53,7 +49,8 @@ class ProcessedVacancy():
             else:
                 self.tags[tag.name] = False
 
-    def get_salary(self, soup):
+    @staticmethod
+    def get_salary(soup):
         """ Get min and max salary from vacancy. """
         # TODO: extract method
         # TODO: extract data
@@ -72,13 +69,14 @@ class ProcessedVacancy():
             return min_salary, max_salary
         return None, None
 
-    def get_exp(self, soup):
+    @staticmethod
+    def get_exp(soup):
         """ Get exp. """
         res = soup.find('td', class_='l-content-colum-3 b-v-info-content')
         if not res is None:
             digits = re.search(r'(\d+).*(\d+)', res.text)
             if digits:
-                return  int(digits.groups()[0]),  int(digits.groups()[1])
+                return int(digits.groups()[0]), int(digits.groups()[1])
         return None, None
 
     def get_all_bullets(self):
@@ -133,7 +131,7 @@ def main():
     db_session.commit()
     logging.debug('Commit done.')
     db_session.close()
-    
+
 
 if __name__ == '__main__':
     main()

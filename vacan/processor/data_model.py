@@ -5,8 +5,6 @@
     Date: 29.09.2014
 """
 import datetime
-import re
-import bs4
 import sqlalchemy.ext.declarative
 from sqlalchemy.dialects.mysql import TEXT
 from sqlalchemy.schema import Column
@@ -22,7 +20,7 @@ Base = sqlalchemy.ext.declarative.declarative_base()
 
 class RawVacancy(Base):
     """ Simple unprocessed vacancy. Contains name and html page. """
-    __tablename__ = cfg.DB_VACANCIES_TABLE 
+    __tablename__ = cfg.DB_VACANCIES_TABLE
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(TEXT)
     html = Column(TEXT)
@@ -89,7 +87,7 @@ class DBEngine(object):
 
     def drop_database(self):
         """ Drop database is exists. """
-        self.dispose() 
+        self.dispose()
         if self.dbtype is not 'sqlite':
             sqlfunctions.drop_database(self.get_url())
 
@@ -97,7 +95,7 @@ class DBEngine(object):
         """ Form url for db_name. """
         if self.dbtype == 'mysql':
             return '{}/{}?charset=utf8'.format(cfg.DB_PREFIXES[self.dbtype],
-                                           self.db_name)
+                                               self.db_name)
         elif self.dbtype == 'sqlite':
             url = '{}/'.format(cfg.DB_PREFIXES[self.dbtype])
             print(url)

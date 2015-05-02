@@ -3,7 +3,6 @@
 """ Unittest file for migration from sqlite. """
 
 import unittest
-from tests import *
 
 import vacan.processor.data_model as dm
 import vacan.processor.statistics as stat
@@ -25,20 +24,20 @@ class TestMigration(unittest.TestCase):
     def test_untar(self):
         """ Migration: decompress sqlite archive. """
         migrator = migr.Migrator()
-        fname = migrator.untar_file('test_data/compr_raw_vac_ex.db.tgz')
+        fname = migrator.untar_file('tests/test_data/compr_raw_vac_ex.db.tgz')
         self.assertEqual(fname, '/tmp/vac_1426497962.db')
 
     def test_get_raw_vacs(self):
         """ Migration: get raw vacs from compressed sqlite. """
         migrator = migr.Migrator()
-        vacs = migrator.get_raw_vacs('test_data/compr_raw_vac_ex.db.tgz')
+        vacs = migrator.get_raw_vacs('tests/test_data/compr_raw_vac_ex.db.tgz')
         self.assertTrue(vacs)
         self.assertGreater(len(vacs), 5)
-    
+
     def test_migrate(self):
         """ Migration: Migrate one collection set into mysql from sqlite. """
         migrator = migr.Migrator()
-        migrator.migrate('test_data/', self.test_db)
+        migrator.migrate('tests/test_data/', self.test_db)
         with self.db_manager.get_session() as session:
             migrated_vacs = session.query(dm.RawVacancy)
             self.assertTrue(migrated_vacs)

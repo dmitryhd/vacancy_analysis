@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pylint: disable=F0401, R0921
 
 """ Here goes site specific implementation of get vacancies.
     Author: Dmitriy Khodakov <dmitryhd@gmail.com>
@@ -15,6 +14,7 @@ from vacan.processor.data_model import RawVacancy
 from vacan.config import SITE_URLS, MAXIM_NUMBER_OF_VACANCIES
 
 logging.getLogger("requests").setLevel(logging.WARNING)
+
 
 def site_parser_factory(site_name):
     """ Must return site parser proper implementation. """

@@ -3,7 +3,6 @@
 """ Unittest file for Raw vacancy and Processed vacancy. """
 import unittest
 import vacan.processor.data_model as dm
-import vacan.config as cfg
 import vacan.skills as skills
 import vacan.processor.vacancy_processor
 

@@ -7,7 +7,6 @@ import json
 
 from tests import create_fictive_database
 import vacan.web_interface.web as web
-import vacan.processor.data_model as dm
 import vacan.config as cfg
 import vacan.skills as skills
 
@@ -22,7 +21,7 @@ class TestWeb(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """ Init test app """
-        cls.test_db = create_fictive_database(cfg.DB_NAME_TEST_RAW_WEB)
+        cls.test_db = create_fictive_database()
         web.app.db_manager = cls.test_db
         cls.app = web.app.test_client()
 
@@ -76,7 +75,7 @@ class TestWeb(unittest.TestCase):
             self.assertTrue(element in index_html)
 
     def test_tag(self):
-        """ Web: Check if all elements are in page with detailed tag statistics. """
+        """ Web: Check if all elements with detailed tag statistics. """
         for tag in skills.SKILLS:
             elements = ['Lang: {}'.format(tag.title),
                         'vac_salary_hist_container',

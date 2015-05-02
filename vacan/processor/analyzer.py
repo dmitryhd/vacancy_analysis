@@ -3,22 +3,13 @@
 """ Core analysis module for scientific article.
     Author: Dmitriy Khodakov <dmitryhd@gmail.com>
 """
+
 import re
 from collections import Counter
 
 import vacan.processor.data_model as dm
 import vacan.skills as skills
 import vacan.processor.vacancy_processor
-
-
-""" Plan for version sa0.1 (science article)
-    - [X] setup tags
-    - [X] mark all vacancies with these tags
-    - [X] calculate metrics for every vacancy
-    - [X] make regression models Salary vs Metrics
-"""
-
-
 
 
 def analyze(dbmanager):
@@ -51,11 +42,10 @@ def form_csv_header():
     header = '; '.join([tag.title for tag in skills.SKILLS])
     header += '; max_sal; min_sal; max_exp; min_exp; '
     return header
-    
+
 
 def form_csv_string(proc_vac):
     """ Return csv string from given vacancy. """
-    vector = form_metric(proc_vac.tags)
     csv = '; '.join(str(xi) for xi in form_metric(proc_vac.tags))
     csv += '; '
     csv += str(proc_vac.max_salary) + '; ' if proc_vac.max_salary else 'NA;'
@@ -101,4 +91,4 @@ def analyze_tags(dbmanager):
             new_cnt.update({word: cnt[word]})
     cnt = new_cnt
     return cnt
-        
+
