@@ -17,10 +17,6 @@ DB_PREFIXES = {'sqlite': 'sqlite:/',
 DB_PREFIX = DB_PREFIXES[DB_ENGINE]
 
 DB_NAME = 'vacan'
-DB_NAME_TEST = 'vacan_t'
-DB_NAME_TEST_RAW = 'vacan_raw_t'
-DB_NAME_TEST_RAW_WEB = 'vacan_raw_test_web'
-DB_NAME_TEST_TMP = 'vacan_t_tmp'
 DB_VACANCIES_TABLE = 'vacancy'
 DB_STATISTICS_TABLE = 'statistics'
 DB_STATISTICS_LEN = 115000

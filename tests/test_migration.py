@@ -15,7 +15,7 @@ class TestMigration(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.db_manager = dm.DBEngine(cls.test_db)
+        cls.db_manager = dm.DBEngine(':memory:', 'w', 'sqlite')
 
     @classmethod
     def tearDownClass(cls):
@@ -37,7 +37,7 @@ class TestMigration(unittest.TestCase):
     def test_migrate(self):
         """ Migration: Migrate one collection set into mysql from sqlite. """
         migrator = migr.Migrator()
-        migrator.migrate('tests/test_data/', self.test_db)
+        migrator.migrate('tests/test_data/', self.db_manager)
         with self.db_manager.get_session() as session:
             migrated_vacs = session.query(dm.RawVacancy)
             self.assertTrue(migrated_vacs)

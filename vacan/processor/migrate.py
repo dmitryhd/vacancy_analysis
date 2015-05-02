@@ -58,9 +58,9 @@ class Migrator(object):
         proc_stat.calculate_all()
         return proc_stat, raw_vacs
 
-    def migrate(self, archive_dir, new_db_name):
+    def migrate(self, archive_dir, db_engine):
         """ Sets all raw vacancies from archive dir to new_db_name. """
-        with dm.DBEngine(new_db_name, 'w').get_session() as session:
+        with db_engine.get_session() as session:
             for arch_name in glob.glob(archive_dir + '*.tgz'):
                 proc_stat, raw_vacs = self.process_chunk(arch_name)
                 print('Writing to new db:', len(raw_vacs), 'vacancies')

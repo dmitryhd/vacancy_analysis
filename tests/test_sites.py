@@ -22,7 +22,7 @@ class TestSiteParser(unittest.TestCase):
     def get_vacancies_from_site(self, site_name):
         """ SiteParser: Create valid site parser, download vacancies. """
         sparser = sp.site_parser_factory(site_name)
-        db_man = dm.DBEngine(cfg.DB_NAME_TEST)
+        db_man = dm.DBEngine(':memory:', 'w', 'sqlite')
         return sparser.get_all_vacancies(db_man.get_session(),
                                          self.MAX_VAC_NUM)
 

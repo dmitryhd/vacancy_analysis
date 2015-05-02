@@ -95,11 +95,6 @@ def parse_args():
     parser.add_argument("-d", "--db_name", type=str,
                         default='',
                         help="database name")
-    parser.add_argument("-c", "--compress",
-                        help="do compression",
-                        action="store_true")
-    parser.add_argument("-p", "--process", help="run process on given db",
-                        action="store_true")
     parser.add_argument("-n", "--num_vac", help="none",
                         default=cfg.MAXIM_NUMBER_OF_VACANCIES, type=int)
     args = parser.parse_args()
@@ -108,29 +103,31 @@ def parse_args():
     return args
 
 
+def download(site_name, db_name, num_vac):
+    """ Download all offers from site and save up to num_vac to db_name. """
+    logging.info('Download data from hh.ru ...')
+    sparser = sp.site_parser_factory(site_name)
+    db_manager = dm.DBEngine(db_name)
+    logging.debug('Database initialized ...')
+    with db_manager.get_session as db_session:
+        vacs = sparser.get_all_vacancies(db_session, num_vac)
+        logging.info('Download vacancies ' + str(len(vacs)) + ' ...')
+        proc_vacs = process_vacancies(vacs, skills.SKILLS)
+        logging.debug('Vacancies processed.')
+        proc_stat = stat.ProcessedStatistics(proc_vacs)
+        proc_stat.calculate_all()
+        db_session.add(proc_stat)
+        logging.debug('Statistics done.')
+        logging.info('Saved to database.')
+        logging.debug('Commit done.')
+
+
 def main():
     """ Download vacancies from site then process them to statistics
         and plot.
     """
     args = parse_args()
-
-    logging.info('Download data from hh.ru ...')
-    sparser = sp.site_parser_factory('hh.ru')
-    db_manager = dm.DBEngine(cfg.DB_NAME)
-    logging.debug('Database initialized ...')
-    db_session = db_manager.get_session()
-    vacs = sparser.get_all_vacancies(db_session, args.num_vac)
-    logging.info('Download vacancies ' + str(len(vacs)) + ' ...')
-    proc_vacs = process_vacancies(vacs, skills.SKILLS)
-    logging.debug('Vacancies processed.')
-    proc_stat = stat.ProcessedStatistics(proc_vacs)
-    proc_stat.calculate_all()
-    db_session.add(proc_stat)
-    logging.debug('Statistics done.')
-    logging.info('Saved to database.')
-    db_session.commit()
-    logging.debug('Commit done.')
-    db_session.close()
+    download('hh.ru', args.db_name, args.num_vac)
 
 
 if __name__ == '__main__':
