@@ -4,13 +4,16 @@
 
 import time
 import re
-import os
 from datetime import datetime
 
+
 def date_to_int(date):
-    return int((date - datetime(1970,1,1)).total_seconds())
+    """ Return int. """
+    return int((date - datetime(1970, 1, 1)).total_seconds())
+
 
 def int_to_date(timestamp):
+    """ Return datetime. """
     return datetime.fromtimestamp(timestamp)
 
 
@@ -34,19 +37,6 @@ def get_time_by_filename(fname):
     else:
         seconds = int(seconds.groups()[0])
     return seconds
-
-
-def compress_database(db_name):
-    """ Create bz archive and delete sqlite database file. """
-    os.system('tar czf {} {}'.format(db_name + '.tgz', db_name))
-    os.remove(db_name)
-
-
-def uncompress_database(db_name):
-    """ Create bz archive and delete sqlite database file. """
-    os.system('tar xzf {} '.format(db_name))
-    os.remove(db_name)
-    return db_name.replace('.tgz', '')
 
 
 def create_histogram(data, bin_number):

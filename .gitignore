@@ -11,6 +11,11 @@ __pycache__/
 # C extensions
 *.so
 
+# R
+*.RData
+*.Rhistory
+*.csv
+
 # Distribution / packaging
 bin/
 build/
@@ -26,6 +31,8 @@ var/
 .installed.cfg
 *.egg
 MANIFEST
+.ropeproject*
+
 
 # Installer logs
 pip-log.txt
