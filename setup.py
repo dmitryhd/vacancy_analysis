@@ -53,7 +53,8 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=['flask', 'BeautifulSoup4', 'sqlalchemy', 'requests', 
-                      'mysql-connector-python'],
+                      'pymysql',
+                      'sqlalchemy_utils'],
     # TODO: sudo mkdir /opt/vacan/data/; chmod a+rw /opt/vacan/data/
     # TODO: yum -y install mariadb-server mariadb
     # systemctl enable mariadb
