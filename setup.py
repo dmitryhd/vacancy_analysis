@@ -8,7 +8,7 @@ import vacan
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the relevant file
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
@@ -83,10 +83,5 @@ setup(
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
-    entry_points={
-        'console_scripts': [
-            'vacan_web=vacan:start_web_server',
-            'vacan_proc=vacan:start_processor',
-        ],
-    },
+    scripts=['bin/vacan.download', 'bin/vacan.monitor'],
 )
