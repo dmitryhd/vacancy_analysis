@@ -10,6 +10,7 @@ import logging
 import re
 import bs4
 
+import vacan.utility as util
 import vacan.skills as skills
 import vacan.config as cfg
 import vacan.processor.site_parser as sp
@@ -89,20 +90,6 @@ class ProcessedVacancy():
         return out
 
 
-def parse_args():
-    """ Process command line arguments. """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--db_name", type=str,
-                        default='',
-                        help="database name")
-    parser.add_argument("-n", "--num_vac", help="none",
-                        default=cfg.MAXIM_NUMBER_OF_VACANCIES, type=int)
-    args = parser.parse_args()
-    if not args.db_name:
-        args.db_name = cfg.DB_NAME
-    return args
-
-
 def download(site_name, db_name, num_vac):
     """ Download all offers from site and save up to num_vac to db_name. """
     logging.info('Download data from hh.ru ...')
@@ -126,7 +113,7 @@ def main():
     """ Download vacancies from site then process them to statistics
         and plot.
     """
-    args = parse_args()
+    args = util.parse_args()
     download('hh.ru', args.db_name, args.num_vac)
 
 
