@@ -4,7 +4,10 @@ import sys
 sys.path.append('..')
 sys.path.append('.')
 from vacan.web_interface import web
+from vacan.processor.vacancy_processor import parse_args
+
 
 if __name__ == '__main__':
-    web.start_server()
+    args = parse_args()
+    web.start_server(args.db_name)
     

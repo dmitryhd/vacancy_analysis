@@ -1,39 +1,45 @@
+# Vacancy analysis main module. 
+# Performs kmean clustering of texts with jaccard distance
+# Then do linear model for significant features in every cluster
 
-load_dataset <- function() {
+# Authod: Dmitriy Khodakov <dmitryhd@gmail.com>
+
+library(bit)
+library(cluster)
+
+not.skill.vars <- c('max_sal', 'min_sal', 'max_exp', 'min_exp')
+added.vars <- c('clustering', 'mean_sal', 'category')
+
+show.short <- function(set) {
+  str(set, list.len=120)
+}
+
+load.dataset <- function() {
+  # Load vacancies csv file. Return dataset
   vacan <- read.csv("~/repos/vacancy_analysis/analysis_r/vacan_exp.csv", sep=";", stringsAsFactors=FALSE)
   vacan$X <- NULL
-  num_vars <- c('max_sal', 'min_sal', 'max_exp', 'min_exp')
-  for (field in num_vars) {
+  
+  for (field in not.skill.vars) {
     vacan[[field]] <- suppressWarnings(as.numeric(vacan[[field]]))
   }
-  tmp <- vacan[!names(vacan) %in% num_vars]
+  tmp <- vacan[!names(vacan) %in% not.skill.vars ]
   vacan <- vacan[rowSums(tmp) != 0,]
   vacan$min_exp[is.na(vacan$min_exp)] <- 0
   vacan$max_exp[is.na(vacan$max_exp)] <- 0
   vacan
 }
 
-make_categories <- function(vacan, bin.number) {
-  # fill NAs in salary: if min NA, set to max, if max is NA, set to min
-  vacan$min_sal[is.na(vacan$min_sal)] <- vacan$max_sal[is.na(vacan$min_sal)]
-  vacan$max_sal[is.na(vacan$max_sal)] <- vacan$min_sal[is.na(vacan$max_sal)]
-  vacan$mean_sal <- vacan$min_sal + (vacan$max_sal - vacan$min_sal)/2
-  norm_sal <- vacan$mean_sal
-  bin.size <- (max(norm_sal, na.rm=TRUE) - min(norm_sal, na.rm=TRUE) ) / bin.number
-  vacan$category <- as.integer((norm_sal -  min(norm_sal, na.rm=TRUE))/ bin.size)
-  vacan
-}
-
-jaccard_metric <- function(a, b) {
-  dist <- 1 - sum(a & b) / sum(a | b)
-  if(is.nan(dist)) {
-    dist <- 1
-  }
+jaccard.metric <- function(a, b) {
+  # Calculate distance for 2 binary vectors of words.
+  # Return number in 0, 1 interval, means that a == b
+  x <- sum(a | b)
+  if (x == 0) {return(1)}
+  dist <- 1 - sum(a & b) / x
   dist
 }
 
-get_dissimilarity_martix <- function(proc.vacan) {
-  # TODO: too long use library(bit)
+dissimilarity.martix <- function(proc.vacan, metric) {
+  # Return matrix of dissimilarity, using metric
   len <- dim(proc.vacan)[1]
   bitmap <- list()
   for (i in 1:len) {
@@ -45,10 +51,11 @@ get_dissimilarity_martix <- function(proc.vacan) {
   }
   for(row in 1:len) {
     for(col in row:len) {
-      mat[row, col] <- jaccard_metric(bitmap[[col]], bitmap[[row]])
+      mat[row, col] <- metric(bitmap[[col]], bitmap[[row]])
     }
     cat("\r", 'calc row:', row)
   }
+  cat("\r", '                               ') # clear srting
   for(row in 1:len) {
     for(col in 1:len-row) {
       if(col == 0) {next}
@@ -57,98 +64,200 @@ get_dissimilarity_martix <- function(proc.vacan) {
     cat("\r", 'fill row:', row)
   }
   mat[is.na(mat)] <- 1
-  if
-  mat[]
+  for (i in 1:len) {
+    mat[i, i] <- 0
+  }
   mat
 }
 
-get_vector <- function(x) {
-  y <- x
-  y$max_sal <- NULL
-  y$min_sal <- NULL
-  y$min_exp <- NULL
-  y$max_exp <- NULL
-  y$clust <- NULL
-  y$mean_sal <- NULL
-  y$category <- NULL
-  y
+calculate.mean.salary <- function(set) {
+  # Return set with new mean_sal field
+  set$min_sal[is.na(set$min_sal)] <- set$max_sal[is.na(set$min_sal)]
+  set$max_sal[is.na(set$max_sal)] <- set$min_sal[is.na(set$max_sal)]
+  set$mean_sal <- set$min_sal + (set$max_sal - set$min_sal)/2
+  set
 }
 
-set_score <- function(x, w, min_exp_w, max_exp_w) {
-  scores <- c()
-  for (i in 1:dim(x)[1]){
-    y <- get_vector(x[i,])
-    score <- sum(y*w) + x[i,]$min_exp * min_exp_w + x[i,]$max_exp * max_exp_w
-    scores <- c(scores, score)
+prepare.for.modelling <- function(params, train.full, cluster.number) {
+  # Prepare data for inside cluster modelling
+  # return prapared, cleared data for given current cluster number
+  cl <- train.full[train.full$clustering == cluster.number,]
+  cl <- calculate.mean.salary(cl)
+  cl$R <- NULL
+  cl$max_sal <- NULL
+  cl$min_sal <- NULL
+  cl$clustering <- NULL
+  x<-names(cl)[colMeans(cl) >= params$min.feature.occurences]
+  x <- x[!is.na(x)]
+  cl.data <- cl[x]
+  cl.data
+}
+
+linear.model <- function(params, x) {
+  # fit linear model - return model
+  fit <- lm(mean_sal ~ . , data=x)
+  pvals <- summary(fit)$coefficients[,4]
+  important.features <- names(pvals[pvals < params$max.feature.pval])
+  print(c(important.features[-1], 'mean_sal'))
+  vdata <- x[c(important.features[-1], 'mean_sal')]
+  #vdata <-x
+  fit <- lm(mean_sal ~ . , data=vdata)
+  fit
+}
+
+train.lm <- function(params, train.full) {    
+  # Return list of models by cluster number
+  models <- list()
+  for (cl.num in 1:params$k) {
+    data <- prepare.for.modelling(params, train.full, cl.num)
+    models[[cl.num]] <- linear.model(params, data)
   }
-  x$score <- scores
-  x
+  models
 }
 
-get_w <- function(cur_clust, money_weight) {
-  w <- rep(0, dim(cur_clust)[2] - 7)
-  for (cat in unique(cur_clust$category)) {
-    cur_cat <- cur_clust[cur_clust$category==cat,]
-    cur_cat <- get_vector(cur_cat)
-    cur_cat_weights <- colSums(cur_cat)
-    cur_cat_weights <- cur_cat_weights * (cat * money_weight)
-    #cat('category', cat)
-    #print(as.numeric(cur_cat_weights))
-    w <- w + cur_cat_weights
+clear.data <- function(x) {
+  # Delete not significant fields
+  for (field in c(added.vars, not.skill.vars)) {
+    x[field] <- NULL
   }
-  w
+  x$R <- NULL
+  return(x)
 }
 
-perform_experiment <- function(money_weight, min_exp_w, max_exp_w, clust.num=1, category.num=5) {
-  # CLASSIFICATION BY MONEY
-  # GETTING WEIGHTS
-  # SCORING
-  # REGRESSION
-  cur_clust <- small[small$clust == clust.num,]
-  cur_clust <- make_categories(cur_clust, category.num)
-  w <- get_w(cur_clust, money_weight)
-  #print(as.numeric(w))
-  cur_clust <- set_score(cur_clust, w, min_exp_w, max_exp_w)
-  plot(cur_clust$score, cur_clust$mean_sal, main='expriment')
-  x<-lm(cur_clust$mean_sal~cur_clust$score)
-  #print(x)
-  abline(x)
+get.diss.matrix <- function(vacan, max.row) {
+  # return diss matrix
+  vacan.strip <- clear.data(vacan)
+  train <- vacan.strip[1:max.row,]
+  mat <- dissimilarity.martix(train, jaccard.metric)
+  return (mat)
 }
 
-library(cluster)
-library(bit)
-# PREPARE DATA
-vacan <- load_dataset()
-vacan_strip <- get_vector(vacan)
+train.kmean.lm <- function(params, vacan) {
+  # Perform train
+  # With given data 
+  # 1. clusterize with kmeans and jaccard metric
+  # 2. perform linear model on data
+  # Return [cluster, models]
+  train.full <- vacan[1:params$max.row,]
+  if (params$cached.diss.mat == FALSE) {
+    diss.mat <- get.diss.matrix(train.full, params$max.row)
+  }
+  else {
+    diss.mat <- params$diss.mat
+  }
+  cat('===== diss matrix got\n')
+  # CLUSTERIZATION
+  pamx <- pam(diss.mat, k=params$k, diss=TRUE)
+  train.full$clustering <- pamx$clustering    
+  cat('===== clusterization done\n')
+  # LM
+  models <- train.lm(params, train.full)
+  cat('===== lm done\n')
+  return (list(cluster=pamx, models=models, train=train.full))
+}
 
-MAX.row <- 2000
-train <- vacan_strip[1:MAX.row,]
-train.full <- vacan[1:MAX.row,]
-diss_mat <- get_dissimilarity_martix(train)
-model <- lm(max_sal ~ . , data=cl1)
+evaluate.train.kmean.lm <- function(lmodels) {
+  # Evaluate residuals for train set
+  cluster.number <- length(lmodels)
+  residuals <- c()
+  for (cl.num in 1:cluster.number) {
+    residuals <- c(residuals, lmodels[[cl.num]]$residuals)
+  }
+  return(residuals)
+}
+train.clust.lm.k1 <- function(train) {
+  params <- list(max.row=nrow(train), k=1, min.feature.occurences=0.05,
+                 max.feature.pval=0.05, cached.diss.mat=FALSE)
+  train.res <- train.kmean.lm(params, train)
+  train.res
+}
 
-# CLUSTERIZATION
-library(cluster)
-pamx <- pam(diss_mat, k=5, diss=TRUE)
-train.full$clustering <- pamx$clustering
-cl1 <- train.full[train.full$clustering == 1,]
-model <- lm(max_sal ~ . , data=cl1)
+train.clust.lm.k5 <- function(train) {
+  params <- list(max.row=nrow(train), k=5, min.feature.occurences=0.05,
+                 max.feature.pval=0.05, cached.diss.mat=FALSE)
+  train.res <- train.kmean.lm(params, train)
+  train.res
+}
 
+train.clust.lm.k15 <- function(train) {
+  params <- list(max.row=nrow(train), k=15, min.feature.occurences=0.05,
+                 max.feature.pval=0.05, cached.diss.mat=FALSE)
+  train.res <- train.kmean.lm(params, train)
+  train.res
+}
 
+train.clust.lm.k35 <- function(train) {
+  params <- list(max.row=nrow(train), k=35, min.feature.occurences=0.05,
+                 max.feature.pval=0.05, cached.diss.mat=FALSE)
+  train.res <- train.kmean.lm(params, train)
+  train.res
+}
 
-#plot(pamx); pamx$clustering #str(small, list.len=120) #dim(small[small$clust == 1,])
-#small$clust <- pamx$clustering
-# CLASSIFICATION BY MONEY
-#perform_experiment(1, 7, 40)
+get.nearest <- function(point, train) {
+  min.dist <- 2
+  nearest.index <- 0
+  for (i in 1:length(train)) {
+    dist <- jaccard.metric(point, train[[i]])
+    if (dist < min.dist) {
+      min.dist <- dist
+      nearest.index <- i
+    }
+  }
+  nearest.index
+}
 
-#proc.vacan[rowSums(proc.vacan) != 0,]
-setwd('repos/vacancy_analysis/analysis_r/')
-model <- lm(max_sal ~ . , data=cl1)
+evaluate.test <- function(train.res, test) {
+  # SET CLUSTERS to test
+  pamx <- train.res$cluster
+  models <- train.res$models
+  train.bit <- list()
+  cleared.train <- clear.data(train.res$train)
+  for (i in 1:nrow(cleared.train)) {
+    train.bit[[i]] <- as.bit(as.integer(cleared.train[i,]))
+  }
+  clusters <- train.res$train$clustering
+  test.clusters <- c()
+  for (i in 1:nrow(test)) {
+    point <- as.bit(as.integer(clear.data(test[i,])))
+    nearest.index <- get.nearest(point, train.bit)
+    point.clust <- clusters[nearest.index]
+    test.clusters <- c(test.clusters, point.clust)
+  }
+  test$clustering <- test.clusters
+  test2 <- calculate.mean.salary(test)
+  
+  residuals <- c()
+  # evaluate model errors
+  for (i in 1:nrow(test2)) {
+    cur.clust <- test2[i,][,"clustering"]
+    coefs <- models[[cur.clust]]$coefficients
+    if (length(coefs) > 1) {
+      coefs <- coefs[names(coefs) != '(Intercept)']
+      point <- test2[names(coefs)][i,]
+      estimate <- sum(point * coefs) + models[[cur.clust]]$coefficients['(Intercept)']
+    }
+    if (length(coefs) == 1) {
+      estimate <- models[[cur.clust]]$coefficients['(Intercept)']
+    }
+    res <- as.numeric(test2[i,]$mean_sal - estimate)
+    residuals <- c(residuals, res)
+  }
+  residuals <- as.numeric(residuals)
+  residuals
+}
 
-model <- lm(max_sal ~ min_exp + max_exp + python, data=cl1)
-coef <- coefficients(model)
-row <- cl1[1,]
-row <- row[c('min_exp','max_exp','python')]
-row <- c(1, as.numeric(row))
-sal <- row %*% coef
-abs(sal - cl1[1,]$max_sal)
+# LOAD DATA
+vacan <- load.dataset()
+#diss.mat <- get.diss.matrix(vacan, params$max.row)
+
+#params <- list(max.row=2000, k=5, min.feature.occurences=0.05,
+#               max.feature.pval=0.05, cached.diss.mat=TRUE)
+#params$diss.mat <- diss.mat
+
+# Perform training and evaluationg
+#train.res <- train.kmean.lm(params, vacan)  # this might save time
+#residuals <- evaluate.train.kmean.lm(train.res[[2]])
+
+# Plot residuals
+#boxplot(residuals, horizontal = TRUE, main='Residuals')
+#abline(v=(seq(-200000,500000,10000)), col="lightgray", lty="dotted")

@@ -33,6 +33,8 @@ var/
 .installed.cfg
 *.egg
 MANIFEST
+.ropeproject*
+
 
 # Installer logs
 pip-log.txt

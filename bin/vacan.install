@@ -6,8 +6,3 @@ password=111111
 echo "CREATE USER 'vacan'@'localhost' IDENTIFIED BY 'vacan';" | mysql -u $user -p$password
 echo "GRANT ALL PRIVILEGES ON vacan . * TO 'vacan'@'localhost'" | mysql -u $user -p$password
 # test databases
-echo "GRANT ALL PRIVILEGES ON vacan_t . * TO 'vacan'@'localhost';" | mysql -u $user -p$password
-echo "GRANT ALL PRIVILEGES ON vacan_raw_t . * TO 'vacan'@'localhost';" | mysql -u $user -p$password
-echo "GRANT ALL PRIVILEGES ON vacan_t_tmp . * TO 'vacan'@'localhost';" | mysql -u $user -p$password
-echo "GRANT ALL PRIVILEGES ON vacan_raw_test_web . * TO 'vacan'@'localhost';" | mysql -u $user -p$password
-echo "GRANT ALL PRIVILEGES ON vacan_test_migrate . * TO 'vacan'@'localhost';" | mysql -u $user -p$password

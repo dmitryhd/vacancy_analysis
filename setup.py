@@ -3,6 +3,7 @@
 from setuptools import setup, find_packages  # Always prefer setuptools over distutils
 from codecs import open  # To use a consistent encoding
 from os import path
+import vacan
 
 here = path.abspath(path.dirname(__file__))
 
@@ -12,7 +13,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name = 'vacancy_analysis',
-    version = '0.4.0rc',
+    version = vacan.__version__,
     description = 'Web crawler and data analizer with web interface.'
                   'Currently used to gather information about programmer '
                   'vacancies.',
