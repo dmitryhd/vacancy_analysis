@@ -1,6 +1,16 @@
 
 Version history
 =============
+
+
+### v0.5
+    - [X] Working full mysql database in production
+    - [X] Multiple new features
+    - [X] Clear tests
+    - [X] Deploy system
+    - [X] Speedup web
+    - [X] Compression of database  - must be enabled in database engine.
+
 ### v0.4
 Reprocessing added, some issues with duplicate entry, find bug in migration
 

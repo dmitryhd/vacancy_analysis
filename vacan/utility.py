@@ -5,6 +5,8 @@
 import time
 import re
 import argparse
+import sys
+import vacan
 import vacan.config as cfg
 from datetime import datetime
 
@@ -44,6 +46,8 @@ def get_time_by_filename(fname):
 def parse_args():
     """ Process command line arguments. """
     parser = argparse.ArgumentParser()
+    parser.add_argument("-v", "--version", action='store_true', 
+                        help="print version and exit")
     parser.add_argument("-d", "--db_name", type=str,
                         default='',
                         help="database name")
@@ -54,6 +58,10 @@ def parse_args():
                         help=("Folder to search for tgz archives."
                               "Only for migration"))
     args = parser.parse_args()
+    if args.version:
+        print('Version: ', vacan.__version__, ' release date:',
+              vacan.__release_date__)
+        sys.exit(0)
     if not args.db_name:
         args.db_name = cfg.DB_NAME
     return args

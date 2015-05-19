@@ -5,11 +5,14 @@
 
 import sys
 sys.path.append('..')
+sys.path.append('.')
 from vacan.processor import analyzer
 import vacan.config as cfg
 import vacan.processor.data_model as dm
+from vacan.utility import parse_args
 
 if __name__ == '__main__':
+    args = parse_args()
     dbmanager = dm.DatabaseManager(cfg.DB_NAME)
     analyzer.analyze(dbmanager)
     
