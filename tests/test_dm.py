@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 """ Unittest file for Raw vacancy and Processed vacancy. """
+
 import unittest
 import vacan.processor.data_model as dm
 import vacan.skills as skills

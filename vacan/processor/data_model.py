@@ -2,7 +2,6 @@
 
 """ Contain database representation of all classes.
     Author: Dmitriy Khodakov <dmitryhd@gmail.com>
-    Date: 29.09.2014
 """
 import datetime
 import sqlalchemy.ext.declarative
@@ -102,43 +101,4 @@ class DBEngine(object):
             url = '{}/'.format(cfg.DB_PREFIXES[self.dbtype])
             print(url)
             return url
-
-<<<<<<< HEAD
-def create_mysql_db(db_name):
-    engine = sqlalchemy.create_engine(cfg.DB_PREFIX, echo=False)
-    # connect to server
-    try:
-        engine.execute("CREATE DATABASE IF NOT EXISTS {};".format(db_name)) 
-    except sqlalchemy.exc.DatabaseError:
-        pass
-    engine.execute("USE " + db_name)
-    return engine
-
-
-def delete_mysql_db(db_name):
-    engine = sqlalchemy.create_engine(cfg.DB_PREFIX, echo=False)
-    engine.execute('DROP DATABASE {};'.format(db_name))
-
-
-def open_db(db_name, mode='w', echo=False):
-    """ Return sqlalchemy session. Modes of operation: Read, Write [r, w]. """
-    if cfg.DB_ENGINE == 'sqlite':
-        engine = sqlalchemy.create_engine(cfg.DB_PREFIX + db_name, echo=echo)
-    else:
-        engine = create_mysql_db(db_name)
-    if mode != 'r':
-        Base.metadata.create_all(engine)
-    return sqlalchemy.orm.sessionmaker(bind=engine)()
-
-
-def process_vacancies(raw_vacs, tags):
-    return [ProcessedVacancy(vac, tags) for vac in raw_vacs]
-    
-
-def process_vacancies_from_db(session, tags):
-    """ Get list of processed vacancies from database of raw vacancies."""
-    return process_vacancies(list(session.query(RawVacancy)), tags)
-=======
->>>>>>> f335161bc93f710b9d2b1513dbefca3eb7185626
-
 
