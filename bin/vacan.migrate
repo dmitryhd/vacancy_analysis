@@ -5,10 +5,15 @@
 import sys
 sys.path.append('..')
 sys.path.append('.')
-import vacan.processor.migrate as migrate
-import vacan.processor.data_model as dm
+
+from vacan.processor.migrate import run_migration
+from vacan.utility import parse_args
+
+
+def main():
+    args = parse_args()
+    run_migration(args.folder, args.db_name)
+
 
 if __name__ == '__main__':
-    migrator = migrate.Migrator()
-    db_manager = dm.DBEngine(sys.argv[2])
-    migrator.migrate(sys.argv[1], db_manager)
+    main()

@@ -21,7 +21,7 @@ class Migrator(object):
 
     @staticmethod
     def untar_file(archive_name):
-        """ Return file descriptor of unterred db. """
+        """ Return file descriptor of untarred db. """
         os.system("tar xf " + archive_name)
         db_name = subprocess.check_output(["tar", "-tf", archive_name])
         db_name = db_name.decode('utf8')
@@ -35,24 +35,21 @@ class Migrator(object):
     def get_raw_vacs(self, archive_name):
         """ Return list of raw vacs in given archive. """
         db_name = self.untar_file(archive_name)
-        engine = sqlalchemy.create_engine('sqlite:///' + db_name, echo=False)
-        session = sqlalchemy.orm.sessionmaker(bind=engine)()
-        res = session.query(dm.RawVacancy)
-        res = list(res)
-        session.close()
-        engine.dispose()
-        print('get vacs from: ', db_name, ' number: ', len(res))
-        return list(res)
+        print(db_name)
+        with dm.DBEngine(db_name, dbtype='sqlite').get_session() as session:
+            raw_vacs = list(session.query(dm.RawVacancy))
+            session.expunge_all()
+        print('get vacs from: ', db_name, ' number: ', len(raw_vacs))
+        return raw_vacs
 
     def process_chunk(self, archive_name):
-        """ Return proc stat and raw vacs in given archive. """
+        """ Return proc stat and raw vacs for given archive. """
         raw_vacs = self.get_raw_vacs(archive_name)
         gather_time_sec = util.get_time_by_filename(archive_name)
-        print('Get time: ', gather_time_sec)
         processed_vacancies = proc.process_vacancies(raw_vacs, skills.SKILLS)
         proc_stat = stat.ProcessedStatistics(processed_vacancies,
                                              gather_time_sec)
-        print('Get time date:', util.int_to_date(gather_time_sec))
+        print('Processed from date:', util.int_to_date(gather_time_sec))
         for raw_vac in raw_vacs:
             raw_vac.date = util.int_to_date(gather_time_sec)
         proc_stat.calculate_all()
@@ -62,11 +59,27 @@ class Migrator(object):
         """ Sets all raw vacancies from archive dir to new_db_name. """
         with db_engine.get_session() as session:
             for arch_name in glob.glob(archive_dir + '*.tgz'):
+                #try:
                 proc_stat, raw_vacs = self.process_chunk(arch_name)
+                #except sqlalchemy.exc.OperationalError:
+                    # No such table.
+                #    print('no such table for {}, skip it.'.format(arch_name))
+                #    continue
                 print('Writing to new db:', len(raw_vacs), 'vacancies')
                 for raw_vac in raw_vacs:
                     raw_vac.id += util.date_to_int(raw_vac.date)
-                    session.merge(raw_vac)
-                    session.commit()
+                    try:
+                        session.merge(raw_vac)
+                        session.commit()
+                    except (sqlalchemy.exc.IntegrityError, sqlalchemy.exc.InvalidRequestError):
+                        session.rollback()
+                        print('Duplicate entry. Skip.')
                 session.add(proc_stat)
                 session.commit()
+
+
+def run_migration(folder_name, db_name):
+    """ Migrate from folder to db_name. """
+    migrator = Migrator()
+    db_manager = dm.DBEngine(db_name, mode='w')
+    migrator.migrate(folder_name, db_manager)

@@ -3,7 +3,7 @@
 """ This file contains main configuration of Data Analyzer.
 """
 
-PORT = 9999
+PORT = 80
 NUMBER_OF_BINS = 20
 
 MAXIM_NUMBER_OF_VACANCIES = 10000

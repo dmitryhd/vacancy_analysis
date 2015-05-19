@@ -8,7 +8,7 @@ import vacan
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the relevant file
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
@@ -53,7 +53,8 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=['flask', 'BeautifulSoup4', 'sqlalchemy', 'requests', 
-                      'mysql-connector-python'],
+                      'pymysql',
+                      'sqlalchemy_utils'],
     # TODO: sudo mkdir /opt/vacan/data/; chmod a+rw /opt/vacan/data/
     # TODO: yum -y install mariadb-server mariadb
     # systemctl enable mariadb
@@ -82,10 +83,5 @@ setup(
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
-    entry_points={
-        'console_scripts': [
-            'vacan_web=vacan:start_web_server',
-            'vacan_proc=vacan:start_processor',
-        ],
-    },
+    scripts=['bin/vacan.download', 'bin/vacan.monitor'],
 )

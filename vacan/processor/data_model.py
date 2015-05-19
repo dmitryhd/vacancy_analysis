@@ -49,7 +49,9 @@ class OpenClosedSession(Session):
 
     def __exit__(self, _type, value, traceback):
         """ On exit of with """
+        
         self.commit()
+
 
 
 class DBEngine(object):
@@ -98,7 +100,6 @@ class DBEngine(object):
             return '{}/{}?charset=utf8'.format(cfg.DB_PREFIXES[self.dbtype],
                                                self.db_name)
         elif self.dbtype == 'sqlite':
-            url = '{}/'.format(cfg.DB_PREFIXES[self.dbtype])
-            print(url)
+            url = '{}//{}'.format(cfg.DB_PREFIXES[self.dbtype], self.db_name)
             return url
 

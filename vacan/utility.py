@@ -4,6 +4,8 @@
 
 import time
 import re
+import argparse
+import vacan.config as cfg
 from datetime import datetime
 
 
@@ -37,6 +39,24 @@ def get_time_by_filename(fname):
     else:
         seconds = int(seconds.groups()[0])
     return seconds
+
+
+def parse_args():
+    """ Process command line arguments. """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--db_name", type=str,
+                        default='',
+                        help="database name")
+    parser.add_argument("-n", "--num_vac",
+                        help="number of offers to donwnload",
+                        default=cfg.MAXIM_NUMBER_OF_VACANCIES, type=int)
+    parser.add_argument("-f", "--folder",
+                        help=("Folder to search for tgz archives."
+                              "Only for migration"))
+    args = parser.parse_args()
+    if not args.db_name:
+        args.db_name = cfg.DB_NAME
+    return args
 
 
 def create_histogram(data, bin_number):
