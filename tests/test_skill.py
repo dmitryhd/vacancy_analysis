@@ -11,7 +11,7 @@ class TestSkill(unittest.TestCase):
 
     def test_skill_create(self):
         """ TestSkill: creation. """
-        c_skill = Skill('c', r"\bc\b")
+        c_skill = Skill('c', 'lang', r"(^|\s)c($|\s)")
         java_skill = Skill('java')
         javatext = 'i can do java'
         ctext = 'i can do c'
@@ -19,6 +19,7 @@ class TestSkill(unittest.TestCase):
         self.assertFalse(c_skill.is_present(javatext))
         self.assertTrue(java_skill.is_present(javatext))
         self.assertFalse(java_skill.is_present(ctext))
+
 
     # test for c++ jere
 
