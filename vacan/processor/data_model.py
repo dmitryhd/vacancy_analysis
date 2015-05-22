@@ -53,7 +53,6 @@ class OpenClosedSession(Session):
         self.commit()
 
 
-
 class DBEngine(object):
     """ Handle database connections. """
     def __init__(self, db_name, mode='r', dbtype='mysql'):

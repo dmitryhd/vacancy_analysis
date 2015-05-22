@@ -9,6 +9,31 @@ Current
         * separate group for languages, professions, web tech, database tech, personal traits, mobile development
         * Fix java vs javascript bug
 
+- [X] Vacancy
+    - name
+    - regexp
+    - category
+    - is_present
+
+- [ ] ProcessedVacancy:
+    - name
+    - url
+    - min max salary
+    - features: {'name': True/False}
+    - date begin
+    - date closed
+
+- [ ] Feature
+
+- [X] Qualifier
+    - generate by dict
+    - contains set of features 
+    - "analyze" by feature set sets features of procvac
+    - get_salary
+    - get_experience
+
+* get vacancy skill by f
+
 Future
 ===========
         * add recommender system
