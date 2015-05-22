@@ -3,6 +3,7 @@ vacancy_analysis/common/stat.db
 
 # Backup files
 *.~
+.ipynb_checkpoints
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
