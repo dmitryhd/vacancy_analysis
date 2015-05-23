@@ -49,6 +49,17 @@ class ProcessedVacancy(object):
         self.max_exp = max_exp
         self.features = {}
 
+    def feature_str(self):
+        """ return string: 10110101 of sorted features """
+        feature_int = [str(int(self.features[feature])) for feature in
+                       sorted(self.features.keys())]
+        return ''.join(feature_int)
+
+    def __repr__(self):
+        return '{:40}\nsalary:{:5}-{:5} exp:{:4}-{:4}\nfeatures:{}'.format(
+            self.name, self.min_sal, self.max_sal, self.min_exp, self.max_sal,
+            self.feature_str())
+
 
 class VacancyProcessor(object):
     """ VacancyProcessor: process ProcessedVacancy from RawVacancy. """
