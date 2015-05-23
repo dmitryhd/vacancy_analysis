@@ -69,7 +69,6 @@ class SiteParserHH(SiteParser):
     # TODO: parametrize this
     VACANCY_LINK_TAG = 'search-result-item__head'
 
-
     def get_vacancy(self, name='', html='', url=''):
         """ Get base vacancy by name and html code of page. """
         new_html = ''

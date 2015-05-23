@@ -102,3 +102,14 @@ class DBEngine(object):
             url = '{}//{}'.format(cfg.DB_PREFIXES[self.dbtype], self.db_name)
             return url
 
+
+class DBManager(object):
+    """ DBManager: . """
+    def __init__(self, db_name, dbtype='mysql'):
+        self.db_name = db_name
+        self.dbengine = DBEngine(db_name, dbtype)
+
+    def get_raw_vacs(self):
+        """ Return list of raw vacancies from database. """
+        with self.dbengine.get_session() as session:
+            return list(session.query(RawVacancy))
