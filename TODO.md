@@ -52,6 +52,27 @@ get_raw_vacs()
 
 * get vacancy skill by f
 
+Database optimisation:
+--------
+### New struct
+We have only 100mb free memory left, need to do smthing.
+
+new database for vacancy must contain begin_date, cur_date, ended = False
+
+when check vacancies:
+    for vac in vacs:
+        if vac.url in db.urls:
+            db[url].ended = False
+            db[url].cur_date = now
+
+??
+clear closed:
+    db[url]. = now
+
+### Compression
+https://dev.mysql.com/doc/refman/5.6/en/innodb-compression-usage.html
+or https://dev.mysql.com/doc/refman/5.1/en/encryption-functions.html
+
 Future
 ===========
         * add recommender system

@@ -3,8 +3,9 @@
 """ This file contains main configuration of Data Analyzer.
 """
 
-PORT = 80
+PORT = 8080
 NUMBER_OF_BINS = 20
+WEB_DEBUG = True
 
 MAXIM_NUMBER_OF_VACANCIES = 10000
 DB_ENGINE = 'mysql'
@@ -18,7 +19,7 @@ DB_PREFIXES = {'sqlite': 'sqlite:/',
 
 DB_PREFIX = DB_PREFIXES[DB_ENGINE]
 
-DB_NAME = 'vacan'
+DB_NAME = 'vacan_2015_05_09'
 DB_VACANCIES_TABLE = 'vacancy'
 DB_STATISTICS_TABLE = 'statistics'
 DB_STATISTICS_LEN = 115000
