@@ -4,13 +4,16 @@ Current
 ### v0.6rc
 - [ ] Tag system with support of
     * mutiple keywords for tag
-    * regexp for tag
-    * groups of tags
-    * separate group for languages, professions, web tech, database tech, personal traits, mobile development
-    * Fix java vs javascript bug
+    * X regexp for tag
+    * X groups of tags
+    * X separate group for languages, professions, web tech, database tech, personal traits, mobile development
+    * X Fix java vs javascript bug
 
-- [ ] Get set of Processed vacancys by VacancyProcessor
+- [X] Get set of Processed vacancys by VacancyProcessor
+- [X] Able to get subset of all vacancies with specific tags in notebook
+- [X] Plot boxplots of subset in notebook
 
+### Classes
 - [X] Feature
 name
 regexp
@@ -46,11 +49,8 @@ get_experience
 - *DBManager*
 db_name
 dbengine
-
 get_raw_vacs()
 
-
-* get vacancy skill by f
 
 Database optimisation:
 --------

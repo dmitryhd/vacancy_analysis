@@ -47,7 +47,7 @@ class ProcessedVacancy(object):
         self.max_sal = max_sal
         self.min_exp = min_exp
         self.max_exp = max_exp
-        self.features = {}
+        self.features = {}  # {'tagname': True}
 
     def feature_str(self):
         """ return string: 10110101 of sorted features """
@@ -55,10 +55,39 @@ class ProcessedVacancy(object):
                        sorted(self.features.keys())]
         return ''.join(feature_int)
 
+    def human_readable_features(self):
+        """ Return features as list of aphabetically sorted string. """
+        tag_name_list = [feature for feature in self.features
+                         if self.features[feature]]
+        if tag_name_list:
+            return ', '.join(sorted(tag_name_list))
+        else:
+            return ''
+
     def __repr__(self):
-        return '{:40}\nsalary:{:5}-{:5} exp:{:4}-{:4}\nfeatures:{}'.format(
-            self.name, self.min_sal, self.max_sal, self.min_exp, self.max_sal,
-            self.feature_str())
+        return '{:40}\nsalary:{:5}-{:5} exp:{:4}-{:4}\nfeatures:{}\n'.format(
+            self.name, str(self.min_sal), str(self.max_sal), str(self.min_exp), str(self.max_sal),
+            self.human_readable_features())
+
+
+class Stat(object):
+    """docstring for Stat"""
+    def __init__(self, proc_vacs):
+        self.proc_vacs = proc_vacs
+
+    def subset(self, feature_names):
+        """ return subset """
+        proc_vac_subset = []
+        for vac in self.proc_vacs:
+            is_proc_vac_valid = True
+            for feature in feature_names:
+                if not vac.features[feature]:
+                    is_proc_vac_valid = False
+                    break
+            if is_proc_vac_valid:
+                proc_vac_subset.append(vac)
+        return proc_vac_subset
+        
 
 
 class VacancyProcessor(object):
