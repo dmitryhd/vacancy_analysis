@@ -2,6 +2,7 @@ Current
 ==========
 
 ### v0.6rc
+
 - [ ] Tag system with support of
     * mutiple keywords for tag
     * X regexp for tag
@@ -12,6 +13,8 @@ Current
 - [X] Get set of Processed vacancys by VacancyProcessor
 - [X] Able to get subset of all vacancies with specific tags in notebook
 - [X] Plot boxplots of subset in notebook
+# bugs
+- [X] invalid html result in no html saved
 
 ### Classes
 - [X] Feature

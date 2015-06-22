@@ -37,7 +37,7 @@ class ProcessedVacancy():
     def __init__(self, vacancy, tags):
         """ Generate processed vacancy from vacancy. """
         self.name = vacancy.name
-        soup = bs4.BeautifulSoup(vacancy.html)
+        soup = bs4.BeautifulSoup(vacancy.html, "html.parser")
         self.soup = soup
         text = soup.get_text()
         self.min_salary, self.max_salary = self.get_salary(soup)

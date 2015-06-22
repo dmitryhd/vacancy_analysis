@@ -46,7 +46,7 @@ class SiteParser(object):
     @staticmethod
     def _sanitize_html(html):
         """ Return soup without javascript and styles. """
-        soup = bs4.BeautifulSoup(html)
+        soup = bs4.BeautifulSoup(html, "html.parser")
         for js_element in soup('script'):
             js_element.extract()
         for style_element in soup('style'):
@@ -61,6 +61,9 @@ class SiteParser(object):
             res = soup.find(tag_name, class_=tag_class)
             if res:
                 new_html += res.decode()
+        # TODO: look here
+        if not new_html:
+            new_html = html
         return new_html
 
 
@@ -85,7 +88,7 @@ class SiteParserHH(SiteParser):
     def get_vacancies_on_page(self, url, vacancies, session, maximum_vac):
         """ Download all vacancies from page and return link to next page. """
         page = self.get_url(url)
-        soup = bs4.BeautifulSoup(page)
+        soup = bs4.BeautifulSoup(page, "html.parser")
         for vacancy in soup.find_all('div', class_=self.VACANCY_LINK_TAG):
             name = str(vacancy.string)
             if name is not None:
@@ -144,7 +147,7 @@ class SiteParserSJ(SiteParser):
             raise ValueError('should give html or url.')
         new_html = self._compose_vacancy(html)
         if not name:
-            soup = bs4.BeautifulSoup(html)
+            soup = bs4.BeautifulSoup(html, "html.parser")
             res = soup.find(self.vac_name_tags[0], self.vac_name_tags[1])
             if res:
                 name = res.text
@@ -155,7 +158,7 @@ class SiteParserSJ(SiteParser):
     def get_vacancies_on_page(self, url, vacancies, session, maximum_vac):
         """ Download all vacancies from page and return link to next page. """
         page = self.get_url(url)
-        soup = bs4.BeautifulSoup(page)
+        soup = bs4.BeautifulSoup(page, "html.parser")
         for link_to_vac in soup.find_all('a', class_='vacancy-url'):
             link = link_to_vac.attrs["href"]
             vacancy_html = self.get_url(link)

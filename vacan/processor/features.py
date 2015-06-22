@@ -148,4 +148,4 @@ class VacancyProcessor(object):
 
     @staticmethod
     def _get_soup(text):
-        return bs4.BeautifulSoup(text)
+        return bs4.BeautifulSoup(text, "html.parser")

@@ -41,7 +41,8 @@ class TestSiteParser(unittest.TestCase):
         test_input = [TEST_DATA_DIR + 'test_vac_sj_01.html']
         for file_name in test_input:
             with open(file_name) as testfd:
-                test_vac = parser.get_vacancy(html=testfd.read())
+                html_orig = testfd.read()
+                test_vac = parser.get_vacancy(html=html_orig)
                 self.assertTrue(test_vac.name)
                 self.assertNotEqual(test_vac.name, 'cant parse')
                 self.assertTrue(test_vac.html)
