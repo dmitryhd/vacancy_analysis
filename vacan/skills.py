@@ -107,4 +107,8 @@ SKILLS = [Skill('c++', 'c++', 'cpp'),
           Skill('web', 'web', 'web'),
           Skill('xml', 'xml', 'xml'),
           Skill('zabbix', 'zabbix', 'zabbix')]
+
 TAG_NAMES = [tag.name for tag in SKILLS]
+CATEGORIES = {
+    'languages': ['c++', 'java', 'python', 'bash', 'perl', 'javascript', 'php', '1c', 'c#', 'basic', 'lisp', 'go', 'matlab', 'pascal'],
+}

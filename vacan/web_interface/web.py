@@ -49,8 +49,10 @@ class WebDbConnector(object):
             Return dict with keys: 'labels' and 'values'
         """
         stat = self.get_statistics(date)
-        stat_cat_val = zip(skills.TAG_NAMES,
-                           [stat.num_of_vacancies[cat] for cat in skills.TAG_NAMES])
+        name_list = skills.CATEGORIES['languages']
+        print(name_list)
+        stat_cat_val = zip(name_list,
+                           [stat.num_of_vacancies[cat] for cat in name_list])
         stat_cat_val = list(stat_cat_val)
         stat_cat_val.sort(key=lambda cat_val: cat_val[1], reverse=True)  # by val
         labels_values = {}
@@ -61,15 +63,16 @@ class WebDbConnector(object):
     def get_vac_salary(self, date):
         """ Get mean min and max of vacancies from statistics. """
         stat = self.get_statistics(date)
-        stat_cat_val = zip(skills.TAG_NAMES,
-                           [stat.mean_max_salary[cat] for cat in skills.TAG_NAMES],
-                           [stat.mean_min_salary[cat] for cat in skills.TAG_NAMES])
+        name_list = skills.CATEGORIES['languages']
+        stat_cat_val = zip(name_list,
+                           [stat.mean_max_salary[cat] for cat in name_list],
+                           [stat.mean_min_salary[cat] for cat in name_list])
         stat_cat_val = list(stat_cat_val)
         stat_cat_val.sort(key=lambda cat_val: cat_val[1], reverse=True)  # by val
         data = {}
         data['sal_categories'] = [cat_val[0] for cat_val in stat_cat_val]
-        data['mean_max_salary'] = [cat_val[1] for cat_val in stat_cat_val]
-        data['mean_min_salary'] = [cat_val[2] for cat_val in stat_cat_val]
+        data['mean_max_salary'] = [round(cat_val[1], -3) for cat_val in stat_cat_val]
+        data['mean_min_salary'] = [round(cat_val[2], -3) for cat_val in stat_cat_val]
         return data
 
     def get_max_salaries(self, date, tag_name):
@@ -130,6 +133,7 @@ def get_tag_histogram_json():
 @app.route('/')
 def index():
     """ Show general statisics. """
+    # TODO: if we get sqlalchemy.exc.ProgrammingError - show message
     return render_template('gallery.html',
                            dates=g.db.get_timestamps_and_dates(),
                            tags=skills.TAG_NAMES)

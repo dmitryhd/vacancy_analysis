@@ -70,10 +70,10 @@ class ProcessedStatistics(Base):
         max_salaries = {}
         min_salaries = {}
         for tag in tags:
-            max_salaries[tag.name] = [pvac.max_salary for pvac in
+            max_salaries[tag.name] = [round(pvac.max_salary, -3) for pvac in
                                       self.proc_vac if pvac.max_salary and
                                       pvac.tags[tag.name] == True]
-            min_salaries[tag.name] = [pvac.min_salary for pvac in
+            min_salaries[tag.name] = [round(pvac.min_salary, -3) for pvac in
                                       self.proc_vac if pvac.min_salary and
                                       pvac.tags[tag.name] == True]
         self.max_salaries = max_salaries
@@ -97,7 +97,7 @@ class ProcessedStatistics(Base):
                             salary_param_name)
             for tag_name in salary_by_tag.keys():
                 cnt, sum_salary = salary_by_tag[tag_name]
-                salary_by_tag[tag_name] = sum_salary / cnt if cnt else 0
+                salary_by_tag[tag_name] = round(sum_salary / cnt, -3) if cnt else 0
             return salary_by_tag
 
         self.mean_max_salary = get_mean_salary(self, tags, 'max_salary')

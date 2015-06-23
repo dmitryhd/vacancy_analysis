@@ -10,11 +10,14 @@ Current
     * X separate group for languages, professions, web tech, database tech, personal traits, mobile development
     * X Fix java vs javascript bug
 
+- [X] Show only languages
+- [X] Show rounded data
 - [X] Get set of Processed vacancys by VacancyProcessor
 - [X] Able to get subset of all vacancies with specific tags in notebook
 - [X] Plot boxplots of subset in notebook
 # bugs
 - [X] invalid html result in no html saved
+- [ ] if we have no db - show message
 
 ### Classes
 - [X] Feature
