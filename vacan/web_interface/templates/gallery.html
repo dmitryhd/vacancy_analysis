@@ -14,6 +14,7 @@
 <div class='pagecenter'>
     <header><h1>Статистика по вакансиям hh.ru</h1></header>
     <main>
+        <aside>
         <div class='right dates'>
             Данные: </br>
             {% for timestamp, human_date in dates %}
@@ -26,6 +27,7 @@
             <a class='date_link' href="/tag/?tag={{tag|safe}}"> {{tag}} </a> <br>
             {% endfor %}
         </div>
+        </aside>
         <article>
             <h1 id="date_s"></h1>
 
