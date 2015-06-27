@@ -2,7 +2,7 @@ Current
 ==========
 
 ### v0.6rc
-
+release date 2015.07.31 - fr
 - [ ] Tag system with support of
     * mutiple keywords for tag
     * X regexp for tag
@@ -10,11 +10,22 @@ Current
     * X separate group for languages, professions, web tech, database tech, personal traits, mobile development
     * X Fix java vs javascript bug
 
-- [X] Show only languages
+- [X] Show only languages in web
 - [X] Show rounded data
 - [X] Get set of Processed vacancys by VacancyProcessor
 - [X] Able to get subset of all vacancies with specific tags in notebook
 - [X] Plot boxplots of subset in notebook
+- [ ] 2 views:
+    - [X] for individual date overall and for tag
+    - [ ] for all dates and individual vacancies and for tag 
+- [ ] massive refactoring
+    - [ ] delete old code in R
+    - [ ] delete old code for statistics
+    - [ ] documentation for information tables
+    - [ ] rewrite interface for web
+    - [ ] support of python docs
+    
+- [ ] autocomplete for markdown
 # bugs
 - [X] invalid html result in no html saved
 - [ ] if we have no db - show message

@@ -4,7 +4,6 @@
 
 """ Contain entry representation of statistics entry.
     Author: Dmitriy Khodakov <dmitryhd@gmail.com>
-    Date: 29.09.2014
 """
 
 import json
