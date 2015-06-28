@@ -49,7 +49,15 @@ $(function() {
             $('#vac_number_container').highcharts({
                 chart: { type: 'bar'},
                 plotOptions: {
-                    series: {animation: {duration: 100}}
+                    series: {animation: {duration: 100}},
+                bar: {
+                    dataLabels: {
+                        enabled: true
+                    }
+                },
+                },
+                credits: {
+                    enabled: false
                 },
                 title: {text: 'Количество вакансий по языку'},
                 xAxis: {categories: data.vac_num_categories },
@@ -61,7 +69,17 @@ $(function() {
             });
             $('#vac_salary_container').highcharts({
                 chart: { type: 'bar' },
-                plotOptions: { series: { animation: { duration: 100 } } },
+                credits: {
+                    enabled: false
+                },
+                plotOptions: { series: { animation: { duration: 100 } },
+                    bar: {
+                        dataLabels: {
+                            enabled: true
+                        }
+                    },
+                
+                },
                 title: { text: 'Зарплата' },
                 xAxis: { categories: data.sal_categories },
                 yAxis: { title: { text: 'Количество вакансий по языку' } },

@@ -24,6 +24,7 @@ release date 2015.07.31 - fr
     - [ ] documentation for information tables
     - [ ] rewrite interface for web
     - [ ] support of python docs
+- [X] improve graphics
     
 - [ ] autocomplete for markdown
 # bugs
