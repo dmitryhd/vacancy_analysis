@@ -70,7 +70,20 @@ $(function() {
                 },
                 series: [{
                     name: 'Количество вакансий',
-                    data: data.counts
+                    data: data.counts,
+            dataLabels: {
+                enabled: true,
+            color: '#FFFFFF',
+            align: 'right',
+            format: '{point.y:f}', // one decimal
+            y: 30, // 10 pixels down from the top
+            x: -15,
+            style: {
+                fontSize: '13px',
+                fontFamily: 'Verdana, sans-serif'
+            }
+            },
+
                 }]
 
             })
