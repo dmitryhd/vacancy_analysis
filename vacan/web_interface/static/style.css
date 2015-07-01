@@ -6,6 +6,9 @@ header {
     text-align: center;
 }
 
+h2, h3, h4, h5, h6 {font-size: 20px; margin: 0; }
+h1 { font-size: 20px; margin-bottom: 10px; }
+
 header h1 {
     font-size: 20px;
     text-shadow: 2px 2px #eee;
@@ -50,7 +53,7 @@ main h1 {
 }
 
 #vac_number_container,#vac_salary_container {
-    height: 550px;
+    height: 700px;
     margin-bottom: 50px;
 }
 

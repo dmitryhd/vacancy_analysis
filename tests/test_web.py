@@ -69,10 +69,10 @@ class TestWeb(unittest.TestCase):
     def test_index(self):
         """ Web: Check if all elements are in main page. """
         elements = ['vac_number_container',
-                    'vac_salary_container', 'Данные:', 'Теги:']
+                    'vac_salary_container', 'Данные', 'Теги']
         index_html = self.get_html('/')
         for element in elements:
-            self.assertTrue(element in index_html)
+            self.assertTrue(element in index_html, element)
 
     def test_tag(self):
         """ Web: Check if all elements with detailed tag statistics. """

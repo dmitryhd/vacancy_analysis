@@ -70,18 +70,20 @@ def parse_args():
 def create_histogram(data, bin_number):
     """ Create histogram data: return labels and counters. """
     bottom = min(data)
-    bin_size = (max(data) - bottom) / bin_number
+    #bin_size = (max(data) - bottom) / bin_number
+    bin_size = 10000
+    bin_number = int((max(data) - min(data)) / bin_size) + 1
     counts = [0] * bin_number
     for sal in data:
         for bin_num in range(bin_number):
-            bin_edge = bottom + (bin_num + 1) * bin_size
+            bin_edge = (bin_num + 1) * bin_size
             if sal < round_to_thousands(bin_edge):
                 counts[bin_num] += 1
                 break
     labels = []
     for bin_num in range(bin_number):
-        bin_edge_bot = bottom + (bin_num) * bin_size
-        bin_edge_top = bottom + (bin_num + 1) * bin_size
+        bin_edge_bot = (bin_num) * bin_size
+        bin_edge_top = (bin_num + 1) * bin_size
         labels.append('от {} до {}'.format(round_to_thousands(bin_edge_bot),
                                            round_to_thousands(bin_edge_top)))
     return labels, counts

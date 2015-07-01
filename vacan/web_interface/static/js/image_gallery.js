@@ -50,11 +50,11 @@ $(function() {
                 chart: { type: 'bar'},
                 plotOptions: {
                     series: {animation: {duration: 100}},
-                bar: {
-                    dataLabels: {
-                        enabled: true
-                    }
-                },
+                    bar: {
+                        dataLabels: {
+                            enabled: true
+                        }
+                    },
                 },
                 credits: {
                     enabled: false
@@ -72,7 +72,8 @@ $(function() {
                 credits: {
                     enabled: false
                 },
-                plotOptions: { series: { animation: { duration: 100 } },
+                plotOptions: { 
+                    series: { animation: { duration: 100 } },
                     bar: {
                         dataLabels: {
                             enabled: true

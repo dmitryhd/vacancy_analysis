@@ -16,13 +16,13 @@
     <main>
         <aside>
         <div class='right dates'>
-            Данные: </br>
+            <h2>Данные</h2>
             {% for timestamp, human_date in dates %}
             <a class='date_link' href="/?timestamp={{timestamp}}"> {{human_date}} </a> <br>
             {% endfor %}
         </div>
         <div class='right tags'>
-            Теги: </br>
+            <h2>Теги</h2>
             {% for tag in tags %}
             <a class='date_link' href="/tag/?tag={{tag|safe}}"> {{tag}} </a> <br>
             {% endfor %}
@@ -30,13 +30,12 @@
         </aside>
         <article>
             <h1 id="date_s"></h1>
-
-            <div id="chart_container">
+            <fig id="chart_container">
                 <div id="vac_salary_container"></div>
-            </div>
-            <div id="chart_container">
+            </fig>
+            <fig id="chart_container">
                 <div id="vac_number_container"></div>
-            </div>
+            </fig>
             <div class='plot_info'>
                 <div class="plot_info_item" id="cnt"></div>
                 <div class="plot_info_item" id="date"></div>
