@@ -3,7 +3,7 @@
 """ This file contains main configuration of Data Analyzer.
 """
 
-PORT = 80
+PORT = 8080
 NUMBER_OF_BINS = 20
 WEB_DEBUG = True
 
