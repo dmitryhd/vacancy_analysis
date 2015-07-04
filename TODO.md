@@ -25,8 +25,7 @@ release date 2015.07.31 - fr
     - [ ] rewrite interface for web
     - [ ] support of python docs
 - [X] improve graphics
-    
-- [ ] autocomplete for markdown
+- [X] autocomplete for markdown
 # bugs
 - [X] invalid html result in no html saved
 - [ ] if we have no db - show message

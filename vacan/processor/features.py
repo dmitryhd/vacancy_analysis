@@ -28,9 +28,12 @@ class Qualifier(object):
                 self.features[name] = Feature(name, category, regexp)
 
     def normalize(self, text):
+        """ Return normalized text. """
         return text.lower()
 
     def analyze(self, text):
+        """ Return text features as dictionary. {feature.name: bool is_present}.
+        """
         norm_text = self.normalize(text)
         text_features = {}
         for feature in self.features.values():
@@ -47,7 +50,7 @@ class ProcessedVacancy(object):
         self.max_sal = max_sal
         self.min_exp = min_exp
         self.max_exp = max_exp
-        self.features = {}  # {'tagname': True}
+        self.features = {}  # {'feature name': bool is present.}
 
     def feature_str(self):
         """ return string: 10110101 of sorted features """
@@ -72,12 +75,12 @@ class ProcessedVacancy(object):
 
 
 class Stat(object):
-    """ Statistics, which can be subsetted."""
+    """ Statistics, which contain processed vacancies. Can be subsetted. """
     def __init__(self, proc_vacs):
         self.proc_vacs = proc_vacs
 
     def subset(self, feature_names):
-        """ return subset """
+        """ Return subset by feature names. """
         proc_vac_subset = []
         for vac in self.proc_vacs:
             is_proc_vac_valid = True
@@ -88,7 +91,6 @@ class Stat(object):
             if is_proc_vac_valid:
                 proc_vac_subset.append(vac)
         return proc_vac_subset
-        
 
 
 class VacancyProcessor(object):
