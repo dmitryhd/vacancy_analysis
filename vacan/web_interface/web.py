@@ -3,6 +3,7 @@
 """ Web server in python + flask. """
 
 from flask import request, Flask, render_template, jsonify, g
+from flask_restful import Resource, Api
 
 import vacan.config as cfg
 from vacan.processor.statistics import ProcessedStatistics
@@ -10,10 +11,24 @@ from vacan.utility import format_timestamp, create_histogram
 import vacan.skills as skills
 import  vacan.processor.data_model as data_model
 
-
 app = Flask(__name__)
 app.debug = cfg.WEB_DEBUG
 app.db_manager = data_model.DBEngine(cfg.DB_NAME)
+api = Api(app)
+
+"""
+'/api/overall/stat/': dates:list, vac_num, vac_salary,
+'/api/overall/feature/<str:feature_name>': histograms
+'/api/date/stat/<int:timestamp>': dates:list, vac_num, vac_salary,
+'/api/date/feature/<str:feature_name>/<int:timestamp>/': histogram
+"""
+
+class Stat(Resource):
+    def get(self):
+        """ Return statistics for specific date. """
+        return {'a': 'b'}
+
+api.add_resource(Stat, '/api/overall/stat/')
 
 
 class WebDbConnector(object):
