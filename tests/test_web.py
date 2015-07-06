@@ -87,6 +87,7 @@ class TestWeb(unittest.TestCase):
             for element in elements:
                 self.assertTrue(element in index_html)
 
+
 class TestREST(unittest.TestCase):
     """ Basic RESTful API. """
     TEST_STAT_DB_DATE = 10000000 # this date must be in STAT_DB
@@ -115,7 +116,7 @@ class TestREST(unittest.TestCase):
         data_text = self.get_html(url)
         return json.loads(data_text)
 
-    def test_get_dates(self):
-        """ TestREST: date statistic. """
+    def test_date_statistics(self):
+        """ TestREST: date statistic11. """
         url = '/api/overall/stat/'
         self.assertTrue(self.get_json(url)['a'])
