@@ -16,5 +16,4 @@ This is just fun site project for practicing some new programming techniques, do
 
 Class diagram
 ================
-![](https://github.com/dmitryhd/vacancy_analysis/tree/analysis/project/development_doc/vacan_class_diagram.png)
-
+![](https://raw.githubusercontent.com/dmitryhd/vacancy_analysis/analysis/project/development_doc/vacan_class_diagram.png)
