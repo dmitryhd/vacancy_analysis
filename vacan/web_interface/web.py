@@ -18,6 +18,7 @@ app.db_manager = data_model.DBEngine(cfg.DB_NAME)
 
 class WebDbConnector(object):
     """ Interface used by web to database. """
+    # TODO: refactor this
     def __init__(self, db_manager):
         self.stat_db = db_manager.get_session()
 
@@ -129,7 +130,8 @@ def get_tag_histogram_json():
 @app.route('/')
 def index():
     """ Show general statisics. """
-    return render_template('gallery.html', dates=g.db.get_timestamps_and_dates(),
+    return render_template('gallery.html',
+                           dates=g.db.get_timestamps_and_dates(),
                            tags=skills.TAG_NAMES)
 
 

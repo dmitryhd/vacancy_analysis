@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 """ Database migration from sqlite to mysql helper class.
+    TODO: this module is kinda deprecated.
     Author: Dmitriy Khodakov <dmitryhd@gmail.com>
-    Date: 29.09.2014
 """
 import os
 import glob

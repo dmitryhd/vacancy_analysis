@@ -7,7 +7,7 @@ import bs4
 
 
 class Feature(object):
-    """  """
+    """ Represent skill. """
     def __init__(self, name, category='', regexp=None):
         self.name = name
         self.regexp = regexp if regexp else r'(^|\s){}($|\s)'.format(name)
@@ -18,7 +18,7 @@ class Feature(object):
         
 
 class Qualifier(object):
-    """ """
+    """ Generate Features from text of vacancy. """
     def __init__(self, feature_dict):
         """ Feature dict formed as follows: {'category': {'feature1': regexp}}
         """
@@ -66,12 +66,13 @@ class ProcessedVacancy(object):
 
     def __repr__(self):
         return '{:40}\nsalary:{:5}-{:5} exp:{:4}-{:4}\nfeatures:{}\n'.format(
-            self.name, str(self.min_sal), str(self.max_sal), str(self.min_exp), str(self.max_sal),
+            self.name, str(self.min_sal), str(self.max_sal), str(self.min_exp),
+            str(self.max_sal),
             self.human_readable_features())
 
 
 class Stat(object):
-    """docstring for Stat"""
+    """ Statistics, which can be subsetted."""
     def __init__(self, proc_vacs):
         self.proc_vacs = proc_vacs
 

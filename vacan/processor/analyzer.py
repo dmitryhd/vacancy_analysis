@@ -18,19 +18,18 @@ def analyze(dbmanager):
     raw_vacancies = session.query(dm.RawVacancy).all()
     processed_vacancies = []
     urls = set()
-    print(form_csv_header())
     for raw_vacancy in raw_vacancies:
         # not adding duplicate vacancies, unique by url
         if raw_vacancy.url in urls:
             continue
         urls.add(raw_vacancy.url)
-        proc_vac = vacan.processor.vacancy_processor.ProcessedVacancy(raw_vacancy, skills.SKILLS)
-        print(form_csv_string(proc_vac))
+        proc_vac = vacan.processor.vacancy_processor.ProcessedVacancy(
+            raw_vacancy, skills.SKILLS)
         processed_vacancies.append(proc_vac)
 
 
 def form_metric(tags):
-    """ Return vector of vacancy. """
+    """ Return vector of vacancies metrics. """
     vector = []
     for tag in skills.SKILLS:
         vector.append(int(tags[tag.name]))
@@ -78,7 +77,8 @@ def analyze_tags(dbmanager):
         if raw_vacancy.url in urls:
             continue
         urls.add(raw_vacancy.url)
-        proc_vac = vacan.processor.vacancy_processor.ProcessedVacancy(raw_vacancy, skills.SKILLS)
+        proc_vac = vacan.processor.vacancy_processor.ProcessedVacancy(
+            raw_vacancy, skills.SKILLS)
         cur_bullets = proc_vac.get_all_bullets()
         cur_words = re.findall(r'([a-z]{3,})', cur_bullets) # only latin
         cnt.update(cur_words)

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 """ Here goes site specific implementation of get vacancies.
+    TODO: this module need to be refactored.
     Author: Dmitriy Khodakov <dmitryhd@gmail.com>
-    Date: 29.09.2014
 """
 
 import bs4
@@ -128,6 +128,7 @@ class SiteParserHH(SiteParser):
 
 class SiteParserSJ(SiteParser):
     """ Implementation of Head hunter parser. """
+    # TODO Refactor this.
     # RawVacancy tag->class, which contains main body.
     vacancy_body_tags = (('div', 'VacancyView_details'),
                          ('div', 'VacancyView_salary'),

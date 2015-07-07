@@ -49,7 +49,6 @@ class OpenClosedSession(Session):
 
     def __exit__(self, _type, value, traceback):
         """ On exit of with """
-        
         self.commit()
 
 
@@ -104,7 +103,7 @@ class DBEngine(object):
 
 
 class DBManager(object):
-    """ DBManager: . """
+    """ DBManager TODO: add description. """
     def __init__(self, db_name, dbtype='mysql'):
         self.db_name = db_name
         self.dbengine = DBEngine(db_name, dbtype)
