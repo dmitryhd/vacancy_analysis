@@ -3,8 +3,8 @@
 <head>
 <meta charset='utf-8'>
 <title>Vacancy statistics</title>
-<link rel="stylesheet" href="/static/style.css">
-<link href="/static/favicon.ico" rel="shortcut icon" type="image/x-icon">
+<link rel="stylesheet" href="/static/style.css"/>
+<link href="/static/favicon.ico" rel="shortcut icon" type="image/x-icon"/>
 <script src='/static/js/jquery-1.11.3.min.js'></script>
 <script src='/static/js/highcharts.js'></script>
 <script src="/static/js/image_gallery.js"></script>
@@ -12,30 +12,22 @@
 
 <body>
 <div class='pagecenter'>
-    <div class='gallery_container center_align'>
-        <h1>Статистика по вакансиям hh.ru (dmitryhd@gmail.com)</h1>
-        <button class='later'>later</button>
-        <button class='earlier'>earlier</button>
-    </div>
-    <div class='bottom'>
-        <div class='right'>
+    <header><h1>Статистика по вакансиям hh.ru</h1></header>
+    <main>
+        <div class='right dates'>
             Данные: </br>
             {% for timestamp, human_date in dates %}
             <a class='date_link' href="/?timestamp={{timestamp}}"> {{human_date}} </a> <br>
             {% endfor %}
         </div>
-        <div class='right'>
+        <div class='right tags'>
             Теги: </br>
             {% for tag in tags %}
             <a class='date_link' href="/tag/?tag={{tag|safe}}"> {{tag}} </a> <br>
             {% endfor %}
         </div>
-        <div class='left'>
-            <div class='plot_info'>
-                <div class="plot_info_item" id="cnt"></div>
-                <div class="plot_info_item" id="date"></div>
-                <div class="plot_info_item" id="date_s"></div>
-            </div>
+        <article>
+            <h1 id="date_s"></h1>
 
             <div id="chart_container">
                 <div id="vac_salary_container"></div>
@@ -43,8 +35,17 @@
             <div id="chart_container">
                 <div id="vac_number_container"></div>
             </div>
-        </div>
-    </div>
+            <div class='plot_info'>
+                <div class="plot_info_item" id="cnt"></div>
+                <div class="plot_info_item" id="date"></div>
+                <div class="plot_info_item" id="date_s"></div>
+            </div>
+            <nav>
+                <button class='later'>later</button>
+                <button class='earlier'>earlier</button>
+            </nav>
+        </article>
+    </main>
 </div>
 
 </body>

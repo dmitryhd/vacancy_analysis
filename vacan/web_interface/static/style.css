@@ -1,7 +1,32 @@
 /* Fonts */
 
-@import "http://webfonts.ru/import/djsans.css";
-@import "http://webfonts.ru/import/exotwo.css";
+/*@import "http://webfonts.ru/import/djsans.css";
+@import "http://webfonts.ru/import/exotwo.css";*/
+
+header {
+    width: 100%;
+    margin: 0;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 20px;
+    text-shadow: 2px 2px #ddd;
+    text-align: center;
+}
+
+main {
+    width:100%;display:block; overflow: hidden;
+}
+article {
+    display:block;overflow: hidden;
+}
+
+main h1 {
+    font-size: 15px;
+    text-shadow: 2px 2px #ddd;
+    text-align: center;
+}
 
 .gallery_container {
     width: 80%;
@@ -22,8 +47,8 @@
 #chart_container {
     width:100%;
     display: block;
-    margin-left: auto;
-    margin-right: auto;
+    margin-left: 0 auto;
+    margin-right: 0 auto;
 }
 
 #vac_number_container,#vac_salary_container {
@@ -53,13 +78,14 @@ body {
     float: left;
 }
 
-.right { padding-left: 20px; width: 10%; }
-.left {width: 76%; }
+.right { padding-left: 10px; }
+.dates {width: 130px; }
+.tags {width: 70px; }
+.left { overflow: hidden; width: auto; }
 
 .bottom {width: 100%; margin: 0 auto; overflow: auto;}
 
 .pagecenter {
-    width: 90%;
     margin: 0 auto;
     border: 1px solid #ccc;
     padding: 0px 0;
