@@ -1,7 +1,11 @@
 Vacancy analysis
 ================
-Web crawler and data analizer with web interface. 
+Web crawler and data analizer with web interface.
 Currently used to gather information about programmer vacancies.
+
+*Apparently this program uses mysql server*
+
+``sudo apt-get install mysql-client mysql-server``
 
 How to use it:
 
@@ -17,3 +21,5 @@ This is just fun site project for practicing some new programming techniques, do
 Class diagram
 ================
 ![](https://raw.githubusercontent.com/dmitryhd/vacancy_analysis/analysis/project/development_doc/vacan_class_diagram.png)
+
+

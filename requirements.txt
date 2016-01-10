@@ -1,0 +1,6 @@
+sqlalchemy
+sqlalchemy_utils
+beautifulsoup4
+requests
+pymysql
+flask  # web interface
