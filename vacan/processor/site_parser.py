@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
-""" Here goes site specific implementation of get vacancies.
-    TODO: this module need to be refactored.
-    Author: Dmitriy Khodakov <dmitryhd@gmail.com>
+"""
+Here goes site specific implementation of get vacancies.
+TODO: this module need to be refactored.
+Author: Dmitriy Khodakov <dmitryhd@gmail.com>
 """
 
 import bs4

@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
-""" Contain database representation of all classes.
-    Author: Dmitriy Khodakov <dmitryhd@gmail.com>
 """
+Contain database representation of all classes.
+Author: Dmitriy Khodakov <dmitryhd@gmail.com>
+"""
+
 import datetime
 import sqlalchemy.ext.declarative
 from sqlalchemy.dialects.mysql import TEXT

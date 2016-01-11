@@ -2,8 +2,9 @@
 
 # pylint: disable=abstract-method
 
-""" Contain entry representation of statistics entry.
-    Author: Dmitriy Khodakov <dmitryhd@gmail.com>
+"""
+Contain entry representation of statistics entry.
+Author: Dmitriy Khodakov <dmitryhd@gmail.com>
 """
 
 import json

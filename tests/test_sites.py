@@ -6,7 +6,6 @@ import unittest
 from tests import TEST_DATA_DIR
 
 import vacan.processor.data_model as dm
-import vacan.config as cfg
 import vacan.processor.site_parser as sp
 import vacan.processor.vacancy_processor
 

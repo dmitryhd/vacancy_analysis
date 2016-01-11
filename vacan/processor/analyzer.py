@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-""" Core analysis module for scientific article.
-    Author: Dmitriy Khodakov <dmitryhd@gmail.com>
+"""
+Core analysis module for scientific article.
+Author: Dmitriy Khodakov <dmitryhd@gmail.com>
 """
 
 import re

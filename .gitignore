@@ -1,6 +1,8 @@
 *.tgz
 vacancy_analysis/common/stat.db
 
+.idea
+
 # Backup files
 *.~
 .ipynb_checkpoints
