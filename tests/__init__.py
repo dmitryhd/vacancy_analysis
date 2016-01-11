@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 """ General test preparations and constants. """
+
 import vacan.processor.statistics as stat
 import vacan.processor.data_model as dm
 import vacan.skills as skills

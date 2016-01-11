@@ -46,7 +46,7 @@ def get_time_by_filename(fname):
 def parse_args():
     """ Process command line arguments. """
     parser = argparse.ArgumentParser()
-    parser.add_argument("-v", "--version", action='store_true', 
+    parser.add_argument("-v", "--version", action='store_true',
                         help="print version and exit")
     parser.add_argument("-d", "--db_name", type=str,
                         default='',
@@ -69,6 +69,7 @@ def parse_args():
 
 def create_histogram(data, bin_number):
     """ Create histogram data: return labels and counters. """
+    # TODO: refactor with numpy
     bottom = min(data)
     #bin_size = (max(data) - bottom) / bin_number
     bin_size = 10000

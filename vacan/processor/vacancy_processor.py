@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
 
-""" Main module to download html pages fro hh.ru, parse them and
-    save to database.
-
-    Author: Dmitriy Khodakov <dmitryhd@gmail.com>
 """
-import argparse
+Main module to download html pages fro hh.ru, parse them and save to database.
+
+Author: Dmitriy Khodakov <dmitryhd@gmail.com>
+"""
+
 import logging
 import re
 import bs4
 
 import vacan.utility as util
 import vacan.skills as skills
-import vacan.config as cfg
 import vacan.processor.site_parser as sp
 import vacan.processor.data_model as dm
 import vacan.processor.statistics as stat

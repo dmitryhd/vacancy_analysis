@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
-""" Text categories by skill. """
+"""
+Text categories by skill.
+"""
 
 import re
 import bs4
@@ -15,7 +17,7 @@ class Feature(object):
 
     def is_present(self, text):
         return bool(re.search(self.regexp, text))
-        
+
 
 class Qualifier(object):
     """ Generate Features from text of vacancy. """
@@ -99,7 +101,7 @@ class VacancyProcessor(object):
         self.qualifier = qualifier
         self.salary_class = 'l-content-colum-1 b-v-info-content'
         self.exp_class = 'l-content-colum-3 b-v-info-content'
-        
+
     def process(self, raw_vacs):
         """ From list of raw_vacs return list of ProcessedVacancies. """
         unique_raw_vacs = self._delete_duplicates(raw_vacs)
@@ -125,7 +127,7 @@ class VacancyProcessor(object):
                                     min_sal, max_sal, min_exp, max_exp)
         proc_vac.features = self.qualifier.analyze(raw_vac.html)
         return proc_vac
-    
+
     def _get_min_max_sal(self, text):
         """ Get min and max salary from vacancy. """
         soup = self._get_soup(text)
@@ -146,7 +148,7 @@ class VacancyProcessor(object):
             digits = re.search(r'(\d+).*(\d+)', res.text)
             min_exp = int(digits.groups()[0]) if digits else None
             max_exp = int(digits.groups()[1]) if digits else None
-        return min_exp, max_exp 
+        return min_exp, max_exp
 
     @staticmethod
     def _get_soup(text):
