@@ -5,12 +5,8 @@
 import unittest
 import json
 
-from flask import current_app
-from flask_restful import Resource, Api
-
 from tests import create_fictive_database
 import vacan.web_interface.web as web
-import vacan.config as cfg
 import vacan.skills as skills
 
 
