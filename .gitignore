@@ -2,6 +2,7 @@
 vacancy_analysis/common/stat.db
 
 .idea
+.noseids
 
 # Backup files
 *.~
