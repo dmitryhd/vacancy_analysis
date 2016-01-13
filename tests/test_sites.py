@@ -33,19 +33,6 @@ class TestSiteParser(unittest.TestCase):
         """ SiteParser: Download data from superjob.ru """
         self.assertTrue(self.get_vacancies_from_site('sj.ru'))
 
-    def test_composite_vacancy(self):
-        """ SiteParser: Read test vacancy from html and check output. """
-        # TODO: same for hh
-        parser = sp.site_parser_factory('sj.ru')
-        test_input = [TEST_DATA_DIR + 'test_vac_sj_01.html']
-        for file_name in test_input:
-            with open(file_name) as testfd:
-                html_orig = testfd.read()
-                test_vac = parser.get_vacancy(html=html_orig)
-                self.assertTrue(test_vac.name)
-                self.assertNotEqual(test_vac.name, 'cant parse')
-                self.assertTrue(test_vac.html)
-
     def test_get_salary(self):
         """ SiteParser: Check, if we can get valid salaries from hh vac. """
         # TODO: same for sj
