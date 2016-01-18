@@ -32,12 +32,12 @@ class TestQualifier(unittest.TestCase):
                                   'python': ''}}
         qualifier = ft.Qualifier(test_features)
         self.assertTrue(qualifier.features)
-        text = 'we need a nice c++ and java coder' 
+        text = 'we need a nice c++ and java coder'
         features = qualifier.analyze(text)
         self.assertTrue(features)
         self.assertEqual(features, {'c++': True, 'java': True,
                                     'python': False})
-        
+
 
 class TestProcessor(unittest.TestCase):
     """ Test case: TestProcessor. """
@@ -57,9 +57,9 @@ class TestProcessor(unittest.TestCase):
                      '<td class="l-content-colum-1 b-v-info-content">'
                      'до 110 000</td>'
                      '<td class="l-content-colum-3 b-v-info-content">2 6</td>')
-                    
 
-        raw_vacs = [dm.RawVacancy('vac1', vac1_html, 'url1'), 
+
+        raw_vacs = [dm.RawVacancy('vac1', vac1_html, 'url1'),
                     dm.RawVacancy('vac1', vac1_html, 'url1'),
                     dm.RawVacancy('vac2', vac2_html, 'url2')]
         proc_vacs = processor.process(raw_vacs)
@@ -72,7 +72,5 @@ class TestProcessor(unittest.TestCase):
                          (90000, 100000))
         self.assertEqual((proc_vacs[1].min_sal, proc_vacs[1].max_sal),
                          (None, 110000))
-        self.assertEqual((proc_vacs[0].min_exp, proc_vacs[0].max_exp),
-                         (1, 3))
-        self.assertEqual((proc_vacs[1].min_exp, proc_vacs[1].max_exp),
-                         (2, 6))
+        self.assertEqual((proc_vacs[0].min_exp, proc_vacs[0].max_exp), (1, 3))
+        self.assertEqual((proc_vacs[1].min_exp, proc_vacs[1].max_exp), (2, 6))
