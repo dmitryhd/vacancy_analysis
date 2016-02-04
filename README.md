@@ -22,12 +22,13 @@ This is just fun site project for practicing some new programming techniques, do
 Changelog
 ----------------
 
-### v0.8 - release date: 01.03.2016
+### v0.8 - release date: 01.04.2016
 - 2 views:
     - [ ] for all dates and individual vacancies and for tag
 - try out tornado
 
-### v0.7 - release date: 01.02.2016
+### v0.7 - release date: 01.03.2016
+- [ ] fix playground
 - [ ] working as a linux service
 - [ ] make file support
 - [ ] automatic deploy
