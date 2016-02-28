@@ -5,3 +5,4 @@ requests
 pymysql
 flask  # web interface
 nltk
+flask_restful
